@@ -1,0 +1,1095 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sediments #20 by Clyde</title><style>html,body{margin:0;height:100%;background:#111}canvas{display:block}</style></head><body><script>window.SEDIMENTS_HISTORY=[{"index":1,"timestamp":1811869200,"hash":"0xe0bdddaf2c68292d9926e5dd2999305d2db2a0bde214d5966a5947a6da6abaab"},{"index":2,"timestamp":1811874064,"hash":"0x962e95800e4feb2155b3d7a44a8f43c5750883d5f2f68142ab7c7f1d31e0433e"},{"index":3,"timestamp":1811878377,"hash":"0x1e4aee60b73369e50e05433a62b2f644d28ceb424dbbdc342946a9036d689a74"},{"index":4,"timestamp":1811879451,"hash":"0xf0295fe74cd69a4ae0dbf43fdb83a38044ef98033d11bfe464e66cf160dca88f"},{"index":5,"timestamp":1811883238,"hash":"0xed95d3da4429ba2979a7c788a31366230bc7c48483fa5f25e39950f094928e58"},{"index":6,"timestamp":1811883572,"hash":"0x95dcf0c96d9c2ccc42ba6733dd6475a5179d1450fd5428af025fd50501583856"},{"index":7,"timestamp":1811886177,"hash":"0xc18a241f01794422f76c6a8baa16d507d91c269e784c57d52550926b7f6d8f3c"},{"index":8,"timestamp":1811888527,"hash":"0x536e49669f7ef17ed2bc42b091db95d1886c297c2138e8b94a226e2f76c51352"},{"index":9,"timestamp":1811890774,"hash":"0x0802f9a9c938cebed4872a4a0fb066205114538ee40a8c599bb91387ab77790f"},{"index":10,"timestamp":1811891038,"hash":"0x4391cd67b2eda8c360332f3121339be2a3c517196be8f44136d33b259ae33335"},{"index":11,"timestamp":1811891050,"hash":"0xcd8c2ab7602170191e98b38aecb63a9678b65a34227498a6c9378bb7c9251f92"},{"index":12,"timestamp":1811895827,"hash":"0xe441c2eb5251c64a43c35035b98c9e1271dce866c88b99aa12af5f110a2a69dd"},{"index":13,"timestamp":1811896184,"hash":"0x5c18e0e33b4401721fdd8bf42c6ce700911ff5e8eb3b5aaa557ed64dff365062"},{"index":14,"timestamp":1811897788,"hash":"0x7317e42dd2e5cec0dab8bcbbb4b7fed8de03cf2e8c103d5be803c9905076d49d"},{"index":15,"timestamp":1811916198,"hash":"0x2f072136795feeaad13c1040f2be73584d318bf00cd799a365e95e5de826a142"},{"index":16,"timestamp":1811923140,"hash":"0xe125ae54e71febb21895ee028002e7bb7d734a8eda97ee4330c2a69c7c7afba2"},{"index":17,"timestamp":1811925206,"hash":"0xb9d01637658d2eb1bb24d839c5901d3f76b197227e78552b4121af62d139d6ae"},{"index":18,"timestamp":1811929272,"hash":"0xfa699d9d1dd9b06d0230f82ba9439ef644ec498628c5ddab4c7e53e084eec59d"},{"index":19,"timestamp":1811930956,"hash":"0x56ff88c63df80f08ba6d67d3c12f0f099deaf1a466a22506ea67a987f0ea9e4a"},{"index":20,"timestamp":1811931508,"hash":"0x38c1c2dd2819075c043ec5c2c827dc6df78579f7de5e9699ef095cdc2829d1b7"}];if(!/[?&]hash=/.test(location.search))history.replaceState(null,'','?hash=0x38c1c2dd2819075c043ec5c2c827dc6df78579f7de5e9699ef095cdc2829d1b7');</script><script>
+/* clyde.js: shared platform adapter + toolkit. One codebase that runs on
+ * Aleatory ($alea, ALEATORY-001 §7), fxhash ($fx, @fxhash/project-sdk), Highlight (hl-gen.js),
+ * Verse (?payload=) or standalone (?hash=...). To add a platform, add one branch here.
+ * Every random value is derived from the platform's own seeded stream.
+ */
+(function (W) {
+  'use strict';
+  var q = new URLSearchParams(W.location ? W.location.search : '');
+
+  // ---- platform detection -------------------------------------------------
+  var platform, seedStr, baseRand, setFeatures, signalDone;
+  if (W.$alea && typeof W.$alea.rand === 'function' && W.$alea.seed != null) {
+    platform = 'aleatory';
+    seedStr = String(W.$alea.seed);
+    baseRand = W.$alea.rand;
+    setFeatures = function (f) { W.$alea.features(f); };
+    signalDone = function () { W.$alea.ready(); };
+  } else if (W.$fx && typeof W.$fx.rand === 'function') {
+    platform = 'fxhash';
+    seedStr = String(W.$fx.hash);
+    baseRand = W.$fx.rand;
+    setFeatures = function (f) { W.$fx.features(f); };
+    signalDone = function () { W.$fx.preview(); };
+  } else if (typeof hl !== 'undefined' && hl && typeof hl.random === 'function' && hl.token) {
+    // Highlight (hl-gen.js): note `hl` is a top-level const, not a window property
+    platform = 'highlight';
+    seedStr = String(hl.tx.hash);
+    baseRand = function () { return hl.random(); };
+    setFeatures = function (f) { hl.token.setTraits(f); };
+    signalDone = function () { hl.token.capturePreview(); };
+  } else if (q.get('payload')) {
+    // Verse "Random Generative JS": base64 JSON payload {hash, editionNumber, totalEditions, input}
+    platform = 'verse';
+    var pl = {}; try { pl = JSON.parse(atob(q.get('payload'))); } catch (e) {}
+    seedStr = String(pl.hash || '0x0');
+    baseRand = sfc32.apply(null, cyrb128(seedStr));
+    setFeatures = function (f) { W.$artifact = W.$artifact || {}; W.$artifact.features = f; };
+    signalDone = function () { console.info('###verse-preview-capture'); W.dispatchEvent(new Event('capture-preview')); };
+  } else {
+    platform = 'standalone';
+    seedStr = q.get('hash') || q.get('seed') || (function () {
+      var h = '0x', c = '0123456789abcdef';
+      for (var i = 0; i < 64; i++) h += c[(Math.random() * 16) | 0];
+      return h;
+    })();
+    baseRand = sfc32.apply(null, cyrb128(seedStr));
+    setFeatures = function () {};
+    signalDone = function () {};
+  }
+
+  function cyrb128(str) {
+    var h1 = 1779033703, h2 = 3144134277, h3 = 1013904242, h4 = 2773480762;
+    for (var i = 0, k; i < str.length; i++) {
+      k = str.charCodeAt(i);
+      h1 = h2 ^ Math.imul(h1 ^ k, 597399067); h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
+      h3 = h4 ^ Math.imul(h3 ^ k, 951274213); h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
+    }
+    h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067); h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
+    h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213); h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
+    h1 ^= (h2 ^ h3 ^ h4); h2 ^= h1; h3 ^= h1; h4 ^= h1;
+    return [h1 >>> 0, h2 >>> 0, h3 >>> 0, h4 >>> 0];
+  }
+  function sfc32(a, b, c, d) {
+    return function () {
+      a >>>= 0; b >>>= 0; c >>>= 0; d >>>= 0;
+      var t = (a + b) | 0; a = b ^ (b >>> 9); b = (c + (c << 3)) | 0;
+      c = (c << 21) | (c >>> 11); d = (d + 1) | 0; t = (t + d) | 0; c = (c + t) | 0;
+      return (t >>> 0) / 4294967296;
+    };
+  }
+
+  // Root key: four draws from the platform stream (identical count on every path).
+  var root = '';
+  for (var i = 0; i < 4; i++) root += ((baseRand() * 4294967296) >>> 0).toString(16) + ':';
+
+  function makeRng(label) {
+    var s = cyrb128(root + label), next = sfc32(s[0], s[1], s[2], s[3]);
+    for (var j = 0; j < 12; j++) next();
+    var R = {
+      rand: next,
+      range: function (a, b) { return a + (b - a) * next(); },
+      int: function (a, b) { return Math.floor(a + (b - a + 1) * next()); },
+      chance: function (p) { return next() < p; },
+      pick: function (arr) { return arr[Math.floor(next() * arr.length)]; },
+      weighted: function (pairs) {
+        var t = 0, k; for (k = 0; k < pairs.length; k++) t += pairs[k][1];
+        var r = next() * t;
+        for (k = 0; k < pairs.length; k++) { r -= pairs[k][1]; if (r < 0) return pairs[k][0]; }
+        return pairs[pairs.length - 1][0];
+      },
+      gaussian: function (m, sd) {
+        var u = 1 - next(), v = next();
+        return (m || 0) + (sd == null ? 1 : sd) * Math.sqrt(-2 * Math.log(u)) * Math.cos(6.283185307179586 * v);
+      },
+      pareto: function (min, alpha) { return min / Math.pow(1 - next(), 1 / alpha); },
+      shuffle: function (arr) {
+        var a = arr.slice();
+        for (var k = a.length - 1; k > 0; k--) { var j2 = Math.floor(next() * (k + 1)); var t2 = a[k]; a[k] = a[j2]; a[j2] = t2; }
+        return a;
+      },
+      fork: function (l) { return makeRng(label + '/' + l); }
+    };
+    return R;
+  }
+
+  // ---- simplex noise 2D (Gustavson), permutation from an rng ----------------
+  function makeNoise(R) {
+    var p = [], perm = new Uint8Array(512), k;
+    for (k = 0; k < 256; k++) p[k] = k;
+    p = R.shuffle(p);
+    for (k = 0; k < 512; k++) perm[k] = p[k & 255];
+    var G = [[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]];
+    var F2 = 0.5 * (Math.sqrt(3) - 1), G2 = (3 - Math.sqrt(3)) / 6;
+    function n2(xin, yin) {
+      var s = (xin + yin) * F2, i = Math.floor(xin + s), j = Math.floor(yin + s);
+      var t = (i + j) * G2, x0 = xin - (i - t), y0 = yin - (j - t);
+      var i1 = x0 > y0 ? 1 : 0, j1 = 1 - i1;
+      var x1 = x0 - i1 + G2, y1 = y0 - j1 + G2, x2 = x0 - 1 + 2 * G2, y2 = y0 - 1 + 2 * G2;
+      var ii = i & 255, jj = j & 255, n = 0, tt, g;
+      tt = 0.5 - x0 * x0 - y0 * y0; if (tt > 0) { g = G[perm[ii + perm[jj]] & 7]; tt *= tt; n += tt * tt * (g[0] * x0 + g[1] * y0); }
+      tt = 0.5 - x1 * x1 - y1 * y1; if (tt > 0) { g = G[perm[ii + i1 + perm[jj + j1]] & 7]; tt *= tt; n += tt * tt * (g[0] * x1 + g[1] * y1); }
+      tt = 0.5 - x2 * x2 - y2 * y2; if (tt > 0) { g = G[perm[ii + 1 + perm[jj + 1]] & 7]; tt *= tt; n += tt * tt * (g[0] * x2 + g[1] * y2); }
+      return 70 * n; // ~[-1,1]
+    }
+    function fbm(x, y, oct) {
+      var a = 0.5, f = 1, s = 0, n = 0; oct = oct || 4;
+      for (var o = 0; o < oct; o++) { s += a * n2(x * f, y * f); n += a; a *= 0.5; f *= 2; }
+      return s / n;
+    }
+    return { n2: n2, fbm: fbm };
+  }
+
+
+  // ---- marching squares -> chained polylines (grid coords) -----------------
+  function contours(F, w, h, thr) {
+    var segs = [];
+    function lerp(a, b) { return (thr - a) / (b - a); }
+    for (var y = 0; y < h - 1; y++) for (var x = 0; x < w - 1; x++) {
+      var a = F[y * w + x], b = F[y * w + x + 1], c = F[(y + 1) * w + x + 1], d = F[(y + 1) * w + x];
+      var idx = (a > thr ? 8 : 0) | (b > thr ? 4 : 0) | (c > thr ? 2 : 0) | (d > thr ? 1 : 0);
+      if (idx === 0 || idx === 15) continue;
+      var T = [x + lerp(a, b), y], R = [x + 1, y + lerp(b, c)], B = [x + lerp(d, c), y + 1], L = [x, y + lerp(a, d)];
+      switch (idx) {
+        case 1: case 14: segs.push([L, B]); break;
+        case 2: case 13: segs.push([B, R]); break;
+        case 3: case 12: segs.push([L, R]); break;
+        case 4: case 11: segs.push([T, R]); break;
+        case 6: case 9: segs.push([T, B]); break;
+        case 7: case 8: segs.push([L, T]); break;
+        case 5: segs.push([L, T]); segs.push([B, R]); break;
+        case 10: segs.push([T, R]); segs.push([L, B]); break;
+      }
+    }
+    return chain(segs);
+  }
+  function chain(segs) {
+    var key = function (p) { return Math.round(p[0] * 1000) + ',' + Math.round(p[1] * 1000); };
+    var map = {}, used = new Uint8Array(segs.length), i;
+    for (i = 0; i < segs.length; i++) for (var e = 0; e < 2; e++) { var kk = key(segs[i][e]); (map[kk] = map[kk] || []).push(i); }
+    var lines = [];
+    function nextFrom(p) {
+      var l = map[key(p)]; if (!l) return -1;
+      for (var j = 0; j < l.length; j++) if (!used[l[j]]) return l[j];
+      return -1;
+    }
+    for (i = 0; i < segs.length; i++) {
+      if (used[i]) continue;
+      used[i] = 1; var line = [segs[i][0], segs[i][1]];
+      for (var dir = 0; dir < 2; dir++) {
+        while (true) {
+          var end = line[line.length - 1], n = nextFrom(end);
+          if (n < 0) break;
+          used[n] = 1; var s2 = segs[n];
+          line.push(key(s2[0]) === key(end) ? s2[1] : s2[0]);
+        }
+        line.reverse();
+      }
+      lines.push(line);
+    }
+    return lines;
+  }
+  // ---- exact Euclidean distance transform (Felzenszwalb) -------------------
+  // in: Uint8Array mask (1 = feature), returns Float32Array distance in cells
+  function edt(mask, w, h) {
+    var INF = 1e20, f = new Float64Array(Math.max(w, h)), d = new Float64Array(Math.max(w, h));
+    var v = new Int32Array(Math.max(w, h)), z = new Float64Array(Math.max(w, h) + 1);
+    var g = new Float64Array(w * h), x, y;
+    for (var i = 0; i < w * h; i++) g[i] = mask[i] ? 0 : INF;
+    function dt1(n) {
+      var k = 0; v[0] = 0; z[0] = -INF; z[1] = INF;
+      for (var q2 = 1; q2 < n; q2++) {
+        var s = ((f[q2] + q2 * q2) - (f[v[k]] + v[k] * v[k])) / (2 * q2 - 2 * v[k]);
+        while (s <= z[k]) { k--; s = ((f[q2] + q2 * q2) - (f[v[k]] + v[k] * v[k])) / (2 * q2 - 2 * v[k]); }
+        k++; v[k] = q2; z[k] = s; z[k + 1] = INF;
+      }
+      k = 0;
+      for (var q3 = 0; q3 < n; q3++) { while (z[k + 1] < q3) k++; d[q3] = (q3 - v[k]) * (q3 - v[k]) + f[v[k]]; }
+    }
+    for (x = 0; x < w; x++) { for (y = 0; y < h; y++) f[y] = g[y * w + x]; dt1(h); for (y = 0; y < h; y++) g[y * w + x] = d[y]; }
+    for (y = 0; y < h; y++) { for (x = 0; x < w; x++) f[x] = g[y * w + x]; dt1(w); for (x = 0; x < w; x++) g[y * w + x] = d[x]; }
+    var out = new Float32Array(w * h);
+    for (i = 0; i < w * h; i++) out[i] = Math.sqrt(g[i]);
+    return out;
+  }
+
+  // ---- canvas: fixed virtual space, fixed pixel resolution ------------------
+  function setupCanvas(VW, VH, bg) {
+    var longSide = parseInt(q.get('res'), 10) || 1600;
+    longSide = Math.max(400, Math.min(8000, longSide));
+    var k = longSide / Math.max(VW, VH);
+    var cv = document.createElement('canvas');
+    cv.width = Math.round(VW * k); cv.height = Math.round(VH * k);
+    document.body.style.cssText = 'margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:' + (bg || '#111') + ';overflow:hidden';
+    document.body.appendChild(cv);
+    function fit() {
+      var s = Math.min(W.innerWidth / cv.width, W.innerHeight / cv.height);
+      cv.style.width = Math.floor(cv.width * s) + 'px'; cv.style.height = Math.floor(cv.height * s) + 'px';
+    }
+    fit(); W.addEventListener('resize', fit);
+    var ctx = cv.getContext('2d');
+    ctx.setTransform(k, 0, 0, k, 0, 0); // draw in virtual units
+    return { canvas: cv, ctx: ctx, k: k, VW: VW, VH: VH };
+  }
+
+  // ---- vector recorder for plotter SVG -------------------------------------
+  var vec = { layers: {}, order: [], VW: 1000, VH: 1000 };
+  function poly(pts, color, closed) {
+    if (!pts || pts.length < 2) return;
+    if (!vec.layers[color]) { vec.layers[color] = []; vec.order.push(color); }
+    vec.layers[color].push({ p: pts, c: !!closed });
+  }
+  function svgString(mmLong) {
+    mmLong = mmLong || 280;
+    var s = mmLong / Math.max(vec.VW, vec.VH), mw = (vec.VW * s).toFixed(1), mh = (vec.VH * s).toFixed(1);
+    var o = ['<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="' + mw + 'mm" height="' + mh + 'mm" viewBox="0 0 ' + mw + ' ' + mh + '">'];
+    vec.order.forEach(function (col, li) {
+      o.push('<g inkscape:groupmode="layer" id="pen' + (li + 1) + '" inkscape:label="' + (li + 1) + ' ' + col + '" fill="none" stroke="' + col + '" stroke-width="0.3" stroke-linecap="round" stroke-linejoin="round">');
+      vec.layers[col].forEach(function (L) {
+        var d = L.p.map(function (p) { return (p[0] * s).toFixed(2) + ',' + (p[1] * s).toFixed(2); }).join(' ');
+        o.push(L.c ? '<polygon points="' + d + '"/>' : '<polyline points="' + d + '"/>');
+      });
+      o.push('</g>');
+    });
+    o.push('</svg>');
+    return o.join('\n');
+  }
+  function download(name, data, mime) {
+    var a = document.createElement('a');
+    a.href = typeof data === 'string' && data.indexOf('data:') === 0 ? data : URL.createObjectURL(new Blob([data], { type: mime }));
+    a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  var C = {
+    platform: platform, hash: seedStr, query: q,
+    rng: makeRng, noise: makeNoise, setupCanvas: setupCanvas, contours: contours, chain: chain, edt: edt,
+    poly: poly, svgString: svgString,
+    vectorSpace: function (VW, VH) { vec.VW = VW; vec.VH = VH; },
+    plottable: true,
+    _features: null,
+    features: function (f) { C._features = f; setFeatures(f); },
+    done: function (canvas, slug) {
+      W.__clyde = { done: true, features: C._features, hash: seedStr, platform: platform };
+      signalDone();
+      W.addEventListener('keydown', function (e) {
+        var base = (slug || 'clyde') + '-' + seedStr.slice(0, 12);
+        if (e.key === 's') download(base + '.png', canvas.toDataURL('image/png'));
+        if (e.key === 'v' && C.plottable) download(base + '.svg', svgString(), 'image/svg+xml');
+      });
+    },
+    // perceptual-ish colour helpers
+    hex2rgb: function (h) { h = h.replace('#', ''); return [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)]; },
+    mix: function (a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; },
+    rgba: function (c, a) { return 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + (a == null ? 1 : a) + ')'; }
+  };
+  W.CLYDE = C;
+})(window);
+
+</script><script>
+/* px.js: Clyde's pixel toolkit for the 2027 series (shared, concatenated ahead of each main.js).
+ * Everything renders into a float buffer and is written once with putImageData, so the same file
+ * runs in a browser, on Aleatory, and headless in node. No randomness lives here. */
+var PX = (function () {
+  function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function sstep(a, b, x) { x = clamp((x - a) / (b - a), 0, 1); return x * x * (3 - 2 * x); }
+  function ihash(n) { n = (n ^ 61) ^ (n >>> 16); n = (n + (n << 3)) | 0; n = n ^ (n >>> 4); n = Math.imul(n, 0x27d4eb2d); n = n ^ (n >>> 15); return (n >>> 0) / 4294967296; }
+  function h2(x, y, s) { return ihash((Math.imul(x | 0, 73856093) ^ Math.imul(y | 0, 19349663) ^ Math.imul((s | 0) + 1, 83492791)) | 0); }
+  // value noise on an integer lattice, smooth (cheap, deterministic, no rng needed)
+  function vnoise(x, y, s) {
+    var xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi;
+    fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy);
+    var a = h2(xi, yi, s), b = h2(xi + 1, yi, s), c = h2(xi, yi + 1, s), d = h2(xi + 1, yi + 1, s);
+    return lerp(lerp(a, b, fx), lerp(c, d, fx), fy) * 2 - 1;
+  }
+  function fbm(x, y, s, oct, lac, gain) {
+    oct = oct || 4; lac = lac || 2.03; gain = gain || 0.5;
+    var a = 0.5, t = 0, n = 0;
+    for (var o = 0; o < oct; o++) { t += a * vnoise(x, y, s + o * 17); n += a; a *= gain; x *= lac; y *= lac; var tx = x * 0.8 - y * 0.6; y = x * 0.6 + y * 0.8; x = tx; }
+    return t / n;
+  }
+  // separable box blur, 3 passes ~ gaussian(sigma); edges clamp
+  function boxPass(src, dst, w, h, r, horiz) {
+    var n = horiz ? w : h, m = horiz ? h : w, sx = horiz ? 1 : w, sy = horiz ? w : 1, inv = 1 / (2 * r + 1);
+    for (var j = 0; j < m; j++) {
+      var base = j * sy, acc = 0, k;
+      for (k = -r; k <= r; k++) acc += src[base + clamp(k, 0, n - 1) * sx];
+      for (var i = 0; i < n; i++) {
+        dst[base + i * sx] = acc * inv;
+        acc += src[base + Math.min(i + r + 1, n - 1) * sx] - src[base + Math.max(i - r, 0) * sx];
+      }
+    }
+  }
+  function blur(F, w, h, sigma, tmp) {
+    if (sigma < 0.4) return F;
+    var r = Math.max(1, Math.round(Math.sqrt(12 * sigma * sigma / 3 + 1) / 2 - 0.5)); tmp = tmp || new Float32Array(w * h);
+    for (var p = 0; p < 3; p++) { boxPass(F, tmp, w, h, r, true); boxPass(tmp, F, w, h, r, false); }
+    return F;
+  }
+  function blurXY(F, w, h, sx, sy) { var tmp = new Float32Array(w * h), r; for (var p = 0; p < 3; p++) { if (sx >= 0.4) { r = Math.max(1, Math.round(sx * 0.95)); boxPass(F, tmp, w, h, r, true); F.set(tmp); } if (sy >= 0.4) { r = Math.max(1, Math.round(sy * 0.95)); boxPass(F, tmp, w, h, r, false); F.set(tmp); } } return F; }
+  function bil(F, w, h, x, y) {
+    x = clamp(x, 0, w - 1.001); y = clamp(y, 0, h - 1.001);
+    var xi = x | 0, yi = y | 0, fx = x - xi, fy = y - yi, i = yi * w + xi;
+    return (F[i] * (1 - fx) + F[i + 1] * fx) * (1 - fy) + (F[i + w] * (1 - fx) + F[i + w + 1] * fx) * fy;
+  }
+  // even-odd scanline polygon fill; pts = [[x,y],...] in pixel units; fn(index, x, y)
+  function fillPoly(pts, w, h, fn) {
+    var y0 = Infinity, y1 = -Infinity, n = pts.length, k;
+    for (k = 0; k < n; k++) { y0 = Math.min(y0, pts[k][1]); y1 = Math.max(y1, pts[k][1]); }
+    y0 = Math.max(0, Math.floor(y0)); y1 = Math.min(h - 1, Math.ceil(y1));
+    var xs = [];
+    for (var y = y0; y <= y1; y++) {
+      var yc = y + 0.5; xs.length = 0;
+      for (k = 0; k < n; k++) {
+        var a = pts[k], b = pts[(k + 1) % n];
+        if ((a[1] <= yc && b[1] > yc) || (b[1] <= yc && a[1] > yc)) xs.push(a[0] + (yc - a[1]) / (b[1] - a[1]) * (b[0] - a[0]));
+      }
+      xs.sort(function (p, q) { return p - q; });
+      for (k = 0; k + 1 < xs.length; k += 2) {
+        var xa = Math.max(0, Math.ceil(xs[k] - 0.5)), xb = Math.min(w - 1, Math.floor(xs[k + 1] - 0.5));
+        for (var x = xa; x <= xb; x++) fn(y * w + x, x, y);
+      }
+    }
+  }
+  function forDisc(cx, cy, r, w, h, fn) {
+    var x0 = Math.max(0, Math.floor(cx - r)), x1 = Math.min(w - 1, Math.ceil(cx + r)), y0 = Math.max(0, Math.floor(cy - r)), y1 = Math.min(h - 1, Math.ceil(cy + r));
+    for (var y = y0; y <= y1; y++) for (var x = x0; x <= x1; x++) { var dx = x + 0.5 - cx, dy = y + 0.5 - cy, d = Math.sqrt(dx * dx + dy * dy); if (d <= r) fn(y * w + x, d, dx, dy); }
+  }
+  function segDist(px, py, ax, ay, bx, by) {
+    var vx = bx - ax, vy = by - ay, l2 = vx * vx + vy * vy, t = l2 > 0 ? clamp(((px - ax) * vx + (py - ay) * vy) / l2, 0, 1) : 0;
+    var dx = px - ax - t * vx, dy = py - ay - t * vy; return Math.sqrt(dx * dx + dy * dy);
+  }
+  function convexHull(P) {
+    P = P.slice().sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
+    function cr(o, a, b) { return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]); }
+    var lo = [], up = [], i;
+    for (i = 0; i < P.length; i++) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], P[i]) <= 0) lo.pop(); lo.push(P[i]); }
+    for (i = P.length - 1; i >= 0; i--) { while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], P[i]) <= 0) up.pop(); up.push(P[i]); }
+    up.pop(); lo.pop(); return lo.concat(up);
+  }
+  function canvas(C, VW, VH, bg) {
+    var cv = C.setupCanvas(VW, VH, bg), PW = cv.canvas.width, PH = cv.canvas.height;
+    var img = cv.ctx.createImageData(PW, PH);
+    return { cv: cv, ctx: cv.ctx, img: img, px8: img.data, PW: PW, PH: PH, s: PW / VW };
+  }
+  // write linear-light float RGB to the canvas. opt: {expo, filmic, grain, vig, seed}
+  function finish(o, R, G, B, opt) {
+    opt = opt || {}; var PW = o.PW, PH = o.PH, d = o.px8, ex = opt.expo || 1, gr = opt.grain == null ? 0.012 : opt.grain, vg = opt.vig || 0, fl = !!opt.filmic, sd = opt.seed || 1;
+    for (var y = 0; y < PH; y++) for (var x = 0; x < PW; x++) {
+      var i = y * PW + x, r = R[i] * ex, g = G[i] * ex, b = B[i] * ex;
+      if (fl) { r = 1 - Math.exp(-r); g = 1 - Math.exp(-g); b = 1 - Math.exp(-b); }
+      if (vg) { var u = x / PW - 0.5, v = y / PH - 0.5, f = 1 - vg * (u * u + v * v) * 2; r *= f; g *= f; b *= f; }
+      var lum = 0.3 * r + 0.59 * g + 0.11 * b, n = (ihash(i * 7 + sd) + ihash(i * 13 + 5 + sd) - 1) * gr * (1 - 0.6 * lum);
+      d[i * 4] = clamp(Math.pow(clamp(r, 0, 1), 1 / 2.2) + n, 0, 1) * 255;
+      d[i * 4 + 1] = clamp(Math.pow(clamp(g, 0, 1), 1 / 2.2) + n, 0, 1) * 255;
+      d[i * 4 + 2] = clamp(Math.pow(clamp(b, 0, 1), 1 / 2.2) + n, 0, 1) * 255;
+      d[i * 4 + 3] = 255;
+    }
+    o.ctx.putImageData(o.img, 0, 0);
+  }
+
+  // anti-aliased polyline into a float coverage buffer (max-combine). pts in pixel units, w = line width in px.
+  function line(F, W, H, pts, w, val, press) {
+    val = val == null ? 1 : val; var hw = Math.max(w, 0.7) / 2;
+    for (var k = 0; k + 1 < pts.length; k++) {
+      var a = pts[k], b = pts[k + 1], x0 = Math.max(0, Math.floor(Math.min(a[0], b[0]) - hw - 1)), x1 = Math.min(W - 1, Math.ceil(Math.max(a[0], b[0]) + hw + 1)), y0 = Math.max(0, Math.floor(Math.min(a[1], b[1]) - hw - 1)), y1 = Math.min(H - 1, Math.ceil(Math.max(a[1], b[1]) + hw + 1));
+      var pa = press ? press[k] : 1, cov0 = w < 0.7 ? w / 0.7 : 1;
+      for (var y = y0; y <= y1; y++) for (var x = x0; x <= x1; x++) { var d = segDist(x + 0.5, y + 0.5, a[0], a[1], b[0], b[1]), c = clamp(hw + 0.5 - d, 0, 1) * cov0 * val * pa, i = y * W + x; if (c > F[i]) F[i] = c; }
+    }
+  }
+  // handwriting-like scribble: coupled oscillators (Hollerbach 1981) with drift. Returns array of strokes (word = stroke).
+  // rnd: function()->[0,1). x,y start, h = x-height, n = letters, slant (radians). Units arbitrary (caller's).
+  function scribble(rnd, x, y, h, n, slant, ws) {
+    // cursive-like strokes: per letter, alternate baseline/x-height key points (ascenders, descenders, loops),
+    // then Chaikin-smoothed so turns are rounded the way a moving pen rounds them. y grows downward.
+    var out = [], key = [], cx = x, sl = Math.tan(slant == null ? 0.2 : slant), v = (ws || 0.6) * h, base = y;
+    function flush() { if (key.length < 2) { key = []; return; } var P = key; for (var it = 0; it < 3; it++) { var Q = [P[0]]; for (var k = 0; k + 1 < P.length; k++) { var a = P[k], b = P[k + 1]; Q.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25], [a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]); } Q.push(P[P.length - 1]); P = Q; }
+      out.push(P.map(function (p) { return [p[0] - (p[1] - base) * sl, p[1]]; })); key = []; }
+    key.push([cx, base]);
+    for (var L = 0; L < n; L++) {
+      var kind = rnd(), hh = h * (0.85 + 0.3 * rnd()), humps = kind < 0.2 ? 2 : 1;
+      if (kind > 0.2 && kind < 0.36) { key.push([cx + 0.15 * h, base - 2.1 * h], [cx - 0.05 * h, base - 1.6 * h]); }   // ascender loop
+      for (var u = 0; u < humps; u++) { key.push([cx + 0.18 * v, base - hh], [cx + 0.5 * v, base - hh * 0.9]); cx += v * (0.7 + 0.3 * rnd()); key.push([cx, base]); }
+      if (kind > 0.9) { key.push([cx - 0.1 * h, base + 1.0 * h], [cx - 0.35 * h, base + 0.7 * h], [cx + 0.1 * h, base]); }   // descender
+      if (kind > 0.36 && kind < 0.5) { key.push([cx - 0.3 * v, base - hh * 0.7], [cx - 0.1 * v, base - hh], [cx + 0.2 * v, base]); cx += 0.2 * v; }   // e/o-ish
+      base += (rnd() - 0.5) * 0.05 * h; cx += v * 0.1;
+      if (rnd() < 0.16 && L < n - 1) { flush(); cx += h * (0.6 + 0.4 * rnd()); key.push([cx, base]); }
+    }
+    flush(); return out;
+  }
+  function srgb2lin(c) { return Math.pow(c / 255, 2.2); }
+  function col(hex) { var c = hex.replace('#', ''); return [srgb2lin(parseInt(c.substr(0, 2), 16)), srgb2lin(parseInt(c.substr(2, 2), 16)), srgb2lin(parseInt(c.substr(4, 2), 16))]; }
+  return { clamp: clamp, lerp: lerp, sstep: sstep, ihash: ihash, h2: h2, vnoise: vnoise, fbm: fbm, blur: blur, blurXY: blurXY, bil: bil, fillPoly: fillPoly, forDisc: forDisc, segDist: segDist, convexHull: convexHull, line: line, scribble: scribble, canvas: canvas, finish: finish, col: col };
+})();
+/* world.js: Sediments world timelines (data only). Pick with SED_WORLD (default 'A', pending Joshua's choice).
+ * An era maps a span of progress units P to a span of world years (CE; negative = BCE), piecewise-linear.
+ * events: [key, weight] chosen by each mint's hash. fauna: species for grazing/death. bg: background sediment.
+ * Event keys understood by the engine: quiet graze death flood drought fire loess frost outwash blackmat camp
+ * midden burial dogburial pit house plough fence litter tyre car beaver sandblow lost cinders. */
+var WORLDS = {
+  A: { name: 'The Lick', place: 'a floodplain beside a salt spring, mid-continent North America (modelled on Ohio Valley licks)',
+    base: [['gravel', 0.7], ['sand', 0.45], ['silt', 0.7], ['mud', 0.25], ['silt', 0.9]],             // pre-existing ground, bottom -> top (m)
+    waterTable: 1.1,                                                      // m below the surface (waterlogged + anoxic below)
+    eras: [
+      { key: 'prologue', name: 'Prologue: the mammoth summer', P: [0, 25], Y: [-28000, -27988], veg: 'steppe', climate: 'cold', bg: 'silt', rate: 1.1,
+        events: [['quiet', 22], ['graze', 30], ['death', 12], ['flood', 18], ['drought', 10], ['loess', 8]],
+        fauna: [['mammoth', 40], ['bison', 30], ['horse', 20], ['wolf', 10]] },
+      { key: 'steppe', name: 'Late Pleistocene steppe', P: [25, 170], Y: [-27988, -12700], veg: 'steppe', climate: 'cold', bg: 'loess', rate: 0.9,
+        events: [['quiet', 30], ['loess', 20], ['graze', 14], ['flood', 12], ['outwash', 6], ['frost', 4], ['death', 5], ['drought', 6], ['fire', 2], ['lost', 0.3]],
+        fauna: [['mammoth', 35], ['mastodon', 15], ['bison', 25], ['horse', 20], ['wolf', 5]] },
+      { key: 'lateglacial', name: 'Late Glacial: the end of the megafauna', P: [170, 250], Y: [-12700, -9700], veg: 'parkland', climate: 'cool', bg: 'silt', rate: 1.0,
+        events: [['quiet', 28], ['flood', 16], ['camp', 14], ['death', 6], ['graze', 10], ['blackmat', 8], ['fire', 6], ['drought', 4], ['lost', 0.3]],
+        fauna: [['mammoth', 20], ['mastodon', 20], ['bison', 35], ['horse', 10], ['deer', 15]], lastMegafauna: -11000 },
+      { key: 'archaic', name: 'Archaic forest', P: [250, 410], Y: [-9700, -1000], veg: 'forest', climate: 'mild', bg: 'silt', rate: 1.2,
+        events: [['quiet', 30], ['flood', 18], ['camp', 14], ['midden', 6], ['fire', 6], ['death', 4], ['graze', 6], ['drought', 3], ['dogburial', 1], ['burial', 0.7], ['sandblow', 0.3], ['lost', 0.3]],
+        fauna: [['deer', 60], ['bison', 15], ['wolf', 10], ['bear', 15]] },
+      { key: 'woodland', name: 'Woodland and Mississippian', P: [410, 520], Y: [-1000, 1500], veg: 'forest', climate: 'mild', bg: 'silt', rate: 1.3,
+        events: [['quiet', 26], ['flood', 18], ['camp', 10], ['pit', 10], ['house', 7], ['fire', 6], ['death', 3], ['midden', 3], ['burial', 0.7], ['sandblow', 0.3], ['lost', 0.3]],
+        fauna: [['deer', 70], ['dog', 15], ['bear', 15]] },
+      { key: 'farm', name: 'Farm', P: [520, 640], Y: [1500, 1900], veg: 'pasture', climate: 'mild', bg: 'silt', rate: 1.6,
+        events: [['quiet', 20], ['plough', 18], ['fence', 12], ['flood', 14], ['graze', 10], ['death', 5], ['litter', 8], ['fire', 3], ['sandblow', 0.3], ['lost', 0.3]],
+        fauna: [['cow', 45], ['horse', 25], ['pig', 20], ['dog', 10]], fenceKinds: ['split rail', 'post and wire'] },
+      { key: 'modern', name: 'Modern', P: [640, 800], Y: [1900, 2027], veg: 'pasture', climate: 'mild', bg: 'silt', rate: 2.0,
+        events: [['quiet', 22], ['flood', 12], ['plough', 10], ['fence', 10], ['litter', 14], ['graze', 8], ['death', 4], ['cinders', 5], ['tyre', 1.5], ['car', 0.4], ['lost', 0.3]],
+        fauna: [['cow', 45], ['deer', 25], ['dog', 15], ['horse', 15]], fenceKinds: ['barbed wire', 'chain-link'], bigFlood: 1937 },
+      { key: 'future', name: 'Near future (speculative)', P: [800, 1e9], Y: [2027, 2027 + (1e9 - 800)], veg: 'scrub', climate: 'warm', bg: 'silt', rate: 2.2,
+        events: [['quiet', 24], ['flood', 22], ['beaver', 8], ['litter', 6], ['death', 4], ['fire', 6], ['graze', 6], ['tyre', 1], ['car', 0.5], ['lost', 0.3]],
+        fauna: [['deer', 60], ['dog', 10], ['beaver', 10], ['cow', 20]] }
+    ] },
+  // B and C are drop-in tables (see WORLD.md). Their species/objects reuse the engine's vocabulary where it exists;
+  // dinosaurs etc. would need their own rigs before B is renderable at quality.
+  B: { name: 'Badlands', place: 'eastern Montana river floodplain (Hell Creek -> Fort Union)', base: [['sand', 1.0], ['mud', 0.8]], waterTable: 1.4,
+    eras: [
+      { key: 'prologue', name: 'A river in the Maastrichtian', P: [0, 25], Y: [-66050000, -66049990], veg: 'fern', climate: 'warm', bg: 'mud', rate: 1.4, events: [['quiet', 30], ['flood', 25], ['death', 15], ['graze', 20]], fauna: [['bison', 100]] },
+      { key: 'cretaceous', name: 'Late Cretaceous', P: [25, 300], Y: [-66049990, -66000000], veg: 'fern', climate: 'warm', bg: 'mud', rate: 1.4, events: [['quiet', 30], ['flood', 25], ['death', 8], ['fire', 4]], fauna: [['bison', 100]] },
+      { key: 'paleocene', name: 'Paleocene coal swamps', P: [300, 460], Y: [-66000000, -61000000], veg: 'swamp', climate: 'warm', bg: 'peat', rate: 1.0, events: [['quiet', 40], ['flood', 20], ['blackmat', 20]], fauna: [['deer', 100]] },
+      { key: 'gap', name: 'The long gap', P: [460, 500], Y: [-61000000, -2600000], veg: 'steppe', climate: 'mild', bg: 'silt', rate: 0.05, events: [['quiet', 100]], fauna: [['deer', 100]] },
+      { key: 'ice', name: 'Ice', P: [500, 640], Y: [-2600000, -12000], veg: 'steppe', climate: 'cold', bg: 'loess', rate: 0.9, events: [['quiet', 30], ['outwash', 20], ['frost', 10], ['graze', 15], ['death', 5]], fauna: [['mammoth', 50], ['bison', 50]] },
+      { key: 'plains', name: 'Plains', P: [640, 720], Y: [-12000, 1880], veg: 'steppe', climate: 'mild', bg: 'loess', rate: 1.0, events: [['quiet', 30], ['graze', 25], ['fire', 15], ['camp', 15], ['death', 6]], fauna: [['bison', 100]] },
+      { key: 'ranch', name: 'Ranch', P: [720, 1e9], Y: [1880, 1880 + (1e9 - 720)], veg: 'pasture', climate: 'mild', bg: 'silt', rate: 1.5, events: [['quiet', 30], ['fence', 20], ['graze', 20], ['litter', 10], ['death', 5]], fauna: [['cow', 70], ['horse', 30]], fenceKinds: ['barbed wire'] }
+    ] },
+  C: { name: 'After Us', place: 'a suburban cul-de-sac (the Before the Shovels street)', base: [['made', 0.5], ['silt', 1.0]], waterTable: 1.6,
+    eras: [
+      { key: 'prologue', name: 'One winter', P: [0, 25], Y: [2027, 2032], veg: 'lawn', climate: 'cold', bg: 'silt', rate: 0.8, events: [['quiet', 40], ['litter', 30], ['death', 5], ['flood', 10]], fauna: [['dog', 50], ['deer', 50]] },
+      { key: 'abandon', name: 'Abandonment', P: [25, 200], Y: [2032, 2200], veg: 'scrub', climate: 'warm', bg: 'silt', rate: 1.5, events: [['quiet', 30], ['flood', 25], ['litter', 15], ['car', 2], ['tyre', 3], ['fire', 6]], fauna: [['deer', 70], ['dog', 30]] },
+      { key: 'forest', name: 'Forest over ruins', P: [200, 400], Y: [2200, 3000], veg: 'forest', climate: 'warm', bg: 'silt', rate: 1.2, events: [['quiet', 50], ['flood', 25], ['beaver', 10], ['fire', 6], ['death', 4]], fauna: [['deer', 80], ['beaver', 20]] },
+      { key: 'quiet', name: 'Long quiet', P: [400, 700], Y: [3000, 50000], veg: 'forest', climate: 'mild', bg: 'silt', rate: 1.0, events: [['quiet', 60], ['flood', 25], ['fire', 8], ['death', 4]], fauna: [['deer', 100]] },
+      { key: 'ice', name: 'Next ice', P: [700, 1e9], Y: [50000, 50000 + (1e9 - 700) * 70], veg: 'steppe', climate: 'cold', bg: 'loess', rate: 0.9, events: [['quiet', 40], ['loess', 25], ['frost', 10], ['outwash', 10], ['graze', 10]], fauna: [['bison', 60], ['horse', 40]] }
+    ] }
+};
+/* Sediments, by Clyde (2027). A trench face through one floodplain, cut at the moment of a mint.
+ * Every mint adds what happened on the surface at that moment of the world's story: a flood leaves silt, a fire a
+ * charcoal seam, a death a carcass, a camp a hearth. Later mints bury it; time between mints sets how much sediment
+ * accumulates, how far bodies decay, whether soils form. Each token is token N's view: all of mints 1..N, from their
+ * own transaction hashes and real timestamps (the MINT HISTORY ADAPTER below), seen through a window chosen by its
+ * own hash. World timeline: world.js (WORLDS), see WORLD.md. Mechanics and sources: README.md.
+ * Deterministic: depends only on the history entries 1..N and the source. Units: metres, world years. */
+(function () {
+  'use strict';
+  var C = window.CLYDE, clamp = PX.clamp, lerp = PX.lerp, sstep = PX.sstep, vn = PX.vnoise, fbm = PX.fbm;
+  var Q = C.query;
+
+  /* ------------------------------------------------------------------ hashing / per-mint rng */
+  function cyrb(str) { var h1 = 1779033703, h2 = 3144134277, h3 = 1013904242, h4 = 2773480762;
+    for (var i = 0, k; i < str.length; i++) { k = str.charCodeAt(i); h1 = h2 ^ Math.imul(h1 ^ k, 597399067); h2 = h3 ^ Math.imul(h2 ^ k, 2869860233); h3 = h4 ^ Math.imul(h3 ^ k, 951274213); h4 = h1 ^ Math.imul(h4 ^ k, 2716044179); }
+    h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067); h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233); h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213); h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
+    h1 ^= (h2 ^ h3 ^ h4); h2 ^= h1; h3 ^= h1; h4 ^= h1; return [h1 >>> 0, h2 >>> 0, h3 >>> 0, h4 >>> 0]; }
+  function hrng(seed) { var s = cyrb(String(seed)), a = s[0], b = s[1], c = s[2], d = s[3];
+    function n() { a >>>= 0; b >>>= 0; c >>>= 0; d >>>= 0; var t = (a + b) | 0; a = b ^ (b >>> 9); b = (c + (c << 3)) | 0; c = (c << 21) | (c >>> 11); d = (d + 1) | 0; t = (t + d) | 0; c = (c + t) | 0; return (t >>> 0) / 4294967296; }
+    for (var j = 0; j < 8; j++) n();
+    return { r: n, range: function (x, y) { return x + (y - x) * n(); }, int: function (x, y) { return Math.floor(x + (y - x + 1) * n()); }, chance: function (p) { return n() < p; },
+      pick: function (A) { return A[Math.floor(n() * A.length)]; }, gauss: function (m, s) { var u = 1 - n(), v = n(); return m + s * Math.sqrt(-2 * Math.log(u)) * Math.cos(6.2831853 * v); },
+      weighted: function (P) { var t = 0, k; for (k = 0; k < P.length; k++) t += P[k][1]; var x = n() * t; for (k = 0; k < P.length; k++) { x -= P[k][1]; if (x < 0) return P[k][0]; } return P[P.length - 1][0]; } }; }
+
+  /* ------------------------------------------------------------------ MINT HISTORY ADAPTER
+   * Returns [{index, timestamp (unix s), hash}] for mints 1..N, N = this token. Sources, in order:
+   *  1. window.SEDIMENTS_HISTORY  - a frozen snapshot embedded in the file (buyer file / tokenURI-built HTML).
+   *  2. tokenData.externalAssetDependencies[*] ONCHAIN data 'sed1:<hex>' - Art Blocks Flex style on-chain bytes.
+   *  3. ?history=sed1:<hex>  (or base64 JSON)  - for tools and custom-contract viewers.
+   *  4. none: a SIMULATED demo history derived from the platform hash (labelled 'Simulated' in traits).
+   * Packed format sed1: per mint 80 hex chars = uint64 timestamp (16 hex, big-endian) + 32-byte hash (64 hex). */
+  function decodePacked(s) { s = s.replace(/^sed1:/, '').replace(/^0x/, ''); var out = [];
+    for (var i = 0; i + 80 <= s.length; i += 80) out.push({ index: out.length + 1, timestamp: parseInt(s.substr(i, 16), 16), hash: '0x' + s.substr(i + 16, 64) });
+    return out; }
+  function simulateHistory(seed) {
+    var R = hrng('sim:' + seed), n = Math.round(R.weighted([[R.int(3, 30), 3], [R.int(30, 300), 4], [R.int(300, 1500), 2]])), t = 1811264400, H = [];
+    for (var i = 1; i <= n; i++) { if (i > 1) t += Math.round(R.weighted([[R.range(10, 600), 4], [R.range(600, 36000), 4], [R.range(36000, 3e6), 1]]));
+      var hs = '0x'; for (var j = 0; j < 4; j++) { var q = cyrb(seed + ':' + i + ':' + j); hs += ('00000000' + q[0].toString(16)).slice(-8) + ('00000000' + q[1].toString(16)).slice(-8); }
+      H.push({ index: i, timestamp: t, hash: i === n ? String(seed) : hs }); }
+    return H; }
+  function loadHistory() {
+    var W = window, h = null, src = 'Simulated';
+    if (W.SEDIMENTS_HISTORY) { h = W.SEDIMENTS_HISTORY; src = 'Snapshot'; }
+    else if (typeof tokenData !== 'undefined' && tokenData && tokenData.externalAssetDependencies) {
+      tokenData.externalAssetDependencies.forEach(function (d) { if (!h && d && d.dependency_type === 'ONCHAIN' && typeof d.data === 'string' && d.data.indexOf('sed1:') === 0) { h = decodePacked(d.data); src = 'Chain'; } }); }
+    if (!h && Q.get('history')) { var q = Q.get('history'); try { h = q.indexOf('sed1:') === 0 ? decodePacked(q) : JSON.parse(atob(q)); src = 'Param'; } catch (e) { h = null; } }
+    if (!h || !h.length) { h = simulateHistory(C.hash); src = 'Simulated'; }
+    h = h.slice().sort(function (a, b) { return a.index - b.index; });
+    var N = parseInt(Q.get('token'), 10); if (N > 0 && N < h.length) h = h.slice(0, N);   // tools: render token N of a longer history
+    return { list: h, source: src }; }
+
+  /* ------------------------------------------------------------------ world clock */
+  var WK = (typeof window.SED_WORLD === 'string' && WORLDS[window.SED_WORLD]) ? window.SED_WORLD : (Q.get('world') && WORLDS[Q.get('world')] ? Q.get('world') : 'A');
+  var WORLD = WORLDS[WK], ERAS = WORLD.eras;
+  var TAU = 8 * 3600, EPS = 0.05, LAM = 0.7;                      // progress per mint: EPS + LAM*ln(1+gap/TAU)
+  function eraAt(P) { for (var k = 0; k < ERAS.length; k++) if (P < ERAS[k].P[1]) return ERAS[k]; return ERAS[ERAS.length - 1]; }
+  function yearAt(P) { var e = eraAt(P); return e.Y[0] + (e.Y[1] - e.Y[0]) * (P - e.P[0]) / (e.P[1] - e.P[0]); }
+
+  var HIST = loadHistory(), H = HIST.list, N = H.length, ME = H[N - 1];
+  var M = [], P = 0;
+  for (var i = 0; i < N; i++) {
+    var gap = i ? Math.max(0, H[i].timestamp - H[i - 1].timestamp) : 0, p = EPS + (i ? LAM * Math.log(1 + gap / TAU) : 0);
+    P += i ? p : 0;
+    var y = yearAt(P), e = eraAt(P);
+    M.push({ i: i + 1, hash: String(H[i].hash), ts: H[i].timestamp, gap: gap, P: P, year: y, dy: i ? Math.max(0.02, y - M[i - 1].year) : 0, era: e, R: hrng('mint:' + H[i].hash) });
+  }
+  // site geometry: one site SITE m long; each token looks through a WIN m window chosen by its own hash
+  var SITE = 14, WIN = 6, NC = 701, DX = SITE / (NC - 1);
+  M.forEach(function (m) { m.x0 = (SITE - WIN) / 2 + hrng('window:' + m.hash).range(-1.6, 1.6); });   // each mint's trench is cut near the site datum, offset by its hash
+  var X0 = M[N - 1].x0;
+
+  /* ------------------------------------------------------------------ stratigraphy model (site-wide columns) */
+  var L = [], S = new Float32Array(NC), A = [], F = [], SURF = [];   // layers, surface, artifacts, features, surface history
+  function sn(x, s, f) { f = f || 0.35; var a = PX.ihash(s * 17 + 1) * 6.283, b = PX.ihash(s * 31 + 2) * 6.283; return 0.62 * Math.sin(x * f * 2.1 + a) + 0.38 * Math.sin(x * f * 4.7 + b); }   // cheap smooth noise (called per column for every layer)
+  function addLayer(lith, thick, o) {   // thick(x) in m (>=0)
+    o = o || {}; var top = new Float32Array(NC), k, any = 0, Sm = 0; if (o.level) { for (k = 0; k < NC; k++) Sm += S[k]; Sm /= NC; }   // level: water-lain and slope-wash units fill hollows first
+    var ph1 = 6.283 * PX.ihash(L.length * 3 + 1), ph2 = 6.283 * PX.ihash(L.length * 5 + 2), ph3 = 6.283 * PX.ihash(L.length * 9 + 4), fq = 0.8 + 0.6 * PX.ihash(L.length * 13 + 7);
+    for (k = 0; k < NC; k++) { var xk = k * DX, t = Math.max(0, thick(xk) + (o.level ? o.level * Math.max(0, Sm - S[k]) : 0)) * (1 + 0.06 * Math.sin(xk * fq + ph1) + 0.035 * Math.sin(xk * 2.3 * fq + ph2) + 0.02 * Math.sin(xk * 5.1 + ph3)); top[k] = S[k] + t; if (t > 0) any = 1; S[k] = top[k]; }
+    var lay = { lith: lith, topU: top, mint: o.mint || 0, soil: o.soil || 0, bio: o.bio == null ? 0.4 : o.bio, lam: o.lam || 0, fine: !!o.fine, burn: o.burn || 0, seed: L.length * 13 + 7, tint: o.tint || 0, gley: 0 };
+    L.push(lay); return lay; }
+  function cut(depth, mint) {   // erosional / dug cut: depth(x) >= 0 m below the current surface; returns clip surface
+    var cz = new Float32Array(NC), k, j;
+    for (k = 0; k < NC; k++) cz[k] = S[k] - Math.max(0, depth(k * DX));
+    for (j = 0; j < L.length; j++) { var t = L[j].topU; for (k = 0; k < NC; k++) if (t[k] > cz[k]) t[k] = cz[k]; }
+    A.forEach(function (a) { var zb = a.kind === 'post' ? a.z - a.d : a.z; if (!a.gone && zb > cz[ci(a.x)] + 0.02) { a.gone = mint; } else if (!a.gone && a.kind === 'post' && a.z > cz[ci(a.x)]) a.trunc = Math.max(a.trunc || 0, a.z - cz[ci(a.x)]); });
+    F.forEach(function (f) { if (!f.gone && f.z - (f.d || 0) > cz[ci(f.x)] + 0.01) f.gone = mint; });
+    for (k = 0; k < NC; k++) S[k] = cz[k];
+    return cz; }
+  function ci(x) { return clamp(Math.round(x / DX), 0, NC - 1); }
+  function Sat(x) { var f = clamp(x / DX, 0, NC - 1), k = Math.floor(f), t = f - k; return k >= NC - 1 ? S[NC - 1] : S[k] * (1 - t) + S[k + 1] * t; }
+  function bump(x, c, w) { var d = (x - c) / w; return d * d < 1 ? (1 - d * d) * (1 - d * d) : 0; }
+  // pre-existing ground (from the world table): bottom -> top, gently undulating
+  (function () { var z = 0; WORLD.base.forEach(function (b) { z -= b[1]; }); for (var k = 0; k < NC; k++) S[k] = z - 0.6;
+    WORLD.base.forEach(function (b, j) { addLayer(b[0], function (x) { return b[1] * (1 + 0.25 * sn(x, 50 + j, 0.4)) + (j === 0 ? 0.6 : 0); }, { bio: j === WORLD.base.length - 1 ? 0.6 : 0.15, soil: j === WORLD.base.length - 1 ? 0.5 : b[0] === 'mud' ? 0.7 : 0, lam: b[0] === 'sand' ? 14 : 0 }); }); })();
+
+  var EXTINCT = ['mammoth', 'mastodon', 'horse'];
+  function fauna(m) { var f = m.era.fauna.filter(function (s) { return !(m.era.lastMegafauna != null && m.year > m.era.lastMegafauna && EXTINCT.indexOf(s[0]) >= 0); }); return f.length ? f : [['deer', 1]]; }
+  var REPEAT = ['graze', 'flood', 'camp', 'loess', 'fire', 'plough', 'litter', 'midden', 'pit', 'cinders', 'drought', 'blackmat', 'quiet', 'outwash', 'beaver'];
+  var SIZE = { mammoth: 3.4, mastodon: 3.0, bison: 2.6, horse: 2.2, deer: 1.7, wolf: 1.2, dog: 0.95, bear: 1.8, cow: 2.3, pig: 1.4, beaver: 0.9, human: 1.1 };
+  var SPEC = { mammoth: { h: .9, d: .44, nk: .06, hd: .3, hr: .17, lg: .075, tusk: .8, trunk: .55, tail: .1, hump: .1, hide: '#5b3f2c', hair: 1 },
+    mastodon: { h: .78, d: .42, nk: .06, hd: .26, hr: .14, lg: .08, tusk: .55, trunk: .45, tail: .12, hump: .03, hide: '#4e3a2c', hair: .6 },
+    bison: { h: .66, d: .42, nk: .08, hd: .22, hr: .1, lg: .045, horn: .1, hump: .16, tail: .25, hide: '#3f2e22', hair: .7 },
+    horse: { h: .72, d: .3, nk: .32, hd: .26, hr: .065, lg: .034, tail: .35, hide: '#76503a' }, deer: { h: .72, d: .27, nk: .3, hd: .2, hr: .055, lg: .024, antler: .24, tail: .07, hide: '#86664a' },
+    wolf: { h: .55, d: .27, nk: .16, hd: .22, hr: .065, lg: .034, tail: .38, hide: '#7d756a', hair: .4 }, dog: { h: .55, d: .27, nk: .16, hd: .22, hr: .065, lg: .034, tail: .36, hide: '#8a6a48' },
+    bear: { h: .55, d: .42, nk: .1, hd: .2, hr: .1, lg: .07, tail: .04, hide: '#3a2c22', hair: .5 }, cow: { h: .6, d: .43, nk: .14, hd: .24, hr: .09, lg: .05, horn: .05, tail: .4, hide: '#3b322c' },
+    pig: { h: .48, d: .4, nk: .04, hd: .25, hr: .1, lg: .045, tail: .08, hide: '#a08070' }, beaver: { h: .33, d: .42, nk: .04, hd: .24, hr: .1, lg: .05, tail: .38, hide: '#5a4030' },
+    human: { h: .5, d: .3, nk: .1, hd: .2, hr: .09, lg: .05, tail: 0, hide: '#4a3a2e' } };
+  var REPEATS = 0;
+
+  M.forEach(function (m, idx) {
+    var R = m.R, e = m.era, wx0 = m.x0, xl = wx0 + R.range(0.5, WIN - 0.5);
+    // 1. background sediment for the world time since the previous mint (Sadler-style: thickness ~ dy^0.6)
+    if (idx) { var bg = e.rate / 1000 * Math.pow(m.dy, 0.6), soil = m.dy > 25 ? clamp(Math.log(m.dy / 25) / Math.LN10 / 2.2, 0, 1) : 0, sd = idx * 3 + 1;
+      if (bg > 0.0004) addLayer(e.bg, function (x) { return bg * (1 + 0.3 * sn(x, sd, 0.25)); }, { mint: m.i, level: 0.06, soil: soil, bio: 0.35 + 0.6 * soil, lam: e.bg === 'loess' ? 0 : 3 }); }
+    // 2. the surface event, chosen by this mint's hash within the era
+    var ev = R.weighted(e.events), prev = idx ? M[idx - 1].ev : null;
+    if (prev && m.gap < 3 * 3600 && REPEAT.indexOf(prev) >= 0 && M[idx - 1].era === e && R.chance(0.42)) { ev = prev; REPEATS++; }
+    if (e.bigFlood && M[idx - 1] && M[idx - 1].year < e.bigFlood && m.year >= e.bigFlood) ev = 'greatflood';
+    if (idx === 0 && (ev === 'lost' || ev === 'sandblow')) ev = 'quiet';
+    if (idx && (ev === 'death' || ev === 'burial') && !R.chance(clamp(m.dy / 0.3, 0.1, 1))) ev = e.events.some(function (q) { return q[0] === 'graze'; }) ? 'graze' : 'quiet';   // deaths are a per-year process: a burst of mints in one season cannot produce a burst of carcasses
+    m.ev = ev; m.xl = xl; var sd2 = idx * 5 + 2, k, n, x;
+    switch (ev) {
+      case 'graze': { m.sp = R.weighted(fauna(m)); m.herd = R.weighted([[1, 3], [2, 3], [3, 2], [5, 1]]);
+        addLayer(e.bg, function (x) { return 0.004 + 0.006 * Math.max(0, sn(x, sd2, 2)); }, { mint: m.i, bio: 0.9, tint: 1 }); break; }   // trampled
+      case 'death': { var sp = R.weighted(fauna(m)), fl0 = R.chance(0.5), Ld = SIZE[sp]; xl = wx0 + WIN / 2 + R.range(-1, 1) * Math.max(0, WIN / 2 - 0.75 * Ld) + (fl0 ? 0.17 : -0.17) * Ld; var mired = (e.key === 'prologue' || e.key === 'steppe' || e.key === 'lateglacial') && R.chance(0.75), sink = mired ? R.range(0.78, 0.92) * (SPEC[sp].h * Ld - SPEC[sp].d * Ld * 0.8 - SPEC[sp].d * Ld * 0.175) : 0;
+        A.push({ kind: 'carcass', sp: sp, mint: m.i, x: xl, z: Sat(xl), len: Ld * R.range(0.9, 1.08), flip: fl0, seed: m.hash, sink: sink, pose: mired ? 'mired' : 'sternal' });
+        m.sp = sp; addLayer(e.bg, function () { return 0.002; }, { mint: m.i, bio: 0.5 }); break; }
+      case 'flood': case 'greatflood': {
+        var ft = ev === 'greatflood' ? R.range(0.25, 0.4) : R.range(0.008, 0.05) * (R.chance(0.12) ? R.range(2, 4) : 1);
+        addLayer('flood', function (x) { return ft * (1.1 - 0.2 * x / SITE) * (1 + 0.25 * sn(x, sd2, 0.6)); }, { mint: m.i, level: 0.3, bio: 0.12, lam: 4 + Math.round(ft * 60), fine: true });
+        m.ft = ft; if (R.chance(0.1)) A.push({ kind: 'log', mint: m.i, x: xl, z: S[ci(xl)] - ft * 0.4, len: R.range(0.8, 2.4), r: R.range(0.06, 0.16), ang: R.range(-0.12, 0.12), seed: m.hash }); break; }
+      case 'drought': { addLayer('crust', function () { return 0.005; }, { mint: m.i, bio: 0.05 });
+        var sp2 = R.range(0.18, 0.4); for (x = (R.r() * sp2); x < SITE; x += sp2 * R.range(0.6, 1.4)) F.push({ kind: 'crack', x: x, z: Sat(x), d: R.range(0.04, 0.11), w: R.range(0.008, 0.02), mint: m.i });
+        break; }
+      case 'fire': { var ct = R.range(0.004, 0.012); addLayer('charcoal', function (x) { return ct * Math.max(0.15, 1 + 0.8 * sn(x, sd2, 1.5)); }, { mint: m.i, bio: 0.25, burn: R.range(0.012, 0.03) }); break; }
+      case 'loess': { var lt = R.range(0.01, 0.045); addLayer('loess', function (x) { return lt * (1 + 0.2 * sn(x, sd2)); }, { mint: m.i, bio: 0.3 }); break; }
+      case 'frost': { n = R.int(1, 2); for (k = 0; k < n; k++) { x = wx0 + R.range(0.3, WIN - 0.3); F.push({ kind: 'wedge', x: x, z: Sat(x), d: R.range(0.6, 1.4), w: R.range(0.18, 0.45), mint: m.i, seed: m.hash + k }); }
+        addLayer('loess', function () { return 0.003; }, { mint: m.i }); break; }
+      case 'outwash': { cut(function (x) { return 0.05 * Math.max(0, sn(x, sd2, 0.8)); }, m.i); var ot = R.range(0.06, 0.24), gr = R.chance(0.45);
+        addLayer(gr ? 'gravel' : 'sand', function (x) { return ot * (1 + 0.35 * sn(x, sd2 + 1, 0.5)); }, { mint: m.i, bio: 0.05, lam: 10 }); break; }
+      case 'blackmat': { var bt = R.range(0.02, 0.06); addLayer('blackmat', function (x) { return bt * (1 + 0.3 * sn(x, sd2)); }, { mint: m.i, bio: 0.3 }); break; }
+      case 'camp': { var hw = R.range(0.5, 0.9), hx = xl;
+        addLayer('charcoal', function (x) { return 0.035 * bump(x, hx, hw / 2); }, { mint: m.i, bio: 0.3, burn: 0.03 });
+        n = R.int(4, 8); for (k = 0; k < n; k++) A.push({ kind: 'fcr', mint: m.i, x: hx + R.range(-hw / 2, hw / 2), z: Sat(hx) - R.range(0, 0.04), r: R.range(0.035, 0.08), seed: m.hash + 'r' + k });
+        n = R.int(1, 2); for (k = 0; k < n; k++) A.push({ kind: (e.key === 'lateglacial' && k === 0) ? 'fluted' : 'flake', mint: m.i, x: hx + R.range(-1, 1), z: Sat(hx) - R.range(0, 0.02), r: R.range(0.035, 0.07), ang: R.range(-0.4, 0.4), seed: m.hash + 'f' + k });
+        if (R.chance(0.5)) A.push({ kind: 'bonefrag', mint: m.i, x: hx + R.range(-0.4, 0.4), z: Sat(hx), r: R.range(0.05, 0.12), ang: R.range(-1, 1), burnt: true, seed: m.hash + 'b' });
+        m.hx = hx; break; }
+      case 'midden': { var mw = R.range(0.7, 1.6), mx = xl, mt = R.range(0.04, 0.1); addLayer('shell', function (x) { return mt * bump(x, mx, mw / 2); }, { mint: m.i, bio: 0.2 }); break; }
+      case 'burial': case 'dogburial': { var gw = ev === 'burial' ? R.range(0.9, 1.15) : R.range(0.5, 0.65), gd = ev === 'burial' ? R.range(0.55, 0.8) : R.range(0.3, 0.45), gx = xl, gz = Sat(gx);
+        F.push({ kind: 'pit', x: gx, z: gz, w: gw, d: gd, fill: 'gravefill', mint: m.i, seed: m.hash });
+        A.push({ kind: 'carcass', sp: ev === 'burial' ? 'human' : 'dog', crouch: true, pose: ev === 'burial' ? 'crouch' : 'sternal', mint: m.i, x: gx, z: gz - gd + 0.04, len: ev === 'burial' ? 1.0 : 0.7, flip: R.chance(0.5), seed: m.hash, buried: true });
+        addLayer('gravefill', function (x) { return 0.06 * bump(x, gx, gw * 0.55); }, { mint: m.i, bio: 0.5 }); break; }
+      case 'pit': { var pw = R.range(0.6, 1.1), pd = R.range(0.45, 0.85), px = xl, pz = Sat(px);
+        F.push({ kind: 'pit', x: px, z: pz, w: pw, d: pd, fill: 'pitfill', mint: m.i, seed: m.hash });
+        n = R.int(1, 3); for (k = 0; k < n; k++) A.push({ kind: 'sherd', mint: m.i, x: px + R.range(-pw * 0.35, pw * 0.35), z: pz - R.range(0.08, pd * 0.85), r: R.range(0.05, 0.1), ang: R.range(-0.6, 0.6), seed: m.hash + 's' + k });
+        break; }
+      case 'house': { n = R.int(1, 2); var hs = R.range(1.6, 2.6), hx0 = xl - (n - 1) * hs / 2;
+        for (k = 0; k < n; k++) { x = hx0 + k * hs; A.push({ kind: 'post', mint: m.i, x: x, z: Sat(x), d: R.range(0.45, 0.7), r: R.range(0.07, 0.1), h: R.range(1.7, 2.2), wood: true, seed: m.hash + k, roof: true }); }
+        if (R.chance(0.6)) A.push({ kind: 'sherd', mint: m.i, x: xl + R.range(-1, 1), z: Sat(xl) - 0.01, r: R.range(0.05, 0.09), ang: R.range(-0.3, 0.3), seed: m.hash + 'hs' });
+        break; }
+      case 'plough': { var pdp = R.range(0.2, 0.26);   // the plough homogenises the top ~20-25 cm: older lamination gone, finds mixed
+        A.forEach(function (a) { if (!a.gone && a.kind !== 'post' && a.z > S[ci(a.x)] - pdp) { a.ploughed = (a.ploughed || 0) + 1; a.z = S[ci(a.x)] - R.range(0.02, pdp); if (a.kind === 'carcass') a.gone = m.i; } });
+        cut(function () { return pdp; }, 0); addLayer('plough', function (x) { return pdp + 0.004; }, { mint: m.i, bio: 0.95 }); m.furrow = R.range(0.7, 1.0); break; }
+      case 'fence': { var kinds = e.fenceKinds || ['post and wire'], fk = R.pick(kinds), spc = fk === 'split rail' ? R.range(2.6, 3.2) : fk === 'chain-link' ? R.range(2.8, 3.1) : R.range(3.5, 4.5);
+        for (x = wx0 + R.range(0.2, spc); x < wx0 + WIN - 0.1; x += spc) A.push({ kind: 'post', fence: fk, mint: m.i, x: x, z: Sat(x), d: fk === 'chain-link' ? 0.75 : R.range(0.55, 0.8), r: fk === 'chain-link' ? 0.03 : R.range(0.05, 0.075), h: fk === 'split rail' ? 1.2 : 1.25, wood: fk !== 'chain-link', seed: m.hash + x.toFixed(2) });
+        m.fence = fk; break; }
+      case 'litter': { var pool = e.key === 'farm' ? [['bottle', 3], ['whiteware', 3], ['nail', 4], ['horseshoe', 2], ['button', 1]] : e.key === 'future' ? [['plastic', 4], ['can', 2], ['bottle', 1], ['tyre', 0.5]] : [['can', 4], ['plastic', 3], ['bottle', 3], ['shell', 2], ['wire', 1], ['phone', 0.3]];
+        n = R.weighted([[1, 6], [2, 3]]); for (k = 0; k < n; k++) { var ob = R.weighted(pool); A.push({ kind: ob === 'shell' ? 'shotshell' : ob, mint: m.i, x: wx0 + R.range(0.3, WIN - 0.3), z: Sat(xl) + 0.005, ang: R.range(-0.5, 0.5), seed: m.hash + 'o' + k, r: 0.1 }); }
+        break; }
+      case 'cinders': { var cw = R.range(1.5, 3.5), cx = xl, ctk = R.range(0.02, 0.07); addLayer('cinders', function (x) { return ctk * bump(x, cx, cw / 2); }, { mint: m.i, bio: 0.2 }); break; }
+      case 'tyre': A.push({ kind: 'tyre', mint: m.i, x: xl, z: Sat(xl), ang: R.range(-0.08, 0.08), seed: m.hash }); break;
+      case 'car': A.push({ kind: 'car', mint: m.i, x: wx0 + WIN / 2 + R.range(-0.4, 0.4), z: Sat(wx0 + WIN / 2) - 0.05, flip: R.chance(0.5), seed: m.hash }); break;
+      case 'beaver': { var bt2 = R.range(0.05, 0.14); addLayer('pond', function (x) { return bt2 * (1 + 0.3 * sn(x, sd2)); }, { mint: m.i, level: 0.5, bio: 0.1, lam: 8, fine: true });
+        n = R.int(2, 4); for (k = 0; k < n; k++) A.push({ kind: 'stick', mint: m.i, x: wx0 + R.range(0.3, WIN - 0.3), z: S[ci(xl)] - bt2 * R.range(0.1, 0.8), len: R.range(0.3, 0.9), r: R.range(0.012, 0.03), ang: R.range(-0.25, 0.25), seed: m.hash + k }); break; }
+      case 'sandblow': { x = wx0 + R.range(0.4, WIN - 0.4); F.push({ kind: 'dike', x: x, z: Sat(x), w: R.range(0.03, 0.08), mint: m.i, seed: m.hash });
+        var sx = x; addLayer('sand', function (x) { return 0.06 * bump(x, sx, 0.9); }, { mint: m.i, bio: 0.05, lam: 6 }); break; }
+      case 'lost': { x = wx0 + R.range(0.3, WIN - 0.3); var dz = R.range(0.25, 1.1), obj = e.key === 'steppe' || e.key === 'lateglacial' ? 'tooth' : e.key === 'archaic' || e.key === 'woodland' ? 'bead' : e.key === 'farm' ? 'button' : 'key';
+        F.push({ kind: 'burrow', x: x, z: Sat(x), d: dz, w: R.range(0.06, 0.1), mint: m.i, seed: m.hash });
+        A.push({ kind: obj, mint: m.i, x: x + R.range(-0.03, 0.03), z: Sat(x) - dz + 0.03, ang: R.range(-1, 1), seed: m.hash, lost: true, r: 0.03 }); break; }
+      default: break;   // quiet: nothing but time
+    }
+    // surface history at coarse resolution (for burial-vs-time decay)
+    var sh = new Float32Array(26); for (k = 0; k < 26; k++) sh[k] = S[Math.min(NC - 1, k * 20)]; SURF.push(sh);
+  });
+  function surfAt(mIdx, x) { var s = SURF[mIdx], f = clamp(x / 0.4, 0, 25), k = Math.floor(f), t = f - k; return k >= 25 ? s[25] : s[k] * (1 - t) + s[k + 1] * t; }
+
+  /* ------------------------------------------------------------------ compaction (per column) */
+  // Near-surface self-weight consolidation: thickness factor 1 - a(1 - exp(-d/zc)) with d = overburden (m).
+  // Peat compacts most (peat:lignite 2:1-4:1, Widera); sand/gravel least. At km scale this tends to Athy (1930).
+  var COMP = { flood: [0.18, 2.5], silt: [0.15, 2.5], mud: [0.2, 2.5], pond: [0.25, 2], blackmat: [0.25, 2], peat: [0.6, 1.2], loess: [0.1, 3], sand: [0.03, 3], gravel: [0.02, 3],
+    charcoal: [0.2, 2], plough: [0.15, 2.5], crust: [0.1, 2], shell: [0.05, 3], cinders: [0.05, 3], gravefill: [0.15, 2.5], pitfill: [0.15, 2.5], made: [0.05, 3] };
+  var base0 = new Float32Array(NC); (function () { var z = 0; WORLD.base.forEach(function (b) { z -= b[1]; }); for (var k = 0; k < NC; k++) base0[k] = z - 0.6; })();
+  L.forEach(function (l) { l.top = new Float32Array(NC); });
+  for (var c = 0; c < NC; c++) {
+    var surf = L[L.length - 1].topU[c], below = base0[c], zc = base0[c];
+    for (var j = 0; j < L.length; j++) { var tU = L[j].topU[c] - below, cf = COMP[L[j].lith] || [0.15, 2.5];
+      var d = surf - L[j].topU[c] + tU / 2; zc += tU * (1 - cf[0] * (1 - Math.exp(-d / cf[1]))); L[j].top[c] = zc; below = L[j].topU[c]; } }
+  function colInterp(arr, x) { var f = clamp(x / DX, 0, NC - 1), k = Math.floor(f), t = f - k; return k >= NC - 1 ? arr[NC - 1] : arr[k] * (1 - t) + arr[k + 1] * t; }
+  function mapZ(x, zU) {   // uncompacted height -> compacted height at x
+    var lo = 0, hi = L.length - 1, bU = colInterp(base0, x);
+    if (zU <= bU) return zU;
+    var top = colInterp(L[hi].topU, x); if (zU >= top) return colInterp(L[hi].top, x) + (zU - top);
+    while (lo < hi) { var mid = (lo + hi) >> 1; if (colInterp(L[mid].topU, x) < zU) lo = mid + 1; else hi = mid; }
+    var tu1 = colInterp(L[lo].topU, x), tu0 = lo ? colInterp(L[lo - 1].topU, x) : bU, tc1 = colInterp(L[lo].top, x), tc0 = lo ? colInterp(L[lo - 1].top, x) : bU;
+    return tu1 - tu0 < 1e-6 ? tc1 : tc0 + (tc1 - tc0) * (zU - tu0) / (tu1 - tu0); }
+  function surfC(x) { return colInterp(L[L.length - 1].top, x); }
+  function surfU(x) { return colInterp(L[L.length - 1].topU, x); }
+
+  /* ------------------------------------------------------------------ taphonomy: each artifact's state at token N */
+  // World years and burial depth between its mint and token N. Soft tissue: Payne (1965) stages, slowed by burial
+  // (buried pigs reached dry/remains in ~300-365 d, Rai et al. 2022) and by cold/waterlogging (Allison 1988: anoxia slows
+  // but does not stop decay). Exposed bone weathers on Behrensmeyer (1978) stages (3-5 y st.3, 6-7 y st.4, 10-15 y st.5).
+  // GEOLOGICAL CLOCK (a stated conceit): diagenesis age G = 1000 x world years + 2000 y x mints since burial. Real
+  // permineralisation, coalification and oil need 10^4-10^8 y, km of burial and 60-120 C (oil window); see README.
+  var NOW = M[N - 1], WT = WORLD.waterTable, CLIM = { cold: 0.6, cool: 0.8, mild: 1, warm: 1.25 };
+  var BODYH = { mammoth: 0.95, mastodon: 0.9, bison: 0.7, horse: 0.6, deer: 0.4, wolf: 0.3, dog: 0.25, bear: 0.5, cow: 0.65, pig: 0.45, beaver: 0.2, human: 0.3 };
+  var maxG = 0, organicMax = 0, compressedUsed = false;
+  A.forEach(function (a) {
+    if (a.gone) return;
+    var mi = a.mint - 1, age = NOW.year - M[mi].year, ms = N - a.mint, G = 1000 * age + 2000 * ms, D = 0, Ex = 0, wetYrs = 0, burY = 0, j, dt, dep, b;
+    var hb = a.kind === 'carcass' ? (a.pose === 'mired' ? SPEC[a.sp].h * a.len - a.sink : BODYH[a.sp] * (a.crouch ? 0.5 : 1)) : 0.05;
+    for (j = mi + 1; j <= N; j++) {
+      dt = j < N ? M[j].year - M[j - 1].year : 0; if (j === mi + 1) dt = j < N ? dt : 0;
+      dep = (j - 1 < SURF.length ? surfAt(j - 1, a.x) : surfU(a.x)) - a.z;
+      b = a.buried ? 1 : clamp((dep + (a.pose === 'mired' ? 0.25 * hb : 0)) / hb, 0, 1);
+      var r = lerp(1, 0.3, b) * (CLIM[M[j - 1].era.climate] || 1) * (dep > WT ? 0.25 : 1) * (b < 0.5 ? 3 : b < 0.8 ? 1.5 : 1);   // exposed: scavengers (megafaunal carcasses are stripped in weeks to months when exposed)
+      D += dt * r; if (a.kind === 'carcass' && a.support == null && D / Math.sqrt((a.len || 1) / 2) >= 0.25) a.support = Math.max(0, dep); if (b < 0.6 && D > 0.3) Ex += dt * (1 - b); if (dep > WT) wetYrs += dt; if (b > 0.8) burY += dt;
+      if (D > 50 && Ex > 20) break;
+    }
+    var depNow = surfU(a.x) - a.z, s = Math.sqrt((a.len || 1) / 2);
+    a.age = age; a.G = G; a.dep = depNow; a.wet = depNow > WT; a.burY = burY; a.Dk = D;
+    if (a.kind === 'carcass') {
+      var t = D / s; a.stage = t < 0.015 ? 0 : t < 0.05 ? 1 : t < 0.25 ? 2 : t < 1.0 ? 3 : 4;            // fresh bloat active advanced skeletal
+      a.flesh = t < 0.05 ? 1 : t < 0.25 ? 1 - 0.45 * (t - 0.05) / 0.2 : t < 1.0 ? 0.55 - 0.5 * (t - 0.25) / 0.75 : Math.max(0, 0.05 - (t - 1) * 0.05);
+      a.bloat = t < 0.015 ? t / 0.015 * 0.2 : t < 0.05 ? 0.2 + 0.8 * (t - 0.015) / 0.035 : t < 0.12 ? 1 - (t - 0.05) / 0.07 : 0;
+      a.wstage = Ex < 1 ? 0 : Ex < 3 ? 1 : Ex < 5 ? 2 : Ex < 7 ? 3 : Ex < 10 ? 4 : 5;                    // Behrensmeyer
+      a.stain = 1 - Math.exp(-burY / 2500);
+      a.halo = (a.stage >= 2 ? Math.min(1, (t - 0.05) * 3) : 0) * Math.exp(-Math.max(0, age - 5) / (a.wet ? 4000 : 400));
+      a.fossil = a.wet && G > 2e5 ? (G > 3e6 ? 2 : 1) : 0;                                              // 1 permineralised, 2 replaced
+      a.kerogen = a.wet && G > 1e6 ? clamp(Math.log(G / 1e6) / Math.log(30), 0, 1) : 0;
+      if (a.fossil || a.kerogen) compressedUsed = true;
+      organicMax = Math.max(organicMax, a.halo);
+    } else if (a.kind === 'post' || a.kind === 'log' || a.kind === 'stick') {
+      var dry = a.wet ? 0 : 1; a.rot = a.wet ? clamp((age - wetYrs) / 60, 0, 0.4) : clamp(age / (a.kind === 'stick' ? 25 : 45), 0, 1); a.above = clamp(1 - age / 22, 0, 1);
+      a.lign = a.wet && G > 1e6 ? 1 : 0; if (a.lign) compressedUsed = true;
+    } else if (['nail', 'horseshoe', 'wire', 'car', 'phone'].indexOf(a.kind) >= 0 || (a.kind === 'post' && !a.wood)) {
+      a.rust = clamp(age * (a.wet ? 0.3 : 1) / (a.kind === 'car' ? 60 : a.kind === 'nail' ? 180 : 260), 0, 1);
+    } else if (a.kind === 'can') { a.rust = clamp(age * (a.wet ? 0.5 : 1) / 250, 0, 1); }
+    else if (a.kind === 'bottle') { a.irid = clamp((age - 40) / 300, 0, 1); a.broken = depNow > 0.4; }
+    else if (a.kind === 'plastic') { a.brittle = clamp(Ex / 15, 0, 1); }
+    else if (a.kind === 'flake' || a.kind === 'fluted') { a.patina = clamp(age / 8000, 0, 1); }
+    else if (a.kind === 'tyre') { a.rust = clamp(age / 120, 0, 1); }
+    maxG = Math.max(maxG, G);
+  });
+
+  /* ------------------------------------------------------------------ view */
+  var o = PX.canvas(C, 1000, 800, '#111'), PW = o.PW, PH = o.PH, NP = PW * PH;
+  var RB = new Float32Array(NP), GB = new Float32Array(NP), BB = new Float32Array(NP);
+  var NB = WORLD.base.length, zRef = -1e9, zGround0 = 1e9, xa;
+  for (xa = X0; xa <= X0 + WIN; xa += 0.05) { zRef = Math.max(zRef, surfC(xa)); zGround0 = Math.min(zGround0, colInterp(L[NB - 1].top, xa)); }
+  var ZOOM = clamp((zRef - zGround0 + 0.5) / 3.6, 1, SITE / WIN), VWm = WIN * ZOOM, VX0 = clamp(X0 + WIN / 2 - VWm / 2, 0, SITE - VWm);
+  var SC = PW / VWm, YS = 1.2 * ZOOM, headNeed = 0;
+  A.forEach(function (a) { if (a.kind !== 'carcass' || a.buried || (a.dep || 0) > 0.6 || a.x < VX0 - 1 || a.x > VX0 + VWm + 1) return; var sp5 = SPEC[a.sp] || SPEC.deer, ht = a.z + sp5.h * a.len * (a.stage >= 4 ? 0.35 : 1.05) - (a.sink || 0) + (a.pose === 'mired' ? 0 : -sp5.h * a.len * 0.45); headNeed = Math.max(headNeed, ht - zRef + 0.3); });
+  YS = clamp(Math.max(YS, headNeed), YS, 0.62 * VWm * PH / PW);                                                       // px per m; surface line (m from top)
+  function sx(x) { return (x - VX0) * SC; } function sy(z) { return (YS + zRef - z) * SC; }
+  function wx(px) { return VX0 + px / SC; } function wz(py) { return zRef + YS - py / SC; }
+  var col = PX.col, mix3 = function (a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; };
+  var LITH = { gravel: col('#857761'), sand: col('#b49d72'), silt: col('#9b8468'), flood: col('#958067'), loess: col('#c1aa84'), mud: col('#7f7466'), pond: col('#6e6a62'),
+    blackmat: col('#45403a'), peat: col('#3e2d21'), charcoal: col('#211d1a'), plough: col('#6f5b47'), crust: col('#b6a58a'), shell: col('#6a5a48'), cinders: col('#4b4846'),
+    gravefill: col('#6b5844'), pitfill: col('#5d4b3b'), made: col('#7a6d60') };
+  var SOILC = col('#4f3d2e'), GLEY = col('#7c827d'), RUST = col('#a8642e'), REDD = col('#9b5a3d');
+
+  /* ------------------------------------------------------------------ features prepared in compacted coords */
+  F.forEach(function (f) { if (f.gone) return; f.zc = mapZ(f.x, f.z); var zb = mapZ(f.x, f.z - (f.d || 0)); f.dc = f.zc - zb; });
+  A.forEach(function (a) { if (a.gone) return; a.zc = mapZ(a.x, a.z); });
+  // posts become post-pipes: the wood rots (above the water table) and the void fills with dark topsoil (classic archaeology)
+  var FBIN = null, FBW = 0.1;
+  function binFeatures() { FBIN = []; for (var i = 0; i < F.length; i++) { var f = F[i]; if (f.gone || f.dc == null) continue; var r = (f.w || 0.1) + 0.2, b0 = Math.max(0, Math.floor((f.x - r) / FBW)), b1 = Math.floor((f.x + r) / FBW);
+    for (var bb = b0; bb <= b1; bb++) (FBIN[bb] = FBIN[bb] || []).push(f); } }
+  function featureAt(x, z) {   // returns [kind, zSample] if inside a cut feature (x-binned: thousands of features in late tokens)
+    if (!FBIN) binFeatures(); var FL = FBIN[Math.floor(x / FBW)]; if (!FL) return null;
+    for (var i = 0; i < FL.length; i++) { var f = FL[i]; var dx = x - f.x; if (Math.abs(dx) > (f.w || 0.1) + 0.12) continue;
+      var u = f.zc - z; if (u < -0.001 || u > f.dc + 0.001) continue;
+      if (f.kind === 'pit') { var hw = f.w / 2 * Math.pow(Math.max(0, 1 - Math.pow(u / f.dc, 2.2)), 0.45); if (Math.abs(dx) < hw) return [f.fill, z, f]; }
+      else if (f.kind === 'wedge' || f.kind === 'crack') { var ww = f.w / 2 * (1 - u / f.dc) * (1 + 0.15 * vn(z * 30, x * 3, 5)); if (Math.abs(dx + 0.02 * vn(z * 8, 1, 3)) < ww) return ['infill', f.zc + 0.006, f]; }
+      else if (f.kind === 'burrow') { var bx = f.x + 0.06 * Math.sin(u * 11 + f.x) ; if (Math.abs(x - bx) < f.w / 2 * (0.8 + 0.3 * vn(u * 20, 2, 9))) return ['infill', f.zc + 0.006, f]; }
+      else if (f.kind === 'dike') { var dw = f.w / 2 * (0.4 + 0.6 * (1 - u / Math.max(f.dc, 0.01))) * (1 + 0.4 * vn(z * 12, x, 4)); if (Math.abs(dx + 0.03 * vn(z * 3, 7, 2)) < dw) return ['sand', z, f]; }
+    }
+    return null; }
+  F.forEach(function (f) { if (f.kind === 'dike' && !f.gone) { f.dc = f.zc - (colInterp(L[0].top, f.x)); } });
+  FBIN = null;
+
+  /* ------------------------------------------------------------------ strata colour */
+  var Zc = new Float32Array(L.length);
+  function findLayer(z) { var lo = 0, hi = L.length - 1; if (z > Zc[hi]) return -1; while (lo < hi) { var m2 = (lo + hi) >> 1; if (Zc[m2] < z) lo = m2 + 1; else hi = m2; } return lo; }
+  function lithColor(li, x, z, depth) {
+    var l = L[li], c = LITH[l.lith] || LITH.silt, bot = li ? Zc[li - 1] : -99, th = Math.max(1e-4, Zc[li] - bot), t = clamp((z - bot) / th, 0, 1), s = l.seed, v;
+    var n1 = fbm(x * 9, z * 9, s, 3), n2 = vn(x * 60, z * 60, s + 1), n0 = fbm(x * 1.6, z * 3.5, s + 11, 3);
+    var jv = 0.07 * (PX.ihash(s * 7 + 3) - 0.5) * 2, jw = 0.04 * (PX.ihash(s * 11 + 5) - 0.5) * 2;   // each unit's own moisture/organic/iron content
+    c = [c[0] * (1 + 0.1 * n1 + 0.09 * n0 + jv + jw), c[1] * (1 + 0.1 * n1 + 0.085 * n0 + jv), c[2] * (1 + 0.09 * n1 + 0.07 * n0 + jv - jw)];
+    if (l.lith === 'silt' || l.lith === 'flood' || l.lith === 'loess' || l.lith === 'mud') { var sp3 = vn(x * 280, z * 280, s + 21); if (sp3 > 0.82) c = mix3(c, col('#2c2622'), 0.45); else if (sp3 < -0.86) c = mix3(c, col('#cfc6b4'), 0.35);
+      if (depth < WT && depth > WT - 0.9) { var mo = fbm(x * 22, z * 22, s + 40, 2); if (mo > 0.3) c = mix3(c, RUST, clamp((mo - 0.3) * 1.2, 0, 0.4)); } }
+    switch (l.lith) {
+      case 'flood': case 'pond': v = 1 + 0.16 * (0.5 - t) + 0.05 * Math.sin((t * l.lam + 0.3 * fbm(x * 2, z * 4, s)) * 6.283); c = [c[0] * v, c[1] * v, c[2] * v * 0.99]; break;   // fining upward + laminae
+      case 'sand': case 'gravel': { var ang = 0.35 * vn(Math.floor(x * 1.3), Math.floor(z * 6), s), lamv = Math.sin(((z + ang * x) * 160 + 2 * fbm(x * 3, z * 3, s)) * 1.0); v = 1 + 0.06 * lamv + 0.06 * n2; c = [c[0] * v, c[1] * v, c[2] * v];
+        if (l.lith === 'gravel') { var gx = x * 11, gz = z * 14, cx = Math.floor(gx), cz = Math.floor(gz), best = 9, bh = 0;
+          for (var a2 = -1; a2 <= 1; a2++) for (var b2 = -1; b2 <= 1; b2++) { var hh = PX.h2(cx + a2, cz + b2, s), px2 = cx + a2 + hh, pz2 = cz + b2 + PX.h2(cx + a2, cz + b2, s + 9), dd = (gx - px2) * (gx - px2) + (gz - pz2) * (gz - pz2) * 1.3; if (dd < best) { best = dd; bh = hh; } }
+          if (best < 0.16 + 0.1 * bh) { var pc = bh < 0.3 ? col('#8d8b86') : bh < 0.6 ? col('#a08a6a') : col('#6f6a62'), sh = 1.12 - 1.6 * best + 0.1 * (gz - Math.floor(gz) - 0.5); c = [pc[0] * sh, pc[1] * sh, pc[2] * sh]; } else c = [c[0] * 0.85, c[1] * 0.85, c[2] * 0.85]; }
+        break; }
+      case 'loess': v = 1 + 0.05 * vn(x * 45, z * 3, s); c = [c[0] * v, c[1] * v, c[2] * v]; break;          // faint vertical jointing
+      case 'charcoal': v = 0.75 + 0.6 * Math.max(0, vn(x * 140, z * 140, s)); c = [c[0] * v, c[1] * v, c[2] * v]; break;
+      case 'shell': { var sv = vn(x * 55, z * 90, s); if (sv > 0.45) c = mix3(c, col('#e2dccf'), clamp((sv - 0.45) * 5, 0, 1)); break; }
+      case 'plough': case 'cinders': case 'gravefill': case 'pitfill': { var fl = vn(x * 120, z * 120, s); if (fl > 0.62) c = mix3(c, fl > 0.8 ? col('#2a2420') : col('#b39a7a'), 0.6); v = 1 + 0.12 * fbm(x * 14, z * 14, s + 3, 2); c = [c[0] * v, c[1] * v, c[2] * v]; break; }
+      case 'crust': v = 1.05 + 0.08 * t; c = [c[0] * v, c[1] * v, c[2] * v]; break;
+    }
+    if (l.tint === 1) { var dn = vn(x * 70, z * 70, s + 5); if (dn > 0.55) c = mix3(c, col('#3e3426'), 0.5); }   // trampled, dung
+    if (l.soil > 0) { var ah = Math.min(th, 0.06 + 0.22 * l.soil), w = clamp(1 - (Zc[li] - z) / ah, 0, 1); c = mix3(c, SOILC, w * w * (0.35 + 0.45 * l.soil));
+      if (w > 0 && vn(x * 90, z * 6, s + 2) > 0.7) c = mix3(c, col('#a99a82'), 0.35 * w); }           // root channels
+    var ab = li + 1 < L.length ? L[li + 1] : null; if (ab && ab.burn && Zc[li] - z < ab.burn) c = mix3(c, REDD, 0.55 * (1 - (Zc[li] - z) / ab.burn));
+    // groundwater: gleyed (reduced, grey-blue) below the water table, rust mottles in the capillary fringe above it
+    if (depth > WT) c = mix3(c, mix3(GLEY, c, 0.45), clamp((depth - WT) * 4, 0, 0.75));
+    else if (depth > WT - 0.3) { var mt = vn(x * 35, z * 35, 77); if (mt > 0.35) c = mix3(c, RUST, 0.35 * (mt - 0.35) * 2 * (1 - (WT - depth) / 0.3)); }
+    return c; }
+  var ROUGH = { gravel: 1.6, sand: 0.8, loess: 0.5, charcoal: 0.6, plough: 0.9, cinders: 1.2, shell: 1.0 };
+
+  /* ------------------------------------------------------------------ paint: sky, far land, strata */
+  var lipY = new Float32Array(PW), cold = NOW.era.climate === 'cold';
+  var SKY0 = col(cold ? '#d7dbdf' : '#d8d3cb'), SKY1 = col(cold ? '#eef0ef' : '#efe9df'), HILL = col(NOW.era.veg === 'forest' ? '#9da196' : '#b4b0a5');
+  var hillAmp = NOW.era.veg === 'forest' || NOW.era.veg === 'parkland' ? 0.22 : 0.06;
+  for (var px = 0; px < PW; px++) {
+    var x = wx(px + 0.5), zs = surfC(x), ly = sy(zs); lipY[px] = ly;
+    for (j = 0; j < L.length; j++) Zc[j] = colInterp(L[j].top, x);
+    var hillTop = sy(zRef) - SC * (0.12 + hillAmp * (0.5 + 0.5 * fbm(x * 0.6, 3, 41, 3)) + (NOW.era.veg === 'forest' ? 0.12 * Math.max(0, vn(x * 4, 1, 43)) : 0));
+    for (var py = 0; py < PH; py++) {
+      var idx = py * PW + px, yy = py + 0.5, cc;
+      if (yy < ly) {   // air
+        var u = yy / PH; cc = mix3(SKY0, SKY1, clamp(u * 3.2, 0, 1));
+        if (yy > hillTop) cc = mix3(cc, HILL, 0.3 * clamp((yy - hillTop) / (0.05 * SC), 0, 1));
+        RB[idx] = cc[0]; GB[idx] = cc[1]; BB[idx] = cc[2]; continue; }
+      // ground: 3 vertical sub-samples, bioturbation displacement
+      var r = 0, g = 0, b = 0;
+      for (var ss = 0; ss < 3; ss++) {
+        var z = wz(py + (ss + 0.5) / 3), depth = zs - z;
+        var lk = findLayer(z), bio = lk >= 0 ? L[lk].bio : 0.3, zz = z + 0.028 * bio * fbm(x * 14, z * 14, 91, 2) + 0.005 * vn(x * 90, z * 90, 92);
+        var fe = featureAt(x, z), li2;
+        if (fe) { if (fe[0] === 'infill') { li2 = findLayer(fe[1]); cc = lithColor(li2 < 0 ? L.length - 1 : li2, x, fe[1] - 0.002, depth); cc = [cc[0] * 0.97, cc[1] * 0.97, cc[2] * 0.97]; }
+          else if (fe[0] === 'sand') cc = mix3(LITH.sand, col('#c9b58c'), 0.4 + 0.2 * vn(x * 50, z * 50, 3));
+          else { li2 = findLayer(z + 0.06 * fbm(x * 9, z * 9, 61, 2)); cc = lithColor(li2 < 0 ? L.length - 1 : li2, x, z, depth); cc = mix3(cc, LITH[fe[0]], 0.55); } }
+        else { li2 = findLayer(zz); if (li2 < 0) li2 = L.length - 1; cc = lithColor(li2, x, zz, depth); }
+        r += cc[0]; g += cc[1]; b += cc[2];
+      }
+      r /= 3; g /= 3; b /= 3;
+      // face relief + trowel-cleaned scrape, soft top light; slightly moist and darker toward the trench floor
+      var lk2 = findLayer(wz(yy)), ro = lk2 >= 0 ? (ROUGH[L[lk2].lith] || 0.4) : 0.4, zc2 = wz(yy);
+      var hA = vn(x * 50, zc2 * 50, 7) + 0.5 * vn(x * 130, zc2 * 130, 8), hB = vn(x * 50, (zc2 + 0.006) * 50, 7) + 0.5 * vn(x * 130, (zc2 + 0.006) * 130, 8);
+      var shade = 0.97 + 0.09 * ro * (hB - hA) + 0.03 * vn(x * 3, zc2 * 260, 9) + 0.035 * fbm(x * 1.4, zc2 * 1.4, 10, 2) - 0.1 * clamp((yy - ly) / PH, 0, 1);
+      var lipShade = 1 - 0.18 * Math.exp(-(yy - ly) / (0.05 * SC));                                     // the lip's soft overhang shadow
+      shade *= lipShade;
+      RB[idx] = r * shade; GB[idx] = g * shade; BB[idx] = b * shade;
+    }
+  }
+
+  /* ------------------------------------------------------------------ SDF painting helpers */
+  function sdCap(x, y, a, b, ra, rb) { var bx = b[0] - a[0], by = b[1] - a[1], px2 = x - a[0], py2 = y - a[1], h = clamp((px2 * bx + py2 * by) / (bx * bx + by * by + 1e-9), 0, 1), dx = px2 - bx * h, dy = py2 - by * h; return Math.sqrt(dx * dx + dy * dy) - lerp(ra, rb, h); }
+  function sdEll(x, y, c, rx, ry, rot) { var dx = x - c[0], dy = y - c[1], cs = Math.cos(-(rot || 0)), sn2 = Math.sin(-(rot || 0)), u = dx * cs - dy * sn2, v = dx * sn2 + dy * cs, k0 = Math.sqrt(u * u / (rx * rx) + v * v / (ry * ry)); return (k0 - 1) * Math.min(rx, ry); }
+  function smin(a, b, k) { var h = clamp(0.5 + 0.5 * (b - a) / k, 0, 1); return lerp(b, a, h) - k * h * (1 - h); }
+  function sdPrims(P, x, y, k) { var d = 1e9; for (var i = 0; i < P.length; i++) { var p = P[i], di = p.c ? sdEll(x, y, p.c, p.rx, p.ry, p.rot) : sdCap(x, y, p.a, p.b, p.ra, p.rb); d = k ? smin(d, di, k) : Math.min(d, di); } return d; }
+  function blend(idx, c, al) { if (al <= 0) return; RB[idx] = lerp(RB[idx], c[0], al); GB[idx] = lerp(GB[idx], c[1], al); BB[idx] = lerp(BB[idx], c[2], al); }
+  // paint a shape given in LOCAL coords (lx forward, ly up) placed at world (ox, oz) with scale/flip; fn(lx,ly)->[d, rgb] or null
+  function paintLocal(ox, oz, ext, fn, opt) {
+    opt = opt || {}; var fl = opt.flip ? -1 : 1, sq = opt.sq || 1, fade = opt.fade == null ? 0 : opt.fade, haze = opt.haze || null, clipAbove = opt.clip;
+    var x0 = Math.max(0, Math.floor(sx(ox - ext[0]))), x1 = Math.min(PW - 1, Math.ceil(sx(ox + ext[0]))), y0 = Math.max(0, Math.floor(sy(oz + ext[1] * sq))), y1 = Math.min(PH - 1, Math.ceil(sy(oz - ext[2] * sq)));
+    var aa = 0.9 / SC;
+    for (var py = y0; py <= y1; py++) for (var px = x0; px <= x1; px++) {
+      var x = wx(px + 0.5), z = wz(py + 0.5), lx = (x - ox) * fl, ly = (z - oz) / sq;
+      if (clipAbove === 'below' && py + 0.5 < lipY[px]) continue; if (clipAbove === 'above' && py + 0.5 > lipY[px]) continue;
+      var r = fn(lx, ly); if (!r) continue; var al = clamp(0.5 - r[0] / aa, 0, 1) * (r[2] == null ? 1 : r[2]); if (al <= 0) continue;
+      var c = r[1]; if (haze) c = mix3(c, haze[0], haze[1]); blend(py * PW + px, c, al * (1 - fade)); } }
+
+  /* ------------------------------------------------------------------ animal rigs (side view), standing / grazing / dead */
+  // One side-profile skeleton/flesh model per species. Poses: stand, graze, mired (sunk upright in lick mud, as at mire and
+  // sinkhole sites), sternal (collapsed on the belly, legs folded). After skeletonisation, bones above the burial level at
+  // that moment lose support and fall onto it (rib cage collapse, disarticulation); bones held in the mud stay articulated.
+  function rig(sp, Lx, pose, st) {
+    st = st || {}; var s = SPEC[sp] || SPEC.deer, fl = [], bn = [], k, bloat = st.bloat || 0, flesh = st.flesh == null ? 1 : st.flesh;
+    var prob = !!s.trunk, ry = s.d * Lx * 0.5, yb = s.h * Lx - ry * 0.8, legL = yb - ry * 0.35, hip = [-0.3 * Lx, yb + ry * 0.35], sho = [0.24 * Lx, yb + ry * 0.55];
+    var drop = 0, headDown = pose === 'graze' ? 1 : pose === 'mired' ? 0.9 : pose === 'sternal' ? 0.55 : 0, sunk = pose === 'mired' ? (st.sink || 0) : 0;
+    if (pose === 'sternal') drop = legL * 0.82;
+    if (sp === 'human') return crouched(Lx, flesh);
+    var sq = pose === 'stand' || pose === 'graze' ? 1 : 0.4 + 0.6 * Math.pow(Math.max(0, flesh), 0.6), swell = 1 + 0.22 * bloat;
+    function P(x, y) { return [x, y - drop - sunk]; }
+    var tc = P(0, yb - ry * (1 - sq) * 0.6);
+    // flesh
+    fl.push({ c: tc, rx: 0.42 * Lx * (0.94 + 0.06 * swell), ry: ry * sq * swell, rot: prob ? -0.08 : 0 });
+    if (s.hump) fl.push({ c: P(0.18 * Lx, yb + ry * 0.35 * sq), rx: 0.2 * Lx, ry: (s.hump * Lx + ry * 0.45) * sq, rot: -0.25 });
+    var nb = P(0.33 * Lx, yb + ry * 0.4 * sq), hcx = prob ? 0.45 * Lx : 0.36 * Lx + s.nk * Lx * (0.75 - 0.2 * headDown) + s.hd * Lx * 0.2;
+    var hcy = prob ? yb + ry * 0.7 - headDown * 0.1 * Lx : yb + ry * 0.5 + s.nk * Lx * 0.7 - headDown * (yb + ry * 0.4 + s.nk * Lx * 0.7 - s.hr * Lx * 1.1);
+    var hc = P(hcx, hcy); if (pose === 'sternal') hc[1] = Math.max(hc[1], s.hr * Lx * 0.9);
+    fl.push({ a: nb, b: hc, ra: ry * 0.62 * sq, rb: s.hr * Lx * 0.85, head: 1 });
+    fl.push({ c: hc, rx: prob ? 0.13 * Lx : s.hd * Lx * 0.55, ry: prob ? 0.17 * Lx : s.hr * Lx, rot: prob ? -0.3 : -0.45 - 0.6 * headDown, head: 1 });
+    var tz = [];
+    if (prob) { var t0 = [hc[0] + 0.07 * Lx, hc[1] - 0.08 * Lx], gy = -sunk + 0.02, t1 = [t0[0] + 0.05 * Lx, Math.max(gy, t0[1] - s.trunk * Lx * 0.45)], t2 = [t1[0] + 0.02 * Lx, Math.max(gy, t1[1] - s.trunk * Lx * 0.45)], t3 = [t2[0] + 0.05 * Lx, Math.max(gy, t2[1] + 0.03 * Lx)];
+      fl.push({ a: t0, b: t1, ra: 0.05 * Lx, rb: 0.035 * Lx, trunk: 1 }, { a: t1, b: t2, ra: 0.035 * Lx, rb: 0.022 * Lx, trunk: 1 }, { a: t2, b: t3, ra: 0.022 * Lx, rb: 0.014 * Lx, trunk: 1 });
+      fl.push({ c: [hc[0] - 0.06 * Lx, hc[1] + 0.01 * Lx], rx: 0.04 * Lx, ry: 0.055 * Lx, ear: 1 });
+      var tl = s.tusk * Lx, up = [hc[0] + 0.06 * Lx, hc[1] - 0.07 * Lx], th0 = -1.25, nT = 9;   // tusk: a spiral that leaves the head downward, sweeps forward and curls up
+      for (k = 0; k < nT; k++) { var thA = th0 + 2.7 * k / nT, thB = th0 + 2.7 * (k + 1) / nT, sl = tl / nT * (1 - 0.25 * k / nT), uq = [up[0] + Math.cos((thA + thB) / 2) * sl, up[1] + Math.sin((thA + thB) / 2) * sl]; tz.push({ a: up, b: uq, ra: 0.034 * Lx * (1 - 0.8 * k / nT), rb: 0.034 * Lx * (1 - 0.8 * (k + 1) / nT), ivory: 1 }); up = uq; } }
+    if (s.horn) tz.push({ a: [hc[0] - 0.03 * Lx, hc[1] + s.hr * Lx * 0.7], b: [hc[0] - 0.07 * Lx, hc[1] + s.hr * Lx * 0.7 + s.horn * Lx], ra: 0.014 * Lx, rb: 0.004 * Lx, ivory: 2 });
+    if (s.antler) { var ab = [hc[0] - 0.03 * Lx, hc[1] + s.hr * Lx]; for (k = 0; k < 3; k++) tz.push({ a: ab, b: [ab[0] - (0.06 + k * 0.05) * Lx, ab[1] + (0.1 + k * 0.06) * Lx], ra: 0.008 * Lx, rb: 0.003 * Lx, ivory: 2 }); }
+    tz.forEach(function (t) { fl.push(t); });
+    if (s.tail) fl.push({ a: P(-0.41 * Lx, yb + ry * 0.4 * sq), b: P(-0.45 * Lx, yb - s.tail * Lx * 0.9), ra: 0.018 * Lx, rb: 0.007 * Lx });
+    var legs = [];
+    [[0.24, 0, 0.02], [-0.28, 0, -0.04], [0.29, 1, 0.02], [-0.23, 1, -0.04]].forEach(function (q) { var lx = q[0] * Lx + (q[1] ? 0.03 * Lx : 0), top = P(lx, yb - ry * 0.25), knee, foot;
+      if (pose === 'sternal') { knee = P(lx + (q[0] > 0 ? 0.08 : -0.1) * Lx, drop - legL * 0.0 + 0.04 * Lx); knee[1] = s.lg * Lx; foot = [knee[0] + (q[0] > 0 ? -0.12 : 0.12) * Lx, s.lg * Lx * 0.6]; }
+      else { knee = P(lx + q[2] * Lx, legL * 0.48); foot = P(lx + q[2] * Lx * 0.4, 0.012 * Lx); }
+      fl.push({ a: top, b: knee, ra: s.lg * Lx * 1.25, rb: s.lg * Lx * 0.85, far: q[1], leg: 1 }, { a: knee, b: foot, ra: s.lg * Lx * 0.85, rb: s.lg * Lx * 0.65, far: q[1], leg: 1 });
+      legs.push([top, knee, foot, q[1]]); });
+    // skeleton (same frame)
+    var spine = [], nV = 20;
+    for (k = 0; k <= nV; k++) { var u = k / nV, vx = lerp(-0.4 * Lx, 0.3 * Lx, u), vy = yb + ry * (0.45 + 0.35 * Math.sin(u * 2.6) + (prob ? 0.25 * u * u : 0)); spine.push(P(vx, vy)); }
+    spine.forEach(function (p, i) { bn.push({ c: p, rx: 0.013 * Lx, ry: 0.016 * Lx }); var u = i / nV, spl = (prob || s.hump ? 0.02 + 0.09 * Math.max(0, u - 0.55) * (s.hump ? 3 : 1.6) : 0.03) * Lx; bn.push({ a: p, b: [p[0] - 0.01 * Lx, p[1] + spl], ra: 0.006 * Lx, rb: 0.004 * Lx }); });
+    var nR = prob ? 14 : 12;
+    for (k = 0; k < nR; k++) { var u2 = 0.38 + 0.52 * k / (nR - 1), sp0 = spine[Math.round(u2 * nV)], belly = (yb - ry * 0.85) - drop - sunk, len = sp0[1] - belly, mid = [sp0[0] + 0.035 * Lx, sp0[1] - len * 0.45], end = [sp0[0] + 0.005 * Lx, belly + len * 0.1];
+      bn.push({ a: sp0, b: mid, ra: 0.009 * Lx, rb: 0.008 * Lx, rib: 1 }, { a: mid, b: end, ra: 0.008 * Lx, rb: 0.005 * Lx, rib: 1 }); }
+    var hp = P(hip[0], hip[1]), sh = P(sho[0], sho[1]);
+    bn.push({ c: hp, rx: 0.08 * Lx, ry: 0.07 * Lx, rot: 0.5 }, { c: [hp[0] + 0.01 * Lx, hp[1] - 0.02 * Lx], rx: 0.025 * Lx, ry: 0.022 * Lx, hole: 1 }, { c: [sh[0], sh[1] - 0.04 * Lx], rx: 0.05 * Lx, ry: 0.1 * Lx, rot: -0.35 });
+    legs.forEach(function (g) { bn.push({ a: g[0], b: g[1], ra: s.lg * Lx * 0.42, rb: s.lg * Lx * 0.32, far: g[3] }, { c: g[1], rx: s.lg * Lx * 0.42, ry: s.lg * Lx * 0.36, far: g[3] }, { a: g[1], b: g[2], ra: s.lg * Lx * 0.32, rb: s.lg * Lx * 0.26, far: g[3] }, { c: g[2], rx: s.lg * Lx * 0.5, ry: s.lg * Lx * 0.22, far: g[3] }); });
+    if (prob) { bn.push({ c: [hc[0] - 0.01 * Lx, hc[1] + 0.02 * Lx], rx: 0.1 * Lx, ry: 0.125 * Lx, rot: -0.35, skull: 1 }, { a: [hc[0] + 0.02 * Lx, hc[1] - 0.02 * Lx], b: [hc[0] + 0.08 * Lx, hc[1] - 0.12 * Lx], ra: 0.055 * Lx, rb: 0.04 * Lx, skull: 1 },
+      { c: [hc[0] + 0.03 * Lx, hc[1] + 0.03 * Lx], rx: 0.02 * Lx, ry: 0.018 * Lx, hole: 1 }, { c: [hc[0] - 0.05 * Lx, hc[1] - 0.1 * Lx], rx: 0.065 * Lx, ry: 0.032 * Lx, rot: 0.15, jaw: 1 }); }
+    else { bn.push({ c: hc, rx: s.hd * Lx * 0.5, ry: s.hr * Lx * 0.72, rot: -0.45 - 0.6 * headDown, skull: 1 }, { c: [hc[0] - s.hd * Lx * 0.1, hc[1] + s.hr * Lx * 0.2], rx: s.hr * Lx * 0.24, ry: s.hr * Lx * 0.2, hole: 1 }); }
+    tz.forEach(function (t) { bn.push({ a: t.a, b: t.b, ra: t.ra, rb: t.rb, ivory: t.ivory }); });
+    if (s.tail) for (k = 0; k < 5; k++) bn.push({ c: P(-0.42 * Lx - k * 0.012 * Lx, yb + ry * 0.3 - k * s.tail * Lx * 0.15), rx: 0.008 * Lx, ry: 0.007 * Lx });
+    // collapse: bones above the support level fall onto it
+    if (st.support != null) { var Rc = hrng('fall:' + st.seed), sup = st.support, fall = clamp(st.collapse == null ? 1 : st.collapse, 0, 1);
+      fl.forEach(function (f2) { var pts = f2.c ? [f2.c] : [f2.a, f2.b], ff = lerp(1, 0.3, fall); pts.forEach(function (p) { if (p[1] > sup) p[1] = sup + (p[1] - sup) * ff; }); if (f2.c && f2.c[1] > sup) f2.ry *= lerp(1, 0.55, fall); });
+      bn.forEach(function (b2) { var pts = b2.c ? [b2.c] : [b2.a, b2.b], hi = Math.max.apply(null, pts.map(function (p) { return p[1]; })); if (hi <= sup + 0.01) return;
+        var dx = Rc.gauss(0, 0.06 * Lx) * fall, ff = lerp(1, 0.08 + 0.12 * Rc.r(), fall);
+        pts.forEach(function (p) { if (p[1] > sup) { p[1] = sup + (p[1] - sup) * ff + 0.01 * Lx * Rc.r(); p[0] += dx; } }); }); }
+    var top2 = Math.max(s.h * Lx, hc[1] + 0.25 * Lx);
+    return { flesh: fl, bones: bn, ext: [0.85 * Lx, top2 + 0.05 * Lx, sunk + 0.1 * Lx] };
+  }
+  function crouched(Lx, flesh) {
+    var fl = [], bn = [], k, sqz = 0.35 + 0.65 * Math.pow(Math.max(0, flesh), 0.7);
+    fl.push({ c: [0, 0.16 * Lx], rx: 0.3 * Lx, ry: 0.14 * Lx * sqz, rot: 0.3 }, { c: [0.3 * Lx, 0.24 * Lx], rx: 0.1 * Lx, ry: 0.09 * Lx, head: 1 }, { a: [-0.2 * Lx, 0.12 * Lx], b: [0.1 * Lx, 0.05 * Lx], ra: 0.07 * Lx * sqz, rb: 0.05 * Lx * sqz }, { a: [0.1 * Lx, 0.05 * Lx], b: [-0.1 * Lx, 0.02 * Lx], ra: 0.05 * Lx * sqz, rb: 0.04 * Lx * sqz });
+    bn.push({ c: [0.3 * Lx, 0.24 * Lx], rx: 0.085 * Lx, ry: 0.075 * Lx, skull: 1 }, { c: [0.32 * Lx, 0.25 * Lx], rx: 0.018 * Lx, ry: 0.016 * Lx, hole: 1 });
+    for (k = 0; k < 9; k++) bn.push({ c: [-0.22 * Lx + k * 0.055 * Lx, 0.18 * Lx + 0.06 * Lx * Math.sin(k * 0.35)], rx: 0.016 * Lx, ry: 0.014 * Lx });
+    for (k = 0; k < 6; k++) bn.push({ a: [-0.1 * Lx + k * 0.045 * Lx, 0.2 * Lx], b: [-0.06 * Lx + k * 0.045 * Lx, 0.07 * Lx], ra: 0.008 * Lx, rb: 0.006 * Lx, rib: 1 });
+    bn.push({ c: [-0.22 * Lx, 0.12 * Lx], rx: 0.07 * Lx, ry: 0.055 * Lx }, { a: [-0.2 * Lx, 0.1 * Lx], b: [0.12 * Lx, 0.06 * Lx], ra: 0.016 * Lx, rb: 0.013 * Lx }, { a: [0.12 * Lx, 0.06 * Lx], b: [-0.12 * Lx, 0.025 * Lx], ra: 0.013 * Lx, rb: 0.011 * Lx },
+      { a: [0.2 * Lx, 0.2 * Lx], b: [0.24 * Lx, 0.1 * Lx], ra: 0.011 * Lx, rb: 0.009 * Lx }, { a: [0.24 * Lx, 0.1 * Lx], b: [0.36 * Lx, 0.14 * Lx], ra: 0.009 * Lx, rb: 0.008 * Lx });
+    return { flesh: fl, bones: bn, ext: [0.55 * Lx, 0.5 * Lx, 0.05 * Lx] };
+  }
+
+  /* ------------------------------------------------------------------ drawing remains and objects */
+  var BONE0 = col('#cfc1a2'), BONE1 = col('#9c7b55'), FOSS1 = col('#5c4737'), FOSS2 = col('#3d3936'), IVORY = col('#e9dcc0');
+  function boneCol(a, isIvory) { var c = mix3(isIvory === 1 ? IVORY : BONE0, BONE1, a.stain || 0); if (a.fossil === 1) c = mix3(c, FOSS1, 0.85); if (a.fossil === 2) c = mix3(c, FOSS2, 0.9);
+    if (a.wstage >= 2) c = mix3(c, col('#d9d2c2'), 0.25); return c; }
+  function darkenHalo(cx, cz, rx, rz, amt, ker) {   // organic stain in the sediment (cadaver decomposition island), seeping down
+    var x0 = Math.max(0, Math.floor(sx(cx - rx * 1.4))), x1 = Math.min(PW - 1, Math.ceil(sx(cx + rx * 1.4))), y0 = Math.max(0, Math.floor(sy(cz + rz))), y1 = Math.min(PH - 1, Math.ceil(sy(cz - rz * 2.6)));
+    var tgt = ker ? col('#16120f') : col('#2f271f');
+    for (var py = y0; py <= y1; py++) for (var px = x0; px <= x1; px++) { if (py < lipY[px]) continue; var x = wx(px + 0.5), z = wz(py + 0.5), u = (x - cx) / rx, v = (z - cz) / (z < cz ? rz * 2.4 : rz);
+      var d = Math.sqrt(u * u + v * v) + 0.25 * fbm(x * 10, z * 10, 333, 2), w = clamp(1.1 - d, 0, 1); if (w <= 0) continue; blend(py * PW + px, tgt, Math.min(0.45, amt) * w * w * 0.6);
+      if (ker > 0.5 && vn(x * 160, z * 160, 444) > 0.86) blend(py * PW + px, col('#5a5650'), 0.5); } }   // bitumen glints (compressed clock)
+  function drawCarcass(a, pose, ox, oz, Lm, opt) {
+    opt = opt || {}; var st = { bloat: a.bloat || 0, flesh: a.flesh == null ? 1 : a.flesh, collapse: clamp(((a.Dk || 0) / Math.sqrt(Lm / 2) - 0.25) / 0.8, 0, 1), sink: a.sink || 0, support: a.support, seed: a.seed };
+    if (pose === 'dead') pose = a.pose || 'sternal';
+    var R2 = rig(a.sp, Lm, pose, st), s = SPEC[a.sp] || SPEC.deer, hide = col(s.hide), wet = a.stage === 2 || a.stage === 3, sq = opt.sq || 1, hk = 0.025 * Lm;
+    var showBones = pose !== 'stand' && pose !== 'graze' && st.flesh < 0.7, boneAl = clamp((0.7 - st.flesh) / 0.35, 0, 1), RND = hrng('bones:' + a.seed);
+    var missing = (a.wstage || 0) >= 4 ? 0.45 : (a.wstage || 0) >= 3 ? 0.15 : 0, jit = R2.bones.map(function () { return [RND.gauss(0, 1), RND.gauss(0, 1), RND.r() < missing]; });
+    var dis = (pose !== 'stand' && pose !== 'graze') ? 0.012 * Lm * clamp(Math.log(1 + (a.Dk || 0)) / 2, 0, 1) + 0.03 * Lm * clamp((a.wstage || 0) / 5, 0, 1) : 0;
+    var FB0 = R2.flesh.filter(function (p) { return !p.ivory; });
+    function fleshD(lx, ly) { var d = 1e9; for (var i = 0; i < FB0.length; i++) { var p = FB0[i], di = p.c ? sdEll(lx, ly, p.c, p.rx, p.ry, p.rot) : sdCap(lx, ly, p.a, p.b, p.ra, p.rb); d = (p.head || p.trunk || p.leg || p.ear) ? Math.min(d, di) : smin(d, di, 0.05 * Lm); } return d; }
+    function holeAt(lx, ly, part) { if (part && (part.leg || part.trunk)) return false; return fbm(lx * 7 / Lm, ly * 7 / Lm, 31, 3) > 1.6 * st.flesh - 0.55; }
+    if (pose !== 'stand' && pose !== 'graze' && st.flesh > 0.06) {
+      var fleshC = wet ? mix3(hide, col('#2c241d'), 0.55) : hide;
+      var FB = R2.flesh.filter(function (p) { return !p.ivory; }), FI = R2.flesh.filter(function (p) { return p.ivory; });
+      paintLocal(ox, oz, R2.ext, function (lx, ly) { var d = 1e9, part = null;
+        for (var i = 0; i < FB.length; i++) { var p = FB[i], di = p.c ? sdEll(lx, ly, p.c, p.rx, p.ry, p.rot) : sdCap(lx, ly, p.a, p.b, p.ra, p.rb); if (di < d && di < 0.004 * Lm) part = p; d = (p.head || p.trunk || p.leg || p.ear) ? Math.min(d, di) : smin(d, di, 0.05 * Lm); }
+        var di2 = 1e9; for (i = 0; i < FI.length; i++) { var q = FI[i]; di2 = Math.min(di2, sdCap(lx, ly, q.a, q.b, q.ra, q.rb)); }
+        if (di2 < 0.003 * Lm && di2 < d + 0.01 * Lm) { var iv = mix3(IVORY, col('#b49a72'), 0.3 + 0.3 * clamp(ly / Lm, 0, 1)), shv = 0.8 + 0.35 * clamp(-di2 / (0.02 * Lm), 0, 1); return [di2, [iv[0] * shv, iv[1] * shv, iv[2] * shv]]; }
+        if (d > 0.06 * Lm) return null;
+        var hol = holeAt(lx, ly, part);
+        if (hol && d < 0) return [d, mix3(col('#21180f'), fleshC, 0.25)];
+        if (s.hair) d += 0.012 * Lm * s.hair * vn(lx * 60 / Lm, ly * 60 / Lm, 5) * (wet ? 0.3 : 1) * (part && part.trunk ? 0.2 : 1);
+        var ins = clamp(-d / (0.12 * Lm), 0, 1), sh = 0.62 + 0.5 * ins * (0.55 + 0.45 * clamp(ly / (0.35 * Lm), 0, 1)) + 0.08 * vn(lx * 25 / Lm, ly * 25 / Lm, 8), c = [fleshC[0] * sh, fleshC[1] * sh, fleshC[2] * sh];
+        if (part && part.ear) c = [c[0] * 0.75, c[1] * 0.75, c[2] * 0.75];
+        if (s.hair && part && !part.leg && !part.head && !part.trunk && d > -0.06 * Lm && Math.abs(Math.sin(lx * 260 / Lm + 3 * vn(lx * 20 / Lm, 1, 2))) < 0.18) c = [c[0] * 0.8, c[1] * 0.8, c[2] * 0.8];
+        if (wet) c = mix3(c, col('#6a645c'), 0.12 * clamp(ly / (0.5 * Lm), 0, 1));    // wet sheen
+        return [d, c, st.flesh < 0.3 ? clamp(st.flesh / 0.3, 0.35, 1) : 1]; }, { flip: a.flip, sq: sq });
+    }
+    if (pose === 'stand' || pose === 'graze') {   // living animal, used for the distant herd
+      paintLocal(ox, oz, R2.ext, function (lx, ly) { var d = 1e9, far = 0, iv = 0;
+        for (var i = 0; i < R2.flesh.length; i++) { var p = R2.flesh[i], di = p.c ? sdEll(lx, ly, p.c, p.rx, p.ry, p.rot) : sdCap(lx, ly, p.a, p.b, p.ra, p.rb); if (di < d) { if (di < 0 || d > 0) { far = p.far; iv = p.ivory; } } d = smin(d, di, p.ivory ? 0.001 : hk); }
+        if (s.hair) d += 0.01 * Lm * s.hair * vn(lx * 50 / Lm, ly * 50 / Lm, 5);
+        var c = iv === 1 ? IVORY : iv === 2 ? col('#4a4038') : hide, sh = far ? 0.8 : 1 + 0.12 * clamp(ly / Lm, 0, 1); return [d, [c[0] * sh, c[1] * sh, c[2] * sh]]; }, opt);
+      return; }
+    if (showBones) {
+      paintLocal(ox, oz, R2.ext, function (lx, ly) { var best = 1e9, bi = -1;
+        for (var i = 0; i < R2.bones.length; i++) { if (jit[i][2] || R2.bones[i].hole) continue; var p = R2.bones[i], jx = jit[i][0] * dis, jy = jit[i][1] * dis * 0.4, di = p.c ? sdEll(lx - jx, ly - jy, p.c, p.rx, p.ry, p.rot) : sdCap(lx - jx, ly - jy, p.a, p.b, p.ra, p.rb); if (di < best) { best = di; bi = i; } }
+        if (bi < 0 || best > 0.02 * Lm) return null; var p2 = R2.bones[bi]; if (p2.hole) return null;
+        if (st.flesh > 0.06 && fleshD(lx, ly) < 0 && !holeAt(lx, ly, null)) return null;   // still covered by hide
+        for (var hI = 0; hI < R2.bones.length; hI++) { var ph = R2.bones[hI]; if (ph.hole && !jit[hI][2] && sdEll(lx - jit[hI][0] * dis, ly - jit[hI][1] * dis * 0.4, ph.c, ph.rx, ph.ry, 0) < 0) return [best, mix3(boneCol(a, 0), col('#2a2119'), 0.75), boneAl]; }
+        var gr = 0.86 + 0.14 * fbm(lx * 30 / Lm, ly * 30 / Lm, 19, 2) - 0.12 * clamp(-ly / (0.3 * Lm), 0, 1), c = boneCol(a, p2.ivory); c = [c[0] * gr, c[1] * gr, c[2] * gr]; var th = p2.c ? Math.min(p2.rx, p2.ry) : p2.ra, sh = 0.78 + 0.32 * clamp(-best / Math.max(th, 1e-4), 0, 1) - (p2.far ? 0.12 : 0);
+        if ((a.wstage || 0) >= 1 && vn(lx * 220 / Lm, ly * 40 / Lm, 17) > 0.62) sh *= 0.7;   // weathering cracks
+        if (p2.skull && best < -th * 0.5 && vn(lx * 40 / Lm, ly * 40 / Lm, 3) > 0.3) sh *= 0.75;
+        return [best, [c[0] * sh, c[1] * sh, c[2] * sh], boneAl]; }, { flip: a.flip, sq: sq });
+    }
+  }
+  function simpleObj(a, ox, oz) {   // small finds
+    var R3 = hrng('obj:' + a.seed), ang = a.ang || 0, ca = Math.cos(ang), sa = Math.sin(ang);
+    function rot(lx, ly) { return [lx * ca + ly * sa, -lx * sa + ly * ca]; }
+    var K = a.kind, ext = [0.4, 0.3, 0.3];
+    if (K === 'nail' || K === 'horseshoe' || K === 'wire') { var rr = (a.rust || 0); if (rr > 0) darkenHaloRust(ox, oz, 0.03 + 0.05 * rr, rr); }
+    paintLocal(ox, oz, ext, function (lx, ly) { var q = rot(lx, ly), u = q[0], v = q[1], d, c;
+      switch (K) {
+        case 'fcr': d = sdEll(u, v, [0, 0], a.r, a.r * 0.7, 0) + a.r * 0.25 * vn(u * 30, v * 30, 7) + a.r * 0.15 * Math.abs(Math.sin(Math.atan2(v, u) * 3 + 1)); c = mix3(col('#77706a'), col('#8e5a44'), R3.r() < 2 ? 0.45 : 0); c = [c[0] * (0.85 + 0.3 * clamp(v / a.r, -0.5, 1)), c[1] * (0.85 + 0.3 * clamp(v / a.r, -0.5, 1)), c[2] * (0.85 + 0.3 * clamp(v / a.r, -0.5, 1))]; return [d, c];
+        case 'flake': d = sdEll(u, v, [0, 0], a.r, a.r * 0.14, 0); c = mix3(col('#6e7379'), col('#d8d4cc'), (a.patina || 0) * 0.6); return [d, c];
+        case 'fluted': { var w = a.r * 0.32 * Math.sqrt(Math.max(0, 1 - Math.pow((u - 0.15 * a.r) / (a.r * 1.15), 2))) * (u > 0 ? 1 - 0.6 * u / a.r : 1); d = Math.max(Math.abs(v) - w, Math.abs(u) - a.r);
+          c = mix3(col('#7d7a74'), col('#cfc8bb'), (a.patina || 0) * 0.5); var fl2 = 0.88 + 0.16 * Math.sin(u / a.r * 25 + v / a.r * 9) * 0.5 + (Math.abs(v) < w * 0.25 && u < 0.2 * a.r ? -0.08 : 0); return [d, [c[0] * fl2, c[1] * fl2, c[2] * fl2]]; }
+        case 'bonefrag': d = sdCap(u, v, [-a.r * 0.5, 0], [a.r * 0.5, 0], a.r * 0.18, a.r * 0.12); c = a.burnt ? (vn(u * 90, v * 90, 3) > 0 ? col('#2b2723') : col('#d9d4cb')) : BONE1; return [d, c];
+        case 'sherd': { var cy = 0.18, rr2 = Math.sqrt(u * u + (v + cy) * (v + cy)); d = Math.max(Math.abs(rr2 - cy) - 0.005, Math.abs(Math.atan2(u, v + cy)) * cy - a.r * 0.5); c = Math.abs(rr2 - cy) < 0.0022 ? col('#3d3029') : col('#9a6440'); return [d, c]; }
+        case 'whiteware': { var cy2 = 0.12, r2 = Math.sqrt(u * u + (v + cy2) * (v + cy2)); d = Math.max(Math.abs(r2 - cy2) - 0.0035, Math.abs(Math.atan2(u, v + cy2)) * cy2 - 0.035); return [d, col('#e8e6df')]; }
+        case 'nail': d = Math.max(sdCap(u, v, [-0.035, 0], [0.035, 0], 0.0025, 0.0012), -1) - 0.004 * (a.rust || 0); c = mix3(col('#4a4644'), RUST, a.rust || 0); return [d, c];
+        case 'horseshoe': { var rr3 = Math.sqrt(u * u + v * v); d = Math.max(Math.abs(rr3 - 0.055) - 0.011 - 0.006 * (a.rust || 0), v - 0.02); c = mix3(col('#4b4644'), RUST, a.rust || 0); return [d, c]; }
+        case 'wire': d = Math.abs(v - 0.015 * Math.sin(u * 60)) - 0.0018 - 0.002 * (a.rust || 0); d = Math.max(d, Math.abs(u) - 0.15); return [d, mix3(col('#59585a'), RUST, a.rust || 0)];
+        case 'button': case 'bead': d = sdEll(u, v, [0, 0], 0.008, 0.003, 0); return [d, K === 'bead' ? col('#e6dfd2') : col('#7e6a3a')];
+        case 'key': d = Math.min(sdEll(u, v, [-0.02, 0], 0.01, 0.008, 0), sdCap(u, v, [-0.012, 0], [0.025, 0], 0.0025, 0.0025)); return [d, col('#7a6c3c')];
+        case 'tooth': d = sdEll(u, v, [0, 0], 0.03, 0.018, 0) + 0.004 * Math.abs(Math.sin(u * 300)); return [d, mix3(BONE1, col('#3a332c'), 0.4)];
+        case 'bottle': { d = Math.min(sdCap(u, v, [-0.1, 0], [0.06, 0], 0.035, 0.035), sdCap(u, v, [0.06, 0], [0.13, 0], 0.014, 0.013)); var gc = R3.r() < 0.5 ? col('#3c5a3a') : col('#5a3a20'), edge = clamp(1 + d / 0.006, 0, 1);
+          c = mix3(gc, col('#d9e1da'), 0.6 * edge + (Math.abs(v - 0.02) < 0.004 ? 0.4 : 0)); if (a.irid) { var hh = vn(u * 120, v * 120, 5); c = mix3(c, hh > 0 ? col('#c7b8e0') : col('#d8cf9a'), a.irid * 0.5 * Math.abs(hh)); }
+          if (a.broken && Math.abs(Math.sin(u * 50 + v * 20)) < 0.08) return null; return [d, c, 0.85]; }
+        case 'can': { var wv = 0.008 * Math.sin(u * 90); d = Math.max(Math.abs(u) - 0.062, Math.abs(v - wv) - 0.03 + 0.012 * clamp(Math.abs(u) / 0.06, 0, 1)); c = Math.abs(u) < 0.03 ? col('#a33a30') : col('#b9bbbd');
+          if (a.rust) { c = mix3(c, col('#d8d6cf'), a.rust * 0.8); if (vn(u * 80, v * 80, 6) > 1 - a.rust) return null; } return [d, c]; }
+        case 'plastic': { var wv2 = 0.01 * Math.sin(u * 50 + 1); d = Math.min(Math.max(Math.abs(u) - 0.11, Math.abs(v - wv2) - 0.03), sdCap(u, v, [0.11, 0], [0.14, 0], 0.012, 0.012)); c = mix3(col('#a7c4d6'), col('#e8eef0'), 0.4 + 0.3 * vn(u * 60, v * 60, 2));
+          return [d, c, 0.75]; }
+        case 'shotshell': d = Math.min(sdCap(u, v, [-0.03, 0], [0.02, 0], 0.009, 0.009), sdCap(u, v, [0.02, 0], [0.033, 0], 0.0095, 0.0095)); return [d, u > 0.02 ? col('#b8933e') : col('#a32b26')];
+        case 'phone': d = Math.max(Math.abs(u) - 0.075, Math.abs(v) - 0.004); return [d, col('#1c1c1f')];
+        case 'stick': d = sdCap(u, v, [-a.len / 2, 0], [a.len / 2, 0], a.r, a.r * 0.8); c = mix3(col('#7a5e44'), col('#3a2c22'), a.wet ? 0.5 : 0); if (a.rot > 0.8 && !a.wet) return null; return [d, c];
+        default: return null; }
+    }, {});
+  }
+  function darkenHaloRust(cx, cz, r, amt) { var x0 = Math.max(0, Math.floor(sx(cx - r))), x1 = Math.min(PW - 1, Math.ceil(sx(cx + r))), y0 = Math.max(0, Math.floor(sy(cz + r))), y1 = Math.min(PH - 1, Math.ceil(sy(cz - r)));
+    for (var py = y0; py <= y1; py++) for (var px = x0; px <= x1; px++) { var x = wx(px + 0.5), z = wz(py + 0.5), d = Math.sqrt((x - cx) * (x - cx) + (z - cz) * (z - cz)) / r; if (d < 1) blend(py * PW + px, RUST, amt * 0.5 * (1 - d) * (1 - d)); } }
+
+  /* ------------------------------------------------------------------ paint remains, objects, posts */
+  var vis = A.filter(function (a) { return !a.gone && a.x > VX0 - 4 && a.x < VX0 + VWm + 4; });
+  vis.forEach(function (a) { if (a.kind === 'carcass' && a.halo > 0.02) { var Lm = a.len, s = SPEC[a.sp] || SPEC.deer; darkenHalo(a.x + (a.flip ? -0.05 : 0.05) * Lm, a.zc + s.d * Lm * 0.25, Lm * 0.6, s.d * Lm * 0.45, a.halo, a.kerogen); } });
+  vis.forEach(function (a) { if (a.kind === 'carcass' && a.kerogen > 0.02) { var s = SPEC[a.sp] || SPEC.deer; darkenHalo(a.x, a.zc + s.d * a.len * 0.2, a.len * 0.55, s.d * a.len * 0.4, 0.6 * a.kerogen, a.kerogen); } });
+  var WOOD = col('#8a7058'), WOODG = col('#9a9286'), PIPE = col('#3e3026'), WETW = col('#3b2a1e');
+  var postsByMint = {};
+  vis.forEach(function (a) {
+    var K = a.kind;
+    if (K === 'carcass') { var dep = surfC(a.x) - a.zc, sq = a.stage >= 4 ? clamp(1 - 0.3 * clamp(dep / 2.5, 0, 1), 0.65, 1) : 1; drawCarcass(a, 'dead', a.x, a.zc, a.len, { sq: sq }); return; }
+    if (K === 'post') {
+      var zb = mapZ(a.x, a.z - a.d), zt = Math.min(a.zc, surfC(a.x)), sU = surfU(a.x), aboveH = (a.z + a.h) - sU, keepAbove = a.above > 0 && aboveH > 0.05 && !a.trunc && a.mint >= N - 60;
+      var r = a.r, wood = a.wood;
+      if (!wood) { paintLocal(a.x, zb, [0.2, 1, 0.05], function (lx, ly) { var h2 = zt - zb, d = Math.max(Math.abs(lx) - (0.11 - 0.05 * clamp(ly / h2, 0, 1)), Math.max(-ly, ly - h2 * 0.85)); return [d, mix3(col('#a7a39b'), col('#8f8a82'), vn(lx * 80, ly * 80, 2) * 0.5 + 0.5)]; }, {}); }   // concrete footing
+      var cw = wood ? (a.wet ? WETW : mix3(WOOD, PIPE, a.rot || 0)) : mix3(col('#8c8f92'), RUST, a.rust || 0);
+      paintLocal(a.x, zb, [r * 2, Math.max(0.01, zt - zb) + 0.01, 0.01], function (lx, ly) { var d = Math.max(Math.abs(lx) - r * (wood && a.rot > 0.5 ? 1.15 : 1), Math.max(-ly, ly - (zt - zb))); var c = cw; if (wood && !a.wet) c = mix3(c, PIPE, 0.4 * vn(lx * 90, ly * 20, 4) + 0.2); return [d, c]; }, { clip: 'below' });
+      if (keepAbove) { var hv = aboveH * (0.6 + 0.4 * a.above); a.vis = hv;
+        paintLocal(a.x, sU > zt ? surfC(a.x) : zt, [r * 2, hv + 0.02, 0.01], function (lx, ly) { var d = Math.max(Math.abs(lx) - r * 0.95, Math.max(-ly, ly - hv)); var c = wood ? mix3(WOODG, col('#6e6458'), 0.5 + 0.5 * vn(lx * 200, ly * 15, 6)) : mix3(col('#9da1a4'), RUST, a.rust || 0); return [d, c]; }, { clip: 'above' });
+        (postsByMint[a.mint] = postsByMint[a.mint] || []).push(a); }
+      return; }
+    if (K === 'log') { var ox = a.x, oz = a.zc; paintLocal(ox, oz, [a.len, a.r * 2, a.r * 2], function (lx, ly) { var u = lx * Math.cos(a.ang) + ly * Math.sin(a.ang), v = -lx * Math.sin(a.ang) + ly * Math.cos(a.ang), fr = a.lign ? 0.3 : 1, d = sdCap(u, v * (1 / fr), [-a.len / 2, 0], [a.len / 2, 0], a.r, a.r * 0.6) * fr + a.r * 0.15 * vn(u * 6, 1, 5);
+        if (!a.wet && a.rot > 0.85) return null; var c = a.lign ? mix3(col('#2a2119'), col('#3a2d22'), 0.5 + 0.5 * vn(u * 30, v * 300, 4)) : a.wet ? mix3(WETW, col('#55402e'), 0.3 + 0.3 * vn(u * 40, v * 200, 3)) : mix3(WOOD, PIPE, a.rot); return [d, c, !a.wet && a.rot > 0.5 ? 0.6 : 1]; }, {}); return; }
+    if (K === 'tyre') { paintLocal(a.x, a.zc + 0.1, [0.4, 0.2, 0.2], function (lx, ly) { var d = Math.max(Math.abs(lx) - 0.31, Math.abs(ly) - 0.1) + 0.0; d = Math.max(d, -Math.max(Math.abs(lx) - 0.19, Math.abs(ly) - 0.035)); var c = col('#1e1d1c'); if (Math.abs(ly) > 0.085 && Math.sin(lx * 160) > 0.3) c = col('#141313'); return [d - 0.02, c]; }, {}); return; }
+    if (K === 'car') { var pc = hrng('car:' + a.seed).pick([col('#7a2a24'), col('#2c4a6a'), col('#c9c6bd'), col('#3b5a40')]), rr = a.age ? clamp(a.age / 40, 0, 1) : 0, dep2 = surfC(a.x) - a.zc, crush = clamp(dep2 / 1.5, 0, 0.45) + 0.3 * clamp((a.age || 0) / 120, 0, 1);
+      paintLocal(a.x, a.zc + 0.0, [2.4, 1.6, 0.05], function (lx, ly) { var body = Math.max(Math.abs(lx) - 2.1, Math.abs(ly - 0.55) - 0.3) - 0.06, cabTop = 1.42 * (1 - crush) + 0.85 * crush, cab = Math.max(Math.abs(lx + 0.1) - 0.95 + 0.4 * clamp((ly - 0.85) / 0.6, 0, 1), Math.max(0.82 - ly, ly - cabTop));
+        var w1 = Math.sqrt((lx - 1.35) * (lx - 1.35) + (ly - 0.32) * (ly - 0.32)) - 0.31, w2 = Math.sqrt((lx + 1.35) * (lx + 1.35) + (ly - 0.32) * (ly - 0.32)) - 0.31, d = Math.min(Math.min(body, cab), Math.min(w1, w2));
+        var c = Math.min(w1, w2) < 0 ? col('#1b1a19') : (cab < 0 && ly > 0.9 && Math.abs(lx + 0.1) < 0.8) ? col('#2a2f33') : pc; c = mix3(c, RUST, rr * (0.6 + 0.4 * vn(lx * 8, ly * 8, 4)));
+        if (rr > 0.85 && vn(lx * 6, ly * 6, 5) > 0.2) return null; return [d, c]; }, { flip: a.flip }); return; }
+    simpleObj(a, a.x, a.zc);
+  });
+
+  /* ------------------------------------------------------------------ the surface now: token N's own event */
+  var ev = NOW.ev, R4 = hrng('surface:' + NOW.hash), veg = NOW.era.veg;
+  // fence wires / rails / mesh, and house frames, between standing posts
+  Object.keys(postsByMint).forEach(function (k2) { var ps = postsByMint[k2].sort(function (p, q) { return p.x - q.x; }), fk = ps[0].fence;
+    for (var i2 = -1; i2 < ps.length; i2++) { var xa2 = i2 < 0 ? VX0 - 0.2 : ps[i2].x, xb = i2 + 1 < ps.length ? ps[i2 + 1].x : VX0 + VWm + 0.2, g0 = surfC((xa2 + xb) / 2), hmin = Math.min.apply(null, ps.map(function (p) { return p.vis; }));
+      var lines = fk === 'split rail' ? [0.35, 0.7, 1.0] : fk === 'chain-link' ? [1.15] : fk ? [0.45, 0.75, 1.05] : [hmin - 0.05];
+      lines.forEach(function (hl) { if (hl > hmin + 0.05) return; paintLocal((xa2 + xb) / 2, g0 + hl, [(xb - xa2) / 2, 0.06, 0.06], function (lx, ly) { var sag = fk && fk !== 'split rail' ? 0.03 * (1 - Math.pow(2 * lx / (xb - xa2), 2)) : 0, th = fk === 'split rail' || !fk ? 0.035 : 0.0035;
+        var d = Math.abs(ly + sag) - th; if (fk === 'barbed wire' && Math.abs(((lx * 8) % 1)) < 0.05) d -= 0.008; return [d, fk === 'split rail' || !fk ? WOODG : col('#5c5b59'), fk === 'split rail' || !fk ? 1 : 0.85]; }, { clip: 'above' }); });
+      if (fk === 'chain-link') paintLocal((xa2 + xb) / 2, g0 + 0.6, [(xb - xa2) / 2, 0.6, 0.6], function (lx, ly) { var u = (lx + ly) / 0.06, v = (lx - ly) / 0.06, du = Math.abs(u - Math.round(u)), dv = Math.abs(v - Math.round(v)); return [Math.min(du, dv) * 0.06 - 0.0012, col('#77797b'), 0.55]; }, { clip: 'above' });
+    } });
+  // vegetation along the lip
+  var GR = { steppe: [140, 0.03, 0.12, '#8f8a63'], parkland: [220, 0.04, 0.16, '#7c7c55'], forest: [60, 0.02, 0.07, '#6d6248'], pasture: [420, 0.04, 0.1, '#6f7a4a'], scrub: [200, 0.06, 0.3, '#6e6d4a'], fern: [200, 0.05, 0.3, '#5d6a40'], swamp: [200, 0.05, 0.3, '#4d5a3a'], lawn: [500, 0.02, 0.05, '#6a7a48'] }[veg] || [200, 0.04, 0.12, '#7d7a55'];
+  var bare = { drought: 1, plough: 1, outwash: 1, cinders: 1, flood: 0.8, greatflood: 1, fire: 0.6, graze: 0.5, camp: 0.3, pit: 0.4, burial: 0.7, dogburial: 0.5, sandblow: 0.6, beaver: 0.7, frost: 0.4 }[ev] || 0;
+  if (cold && NOW.era.key === 'prologue') GR = [GR[0], GR[1], GR[2], '#8e8865'];
+  var nBl = Math.round(GR[0] * VWm * (1 - bare)), burnt = ev === 'fire';
+  for (var bi = 0; bi < nBl; bi++) { var bx = VX0 + R4.r() * VWm, bh = R4.range(GR[1], GR[2]) * (burnt ? 0.25 : 1), lean = R4.gauss(0, 0.25) + 0.1, gz0 = surfC(bx), gc = burnt ? col('#1e1b18') : mix3(col(GR[3]), col('#b0a882'), R4.r() * 0.5);
+    for (var st2 = 0; st2 < 12; st2++) { var t2 = st2 / 11, xx = bx + lean * bh * t2 * t2, zz = gz0 + bh * t2, ppx = Math.round(sx(xx)), ppy = Math.round(sy(zz)); if (ppx < 0 || ppx >= PW || ppy < 0 || ppy >= PH) continue; var wpx = Math.max(1, Math.round(0.0025 * SC * (1 - t2)));
+      for (var q2 = 0; q2 < wpx; q2++) if (ppx + q2 < PW) blend(ppy * PW + ppx + q2, gc, 0.8); } }
+  // event dressing
+  function sky(fnA) { for (var py = 0; py < PH; py++) for (var px = 0; px < PW; px++) { if (py >= lipY[px]) continue; var r5 = fnA(wx(px + 0.5), wz(py + 0.5)); if (r5) blend(py * PW + px, r5[0], r5[1]); } }
+  if (ev === 'flood' || ev === 'greatflood' || ev === 'beaver') { var wl = zRef + (ev === 'greatflood' ? 0.35 : R4.range(0.03, 0.09));
+    for (var px3 = 0; px3 < PW; px3++) { var top3 = Math.max(0, Math.floor(sy(wl))); for (var py3 = top3; py3 < lipY[px3]; py3++) { var x3 = wx(px3 + 0.5), z3 = wz(py3 + 0.5), dd = wl - z3; blend(py3 * PW + px3, dd < 0.004 ? col('#d9d6cf') : mix3(col('#9a8f7e'), col('#c4c2bc'), 0.35 + 0.25 * vn(x3 * 2, z3 * 400, 3)), dd < 0.004 ? 0.6 : 0.5 + 0.2 * clamp(dd / 0.15, 0, 1)); } } }
+  if (ev === 'fire' || ev === 'camp') { var fx = ev === 'camp' && NOW.hx ? NOW.hx : VX0 + VWm * R4.range(0.6, 1.2), str = ev === 'camp' ? 0.22 : 0.4;
+    sky(function (x, z) { var h = z - zRef; if (h < 0) return null; var cx = fx + h * 0.35 + 0.15 * h * fbm(h * 1.5, 1, 71, 3), w = 0.08 + h * 0.28, d = Math.abs(x - cx) / w; if (d > 1.5) return null; var a2 = str * Math.exp(-d * d * 1.6) * clamp(1 - h / 4.5, 0, 1) * (0.6 + 0.4 * fbm(x * 3, z * 3, 73, 3)); return [col('#a7a39f'), a2]; });
+    if (ev === 'camp' && NOW.hx) for (var e2 = 0; e2 < 14; e2++) { var exx = NOW.hx + R4.range(-0.25, 0.25), ezz = surfC(exx) + R4.range(0, 0.03), epx = Math.round(sx(exx)), epy = Math.round(sy(ezz)); if (epx >= 0 && epx < PW && epy >= 0 && epy < PH) blend(epy * PW + epx, col('#e0703a'), 0.7); } }
+  if (ev === 'loess') sky(function (x, z) { var h = z - zRef; return [col('#d2c3a2'), 0.35 * Math.exp(-Math.max(0, h) / 1.2)]; });
+  if (ev === 'frost') { for (var px4 = 0; px4 < PW; px4++) { var sn4 = 0.025 + 0.02 * vn(wx(px4) * 3, 1, 8); for (var py4 = Math.floor(lipY[px4] - sn4 * SC); py4 < lipY[px4] + 0.01 * SC; py4++) if (py4 >= 0 && py4 < PH) blend(py4 * PW + px4, col('#eef0f1'), 0.92); } }
+  if (ev === 'plough') { var per = R4.range(0.75, 0.95); for (var px5 = 0; px5 < PW; px5++) { var x5 = wx(px5 + 0.5), ph = ((x5 / per) % 1 + 1) % 1, rh = 0.09 * (ph < 0.6 ? ph / 0.6 : (1 - ph) / 0.4); for (var py5 = Math.floor(lipY[px5] - rh * SC); py5 < lipY[px5]; py5++) if (py5 >= 0) blend(py5 * PW + px5, mix3(LITH.plough, col('#8a745c'), 0.3 * vn(x5 * 40, py5 * 0.3, 2) + 0.2), 1); } }
+  if (ev === 'graze' && NOW.sp) { var nh = NOW.herd || 1; for (var hI = 0; hI < nh; hI++) { var dist = R4.range(10, 38), f2 = 2.4 / dist, Lh = SIZE[NOW.sp] * f2, hx2 = VX0 + R4.range(0.05, 0.95) * VWm, pose2 = R4.chance(0.65) ? 'graze' : 'stand';
+      drawCarcass({ sp: NOW.sp, seed: NOW.hash + hI }, pose2, hx2, zRef + 0.02 * f2 * 10 - 0.03, Lh, { flip: R4.chance(0.5), clip: 'above', haze: [SKY1, clamp(0.15 + dist / 70, 0, 0.6)] }); } }
+  if (ev === 'house') { var hp = (postsByMint[NOW.i] || []); if (hp.length) { var xL = hp[0].x, xR = hp[hp.length - 1].x, hh2 = Math.min.apply(null, hp.map(function (p) { return p.vis || 1.5; })), gz2 = surfC(xL);
+      paintLocal((xL + xR) / 2, gz2 + hh2, [Math.max(0.6, (xR - xL) / 2 + 0.7), 0.9, 0.1], function (lx, ly) { var w = Math.max(0.6, (xR - xL) / 2 + 0.6); var d = Math.max(Math.abs(lx) - (w - ly * 0.9), Math.max(-ly + 0.0, ly - 0.75)); return [d, mix3(col('#8a7a58'), col('#6e5f44'), 0.5 + 0.5 * vn(lx * 12, ly * 60, 3))]; }, { clip: 'above' }); } }
+
+  /* ------------------------------------------------------------------ traits (honest: what is in the picture) */
+  function fmtYear(y) { y = Math.round(y); return y < 0 ? (-y).toLocaleString('en-US') + ' BCE' : y + ' CE'; }
+  function gapLabel(g) { return N === 1 ? 'First Mint' : g < 60 ? 'Seconds' : g < 3600 ? 'Minutes' : g < 86400 ? 'Hours' : g < 7 * 86400 ? 'Days' : g < 30 * 86400 ? 'Weeks' : 'Months'; }
+  var EVN = { quiet: 'Quiet', graze: 'Grazing', death: 'A Death', flood: 'Flood', greatflood: 'The Great Flood', drought: 'Drought', fire: 'Fire', loess: 'Dust Storm', frost: 'Hard Frost', outwash: 'Meltwater Flood', blackmat: 'Marsh',
+    camp: 'Hearth', midden: 'Shell Midden', burial: 'A Burial', dogburial: 'A Dog Buried', pit: 'Storage Pit', house: 'House Posts', plough: 'Ploughing', fence: 'Fencing', litter: 'Litter', cinders: 'Cinders Dumped', tyre: 'A Tyre', car: 'A Car', beaver: 'Beaver Pond', sandblow: 'Earthquake', lost: 'Something Lost' };
+  var surfName = EVN[ev] || ev; if ((ev === 'death' || ev === 'graze') && NOW.sp) surfName += ': ' + NOW.sp.charAt(0).toUpperCase() + NOW.sp.slice(1); if (ev === 'fence' && NOW.fence) surfName += ': ' + NOW.fence;
+  var STG = ['Fresh', 'Bloated', 'Rotting', 'Collapsed', 'Bones'], remains = [];
+  vis.forEach(function (a) { if (a.kind === 'carcass' && a.x > VX0 - a.len * 0.4 && a.x < VX0 + VWm + a.len * 0.4) remains.push(a.sp + ' (' + (a.fossil ? (a.fossil === 2 ? 'replaced fossil' : 'permineralised') : a.stage >= 4 ? (a.stain > 0.5 ? 'stained bones' : 'bones') : STG[a.stage].toLowerCase()) + ')'); });
+  var deepest = 'Fresh Organics'; vis.forEach(function (a) { if (a.kerogen > 0.3) deepest = 'Kerogen (Compressed Clock)'; else if (a.fossil && deepest.indexOf('Kerogen') < 0) deepest = 'Permineralised Bone'; });
+  var nLay = 0; for (j = 0; j < L.length; j++) if (L[j].mint) nLay++;
+  var feats = { 'World': WORLD.name + (WK === 'A' ? ' (default, pending choice)' : ''), 'Era': NOW.era.name, 'World Date': fmtYear(NOW.year), 'Surface': surfName, 'Before This Mint': gapLabel(NOW.gap),
+    'Mints Beneath': N - 1, 'Remains In View': remains.length ? remains.slice(0, 3).join(', ') : 'None', 'Deepest State': deepest, 'Clock': compressedUsed ? 'Compressed (stated)' : 'Real Rates', 'History': HIST.source, 'Depth Shown': (VWm * 0.8 - YS).toFixed(1) + ' m' };
+  C.features(feats);
+  window.__sediments = { N: N, world: WK, zoom: ZOOM, window: [VX0, VWm], repeats: REPEATS, events: M.map(function (m) { return [m.i, m.ev, Math.round(m.year), m.era.key, m.sp || '']; }),
+    remains: vis.filter(function (a) { return a.kind === 'carcass'; }).map(function (a) { return { mint: a.mint, sp: a.sp, stage: a.stage, flesh: +(a.flesh || 0).toFixed(2), wstage: a.wstage, fossil: a.fossil, ker: +(a.kerogen || 0).toFixed(2), age: Math.round(a.age), dep: +a.dep.toFixed(2), support: a.support, sink: a.sink, pose: a.pose, x: +a.x.toFixed(2) }; }) };
+  PX.finish(o, RB, GB, BB, { expo: 1.0, grain: 0.01, vig: 0.12, seed: 7 });
+  C.done(o.cv.canvas, 'sediments');
+})();
+
+</script></body></html>

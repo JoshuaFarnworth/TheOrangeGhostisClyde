@@ -1,0 +1,434 @@
+[
+ {
+  "i": 0,
+  "hash": "0x01c70b6d0185ae34d19f356dc1c1ef604b7bdafa158f33461724ccfd4f4a67c3",
+  "ms": 591,
+  "features": {
+   "Phosphor": "P3 Amber",
+   "Flock": "Medium",
+   "Flocks": "Two",
+   "Mood": "Panic",
+   "Line": "Tube",
+   "Display": "Interlaced"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 1,
+  "hash": "0xc75293a68147637d2590a3ab7fc88454354ca7ed7d9610993cb2e593fa0b3eda",
+  "ms": 543,
+  "features": {
+   "Phosphor": "P1 Green",
+   "Flock": "Small",
+   "Flocks": "One",
+   "Mood": "Panic",
+   "Line": "Neon",
+   "Display": "Scanlines"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 2,
+  "hash": "0x403af2f68282ccba354339ba9bfcb490be831bdab1a37e79b461847c833198cd",
+  "ms": 577,
+  "features": {
+   "Phosphor": "P4 White",
+   "Flock": "Medium",
+   "Flocks": "One",
+   "Mood": "Murmuration",
+   "Line": "Neon",
+   "Display": "Clean"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 3,
+  "hash": "0x4660ba2c4f7e00f7e67c677e002961be926a48beebf8c0654f7b6da2ecd56645",
+  "ms": 463,
+  "features": {
+   "Phosphor": "P4 White",
+   "Flock": "Small",
+   "Flocks": "Two",
+   "Mood": "Panic",
+   "Line": "Neon",
+   "Display": "Clean"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 4,
+  "hash": "0xf9d9602d401845f61c5a6c1bfc56d828e0126a6f37b12b8e6e0d47f0c1c8e9b7",
+  "ms": 612,
+  "features": {
+   "Phosphor": "P7 Blue",
+   "Flock": "Large",
+   "Flocks": "Two",
+   "Mood": "Calm",
+   "Line": "Hairline",
+   "Display": "Clean"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 5,
+  "hash": "0x9998ab92a720c90cf4e52e883aeb68ad365038c540bdfa04d589da475affe7eb",
+  "ms": 577,
+  "features": {
+   "Phosphor": "P7 Blue",
+   "Flock": "Medium",
+   "Flocks": "Two",
+   "Mood": "Murmuration",
+   "Line": "Hairline",
+   "Display": "Scanlines"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 6,
+  "hash": "0xb4596f28f00f092e87b7d1c973ccd2f3af12108bab9a35e179001cb4433f1ef1",
+  "ms": 754,
+  "features": {
+   "Phosphor": "P1 Green",
+   "Flock": "Medium",
+   "Flocks": "Three",
+   "Mood": "Murmuration",
+   "Line": "Neon",
+   "Display": "Scanlines"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 7,
+  "hash": "0x9599d878bbdf512500d9600a5023f932ab377a6f79fa13f3a1be4d35e4e8f8a4",
+  "ms": 613,
+  "features": {
+   "Phosphor": "P7 Blue",
+   "Flock": "Medium",
+   "Flocks": "One",
+   "Mood": "Panic",
+   "Line": "Tube",
+   "Display": "Scanlines"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 8,
+  "hash": "0xa3d83005d6f9a91eab912f8e4d008b4d914bc2425a187d5e74edc8fc498a06c5",
+  "ms": 429,
+  "features": {
+   "Phosphor": "P1 Green",
+   "Flock": "Small",
+   "Flocks": "One",
+   "Mood": "Panic",
+   "Line": "Hairline",
+   "Display": "Interlaced"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 9,
+  "hash": "0x3a61753f485e524f8423c20598e8482d57fe15757f3a543e717ee80220301217",
+  "ms": 731,
+  "features": {
+   "Phosphor": "P1 Green",
+   "Flock": "Large",
+   "Flocks": "One",
+   "Mood": "Panic",
+   "Line": "Hairline",
+   "Display": "Clean"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 10,
+  "hash": "0x3092824c7ab6339ab5e9b8e9190cc344d5043b084b8a588c1bcdb1e73d2f1a48",
+  "ms": 434,
+  "features": {
+   "Phosphor": "P3 Amber",
+   "Flock": "Small",
+   "Flocks": "One",
+   "Mood": "Calm",
+   "Line": "Tube",
+   "Display": "Clean"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 11,
+  "hash": "0xcd3bf972325cb6b31ba20d2db3134cd013d49c3045e6f6df91e08c2e55be4332",
+  "ms": 551,
+  "features": {
+   "Phosphor": "P1 Green",
+   "Flock": "Medium",
+   "Flocks": "One",
+   "Mood": "Calm",
+   "Line": "Neon",
+   "Display": "Clean"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 12,
+  "hash": "0xc828b22431d7de502b38db85ba4512ac9ceee5ce77bcfab9252c6298ee445d5e",
+  "ms": 561,
+  "features": {
+   "Phosphor": "P3 Amber",
+   "Flock": "Medium",
+   "Flocks": "Three",
+   "Mood": "Calm",
+   "Line": "Neon",
+   "Display": "Scanlines"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 13,
+  "hash": "0xc8a5a6efc8843f0bb7afd279f409c6695c46dae22ab1de23f24a0a6a00cf8748",
+  "ms": 600,
+  "features": {
+   "Phosphor": "P4 White",
+   "Flock": "Medium",
+   "Flocks": "Three",
+   "Mood": "Murmuration",
+   "Line": "Hairline",
+   "Display": "Interlaced"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 14,
+  "hash": "0x957eab0c27df39ad3fdb8b445c84e1baaa6ef799ab4ae7df2b4c982652bd8151",
+  "ms": 638,
+  "features": {
+   "Phosphor": "P1 Green",
+   "Flock": "Large",
+   "Flocks": "One",
+   "Mood": "Murmuration",
+   "Line": "Hairline",
+   "Display": "Interlaced"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 15,
+  "hash": "0xe13d3d9757d5dacd35b09062529dd953f5508eb618efbb4bd5d15619250c2dc8",
+  "ms": 527,
+  "features": {
+   "Phosphor": "P3 Amber",
+   "Flock": "Medium",
+   "Flocks": "Two",
+   "Mood": "Calm",
+   "Line": "Tube",
+   "Display": "Clean"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 16,
+  "hash": "0xb61af052c78f6745998ff609f21df1524bcc79c8c92924871262f1a2a9eaaa22",
+  "ms": 613,
+  "features": {
+   "Phosphor": "P1 Green",
+   "Flock": "Medium",
+   "Flocks": "Two",
+   "Mood": "Panic",
+   "Line": "Neon",
+   "Display": "Interlaced"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 17,
+  "hash": "0x33c41d834f1762f222b1cdd3d3bf74d12c717cddcdb31478e6ccec354164d854",
+  "ms": 647,
+  "features": {
+   "Phosphor": "P1 Green",
+   "Flock": "Large",
+   "Flocks": "One",
+   "Mood": "Calm",
+   "Line": "Neon",
+   "Display": "Scanlines"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 18,
+  "hash": "0x6a2f28f5f048302c66760cbb13ce3aff6035c6ce287f85bec97a47c8f97b9b41",
+  "ms": 645,
+  "features": {
+   "Phosphor": "P4 White",
+   "Flock": "Medium",
+   "Flocks": "One",
+   "Mood": "Calm",
+   "Line": "Tube",
+   "Display": "Clean"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 19,
+  "hash": "0xb4b1daeb8ace9076c9278110150b2a84c447f227a8f048fadeedb0d7b6951ed9",
+  "ms": 602,
+  "features": {
+   "Phosphor": "P7 Blue",
+   "Flock": "Medium",
+   "Flocks": "Two",
+   "Mood": "Murmuration",
+   "Line": "Tube",
+   "Display": "Clean"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 20,
+  "hash": "0x707191bb0bbf05f5535cdfb48ff90d8e5ae2ff338e2471f673fa1ab55c861c08",
+  "ms": 590,
+  "features": {
+   "Phosphor": "P22 RGB",
+   "Flock": "Medium",
+   "Flocks": "One",
+   "Mood": "Murmuration",
+   "Line": "Tube",
+   "Display": "Scanlines"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 21,
+  "hash": "0x6a3af3c7f103061914676113bfdf84afa310c519f7a860886e3a53404492bb38",
+  "ms": 631,
+  "features": {
+   "Phosphor": "P4 White",
+   "Flock": "Medium",
+   "Flocks": "Two",
+   "Mood": "Panic",
+   "Line": "Tube",
+   "Display": "Scanlines"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 22,
+  "hash": "0x7d4e7d8e4db2f9ad27dbdec40b7b68eb7a820c1e376e94db024ed1026173d383",
+  "ms": 414,
+  "features": {
+   "Phosphor": "P1 Green",
+   "Flock": "Small",
+   "Flocks": "One",
+   "Mood": "Calm",
+   "Line": "Tube",
+   "Display": "Clean"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 23,
+  "hash": "0x7f8cb49f504793a6224fa936491850b144e5f17f7db350165b4785a82971613d",
+  "ms": 539,
+  "features": {
+   "Phosphor": "P22 RGB",
+   "Flock": "Medium",
+   "Flocks": "One",
+   "Mood": "Calm",
+   "Line": "Tube",
+   "Display": "Clean"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ }
+]

@@ -1,0 +1,88 @@
+{
+ "N": 1,
+ "hash": "0x35c86a4ffae16f0c677613ac6bd1238f8b619f0ad4210a2d9c262d8bd21f4965",
+ "ms": 12378,
+ "features": {
+  "World": "The Lick (default, pending choice)",
+  "Era": "Prologue: the mammoth summer",
+  "World Date": "28,000 BCE",
+  "Surface": "Grazing: Mammoth",
+  "Before This Mint": "First Mint",
+  "Mints Beneath": 0,
+  "Remains In View": "None",
+  "Deepest State": "No Remains In View",
+  "Clock": "Real Rates",
+  "History": "Snapshot",
+  "Depth Shown": "7.3 m"
+ },
+ "sed": {
+  "N": 1,
+  "world": "A",
+  "zoom": 1,
+  "window": [
+   11.492841575760394,
+   16
+  ],
+  "repeats": 0,
+  "thick": [
+   [
+    9,
+    0,
+    "silt",
+    0.976
+   ],
+   [
+    7,
+    0,
+    "silt",
+    0.812
+   ],
+   [
+    1,
+    0,
+    "sand",
+    0.746
+   ],
+   [
+    2,
+    0,
+    "silt",
+    0.627
+   ],
+   [
+    6,
+    0,
+    "sand",
+    0.593
+   ],
+   [
+    8,
+    0,
+    "mud",
+    0.282
+   ],
+   [
+    3,
+    0,
+    "mud",
+    0.198
+   ],
+   [
+    5,
+    0,
+    "gravel",
+    0.069
+   ]
+  ],
+  "events": [
+   [
+    1,
+    "graze",
+    -28000,
+    "prologue",
+    "mammoth"
+   ]
+  ],
+  "remains": []
+ }
+}

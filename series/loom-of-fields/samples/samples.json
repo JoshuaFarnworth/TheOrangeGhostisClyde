@@ -1,0 +1,434 @@
+[
+ {
+  "i": 0,
+  "hash": "0x760845ba449831079cf66974a53bb8704a4b5260b8c6aae01b5e57531e78150e",
+  "ms": 75,
+  "features": {
+   "Palette": "Jacquard Punch",
+   "Shafts": 4,
+   "Tie-up": "Broken Twill",
+   "Sett": "Coarse",
+   "Field": "Gentle",
+   "Draft": "Shown"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 1,
+  "hash": "0x206354f0b0000e6be1b880b0f4b2adf6142962c17813d486387e63e9f34e54b6",
+  "ms": 93,
+  "features": {
+   "Palette": "Albers",
+   "Shafts": 8,
+   "Tie-up": "Satin",
+   "Sett": "Medium",
+   "Field": "Undulating",
+   "Draft": "Cloth only"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 2,
+  "hash": "0x982c13fc90db1012274ed098fe6c6b51796b56d745dac45902a7c0f420cc1c43",
+  "ms": 164,
+  "features": {
+   "Palette": "Albers",
+   "Shafts": 16,
+   "Tie-up": "Satin",
+   "Sett": "Fine",
+   "Field": "Gentle",
+   "Draft": "Cloth only"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 3,
+  "hash": "0xd32e2f54bb1df651ad49d0f0eadeab31e13bc31b2f71513285f6e1ca90734410",
+  "ms": 73,
+  "features": {
+   "Palette": "Indigo Ikat",
+   "Shafts": 16,
+   "Tie-up": "Twill",
+   "Sett": "Coarse",
+   "Field": "Gentle",
+   "Draft": "Shown"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 4,
+  "hash": "0xb90c33cb2857f9c8a329fe505ea5f243dad8e6f035091bab0c9fe338f5ad15f6",
+  "ms": 69,
+  "features": {
+   "Palette": "Indigo Ikat",
+   "Shafts": 4,
+   "Tie-up": "Satin",
+   "Sett": "Coarse",
+   "Field": "Undulating",
+   "Draft": "Cloth only"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 5,
+  "hash": "0x0b76a17d0af0bb45155d68fa21976aad87ba14e8ad8f1b24e2a1bd3a1af0e6d7",
+  "ms": 101,
+  "features": {
+   "Palette": "Indigo Ikat",
+   "Shafts": 8,
+   "Tie-up": "Twill",
+   "Sett": "Medium",
+   "Field": "Gentle",
+   "Draft": "Cloth only"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 6,
+  "hash": "0x1e037d4a3302b0b00e24a6a477113d62b0a96232d8817d45d87fe963f40f1ea9",
+  "ms": 118,
+  "features": {
+   "Palette": "Madder & Weld",
+   "Shafts": 12,
+   "Tie-up": "Block",
+   "Sett": "Medium",
+   "Field": "Turbulent",
+   "Draft": "Cloth only"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 7,
+  "hash": "0xf1a093849d657ec6d2414f60623db3df24b9d50faa4323a78d6df50be8810e21",
+  "ms": 101,
+  "features": {
+   "Palette": "Undyed Wool",
+   "Shafts": 4,
+   "Tie-up": "Twill",
+   "Sett": "Medium",
+   "Field": "Undulating",
+   "Draft": "Cloth only"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 8,
+  "hash": "0xff067a4f3bcd4c436035994d1c3cefb58a02d96a8fb616f07e3884e438fa9aa0",
+  "ms": 87,
+  "features": {
+   "Palette": "Madder & Weld",
+   "Shafts": 4,
+   "Tie-up": "Twill",
+   "Sett": "Medium",
+   "Field": "Gentle",
+   "Draft": "Shown"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 9,
+  "hash": "0xf03db99785edfc504eb3abc70d27e3f30f0af05bf35abb389d43494cdaedbf58",
+  "ms": 141,
+  "features": {
+   "Palette": "Undyed Wool",
+   "Shafts": 12,
+   "Tie-up": "Block",
+   "Sett": "Fine",
+   "Field": "Undulating",
+   "Draft": "Shown"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 10,
+  "hash": "0x077426e46371440556b7f9697893222ddceea769d26273512c6a695002e83487",
+  "ms": 96,
+  "features": {
+   "Palette": "Undyed Wool",
+   "Shafts": 8,
+   "Tie-up": "Twill",
+   "Sett": "Medium",
+   "Field": "Turbulent",
+   "Draft": "Cloth only"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 11,
+  "hash": "0xb1c3b37a4a95fd0acca0aba7814af5643c7beb0436e3137f1d58cbdbbed61a9f",
+  "ms": 134,
+  "features": {
+   "Palette": "Undyed Wool",
+   "Shafts": 12,
+   "Tie-up": "Satin",
+   "Sett": "Fine",
+   "Field": "Undulating",
+   "Draft": "Cloth only"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 12,
+  "hash": "0x632db27589862cb498611dee15e4570f8f407f32f7280577978c261adf0c069b",
+  "ms": 117,
+  "features": {
+   "Palette": "Albers",
+   "Shafts": 4,
+   "Tie-up": "Broken Twill",
+   "Sett": "Medium",
+   "Field": "Turbulent",
+   "Draft": "Cloth only"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 13,
+  "hash": "0xd7173e0a057d95d725f7aa4e174dd67b1deeb807f68484d956e018f10372f485",
+  "ms": 77,
+  "features": {
+   "Palette": "Jacquard Punch",
+   "Shafts": 4,
+   "Tie-up": "Twill",
+   "Sett": "Coarse",
+   "Field": "Gentle",
+   "Draft": "Shown"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 14,
+  "hash": "0x185c6694a13d41655fca39f7167be9dd11d6e814536e024eda8a45881eb8272f",
+  "ms": 70,
+  "features": {
+   "Palette": "Indigo Ikat",
+   "Shafts": 8,
+   "Tie-up": "Twill",
+   "Sett": "Coarse",
+   "Field": "Turbulent",
+   "Draft": "Shown"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 15,
+  "hash": "0x4338edadd1303a78acad68dd48ac96b8393c546b64bedd226fd1426d36c93910",
+  "ms": 130,
+  "features": {
+   "Palette": "Night Loom",
+   "Shafts": 12,
+   "Tie-up": "Satin",
+   "Sett": "Fine",
+   "Field": "Undulating",
+   "Draft": "Shown"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 16,
+  "hash": "0xc7814640a0901d1acbc67ffa007caa750ccf3f99e539c0077f736cf5f88b3d94",
+  "ms": 90,
+  "features": {
+   "Palette": "Madder & Weld",
+   "Shafts": 8,
+   "Tie-up": "Twill",
+   "Sett": "Coarse",
+   "Field": "Gentle",
+   "Draft": "Cloth only"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 17,
+  "hash": "0x475acb2400110d0e7691c595b8b96fc4d6e8c302277562d9c7f6df7d0bcba925",
+  "ms": 78,
+  "features": {
+   "Palette": "Undyed Wool",
+   "Shafts": 8,
+   "Tie-up": "Satin",
+   "Sett": "Coarse",
+   "Field": "Undulating",
+   "Draft": "Cloth only"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 18,
+  "hash": "0x81835a3a3e83bb93e2726d49634b784a1d1cdbc4383889ebcba1a8cd6fe86eb7",
+  "ms": 97,
+  "features": {
+   "Palette": "Undyed Wool",
+   "Shafts": 8,
+   "Tie-up": "Twill",
+   "Sett": "Medium",
+   "Field": "Gentle",
+   "Draft": "Cloth only"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 19,
+  "hash": "0x6d12a34a1cf3fb20d7514ea8d3087c6f98b10a692c691f03af486bdff1a3335c",
+  "ms": 77,
+  "features": {
+   "Palette": "Night Loom",
+   "Shafts": 16,
+   "Tie-up": "Satin",
+   "Sett": "Coarse",
+   "Field": "Turbulent",
+   "Draft": "Shown"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 20,
+  "hash": "0x6578bc469759ae3b16357a9449de2538213d1f87a250558d92d961311f737282",
+  "ms": 89,
+  "features": {
+   "Palette": "Night Loom",
+   "Shafts": 16,
+   "Tie-up": "Twill",
+   "Sett": "Medium",
+   "Field": "Turbulent",
+   "Draft": "Cloth only"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 21,
+  "hash": "0xe4d8721fdad4f3cc91d020b9323ef946c3812d8950b36173f25dea1ad71e5166",
+  "ms": 112,
+  "features": {
+   "Palette": "Indigo Ikat",
+   "Shafts": 8,
+   "Tie-up": "Broken Twill",
+   "Sett": "Medium",
+   "Field": "Turbulent",
+   "Draft": "Shown"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 22,
+  "hash": "0xd4e53604ad041a6e6a1c9070178e9e1a62eff608805998c36fe96eed77f6e520",
+  "ms": 65,
+  "features": {
+   "Palette": "Jacquard Punch",
+   "Shafts": 8,
+   "Tie-up": "Twill",
+   "Sett": "Coarse",
+   "Field": "Gentle",
+   "Draft": "Shown"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 23,
+  "hash": "0xe7883ac699b627b97c58ddab01249851d06373b1a125d727d73646d041d4ce38",
+  "ms": 76,
+  "features": {
+   "Palette": "Jacquard Punch",
+   "Shafts": 4,
+   "Tie-up": "Satin",
+   "Sett": "Coarse",
+   "Field": "Turbulent",
+   "Draft": "Cloth only"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ }
+]

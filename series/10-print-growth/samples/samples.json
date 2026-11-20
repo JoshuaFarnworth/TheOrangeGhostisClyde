@@ -1,0 +1,434 @@
+[
+ {
+  "i": 0,
+  "hash": "0xbf281fa33571f02d16db24795bad8f5200a5c8fb2e1436acf2bc02b6184bf1ec",
+  "ms": 4223,
+  "features": {
+   "Palette": "Riso Garden",
+   "Tiles": "Diagonal",
+   "Scale": "Medium",
+   "Stage": "Bloom",
+   "Colonies": "Several",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 1,
+  "hash": "0x1e1e8e517c9469e06710bf87940743c41a4c24ccfef9bfc550e667e04b231d63",
+  "ms": 742,
+  "features": {
+   "Palette": "Ink & Rust",
+   "Tiles": "Diagonal",
+   "Scale": "Coarse",
+   "Stage": "Sprout",
+   "Colonies": "Few",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 2,
+  "hash": "0xc1f79a611c514e097a88d790041486972fc772068343ac2c10120759bb214fb9",
+  "ms": 11953,
+  "features": {
+   "Palette": "Paper Maze",
+   "Tiles": "Arcs",
+   "Scale": "Fine",
+   "Stage": "Crowded",
+   "Colonies": "Few",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 3,
+  "hash": "0xb28abc761f9e1929efda2bc705b23e11e2b38d9dca50c9519fb4ec9b4a34aca1",
+  "ms": 3657,
+  "features": {
+   "Palette": "Paper Maze",
+   "Tiles": "Diagonal",
+   "Scale": "Medium",
+   "Stage": "Bloom",
+   "Colonies": "Several",
+   "Walls": "Ghost"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 4,
+  "hash": "0x1e64b2e3fd4864140bb9a97358360fce0bf7200b00634fe87b1891de6549feda",
+  "ms": 11229,
+  "features": {
+   "Palette": "Phosphor",
+   "Tiles": "Diagonal",
+   "Scale": "Fine",
+   "Stage": "Crowded",
+   "Colonies": "Several",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 5,
+  "hash": "0xbd4f86c4841fbdb98c80f098ca8d1b31c012abb58e034af947b276449c000409",
+  "ms": 740,
+  "features": {
+   "Palette": "Commodore",
+   "Tiles": "Diagonal",
+   "Scale": "Medium",
+   "Stage": "Sprout",
+   "Colonies": "Few",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 6,
+  "hash": "0x04acb4e7036fb68769767dc71549d9ae48da5c85fc91bea308c316057f81747b",
+  "ms": 4386,
+  "features": {
+   "Palette": "Commodore",
+   "Tiles": "Diagonal",
+   "Scale": "Medium",
+   "Stage": "Bloom",
+   "Colonies": "Many",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 7,
+  "hash": "0xa68b321cb8b0423b451868a09b2221c6f5cfef025fa007ac62b049e20aa773eb",
+  "ms": 4384,
+  "features": {
+   "Palette": "Paper Maze",
+   "Tiles": "Diagonal",
+   "Scale": "Fine",
+   "Stage": "Bloom",
+   "Colonies": "Several",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 8,
+  "hash": "0x8117dc0d8367b91a6dc38ff731c5eebc73fbacc189ca62e7d38a59af560f01b7",
+  "ms": 1926,
+  "features": {
+   "Palette": "Riso Garden",
+   "Tiles": "Diagonal",
+   "Scale": "Coarse",
+   "Stage": "Bloom",
+   "Colonies": "Few",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 9,
+  "hash": "0x097d2fe706450e805106db9f26325bf4f7c159b5b7b61f6f367eed88bcbfb12d",
+  "ms": 906,
+  "features": {
+   "Palette": "Phosphor",
+   "Tiles": "Arcs",
+   "Scale": "Coarse",
+   "Stage": "Sprout",
+   "Colonies": "Several",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 10,
+  "hash": "0x6cfcd4b7cebe3371b8c707acc4d5d56f5f58b7dfbcfe83ca912da8a2f12da264",
+  "ms": 979,
+  "features": {
+   "Palette": "Paper Maze",
+   "Tiles": "Diagonal",
+   "Scale": "Coarse",
+   "Stage": "Sprout",
+   "Colonies": "Several",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 11,
+  "hash": "0x9a8da13580b85a08f4cb7e02620d2fb2635d81aa4164c48411ef76a8d426965c",
+  "ms": 504,
+  "features": {
+   "Palette": "Ink & Rust",
+   "Tiles": "Mixed",
+   "Scale": "Coarse",
+   "Stage": "Sprout",
+   "Colonies": "Several",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 12,
+  "hash": "0x67ba265d4d88b17ea310e73835158ccfdce41147c860f036b3c2ba19f60eeeb8",
+  "ms": 2975,
+  "features": {
+   "Palette": "Paper Maze",
+   "Tiles": "Arcs",
+   "Scale": "Coarse",
+   "Stage": "Bloom",
+   "Colonies": "Several",
+   "Walls": "Ghost"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 13,
+  "hash": "0xa2a8186b7233160645c94fcca8e1621f4938d18754803919ae0e90a7cdd5dd79",
+  "ms": 4100,
+  "features": {
+   "Palette": "Paper Maze",
+   "Tiles": "Arcs",
+   "Scale": "Fine",
+   "Stage": "Bloom",
+   "Colonies": "Few",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 14,
+  "hash": "0xa2b54ac06f19ee9516320c386e89b4d4a7169a125391fe16b250a81cd812a884",
+  "ms": 5604,
+  "features": {
+   "Palette": "Riso Garden",
+   "Tiles": "Diagonal",
+   "Scale": "Coarse",
+   "Stage": "Crowded",
+   "Colonies": "Few",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 15,
+  "hash": "0x649af3fbc60841091d512b66ea442a0e220c92411fcb30dc9dae94e401d28326",
+  "ms": 4346,
+  "features": {
+   "Palette": "Commodore",
+   "Tiles": "Diagonal",
+   "Scale": "Coarse",
+   "Stage": "Crowded",
+   "Colonies": "Few",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 16,
+  "hash": "0xb5d597af6ca1580641cb93e60c54ca4f0eb7d4200bd9acf98c445051ec9c7c57",
+  "ms": 1717,
+  "features": {
+   "Palette": "Phosphor",
+   "Tiles": "Mixed",
+   "Scale": "Medium",
+   "Stage": "Bloom",
+   "Colonies": "Few",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 17,
+  "hash": "0x74795390c4145c081100471a8842e5dcefa70022424814140cbf4f201b3be09a",
+  "ms": 1251,
+  "features": {
+   "Palette": "Phosphor",
+   "Tiles": "Diagonal",
+   "Scale": "Fine",
+   "Stage": "Sprout",
+   "Colonies": "Several",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 18,
+  "hash": "0x0560328a9226fff2e21406d97c86d4a576b2b7f153ecf394cb31b233d0ab4312",
+  "ms": 1024,
+  "features": {
+   "Palette": "Ink & Rust",
+   "Tiles": "Arcs",
+   "Scale": "Fine",
+   "Stage": "Sprout",
+   "Colonies": "Several",
+   "Walls": "Ghost"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 19,
+  "hash": "0x339a83a0ed55bbacad2e1a78c5812119c5b33e9ebf1797ca7c0ff4edda09afac",
+  "ms": 2836,
+  "features": {
+   "Palette": "Ink & Rust",
+   "Tiles": "Arcs",
+   "Scale": "Coarse",
+   "Stage": "Bloom",
+   "Colonies": "Few",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 20,
+  "hash": "0x69c36beccfba3a1deca67971c16d97b369b8f7d43a619f2274c86ea4cf31c8b6",
+  "ms": 3357,
+  "features": {
+   "Palette": "Commodore",
+   "Tiles": "Diagonal",
+   "Scale": "Coarse",
+   "Stage": "Bloom",
+   "Colonies": "Many",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 21,
+  "hash": "0xa982ed652d0a4386675a213b072070fb814f7fce9ff000e0f3dfb6d75f35d48c",
+  "ms": 7725,
+  "features": {
+   "Palette": "Phosphor",
+   "Tiles": "Arcs",
+   "Scale": "Coarse",
+   "Stage": "Crowded",
+   "Colonies": "Several",
+   "Walls": "Drawn"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 22,
+  "hash": "0x85f51907227c77cba1551b1d73151fedb9a53fdef5d8868a1562fb483d7187f0",
+  "ms": 6072,
+  "features": {
+   "Palette": "Ink & Rust",
+   "Tiles": "Diagonal",
+   "Scale": "Coarse",
+   "Stage": "Crowded",
+   "Colonies": "Few",
+   "Walls": "Ghost"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 23,
+  "hash": "0x180e34474f500dddb29dffc19fad1146c547ab61aae964f282ae304e4889b122",
+  "ms": 3895,
+  "features": {
+   "Palette": "Paper Maze",
+   "Tiles": "Arcs",
+   "Scale": "Medium",
+   "Stage": "Bloom",
+   "Colonies": "Several",
+   "Walls": "Ghost"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ }
+]

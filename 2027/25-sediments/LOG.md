@@ -1,0 +1,154 @@
+# Sediments LOG
+- 2026-11-20 09:14 PST start: folder created; reading conventions (px.js, clyde.js, briefs.py).
+- 09:15 platform research: saved docs to research/ (alea-interface.txt, ab-postparams.txt, ab-generator.txt, hl-readme.txt). Findings: Aleatory = $alea.seed (mint op hash) + params only; clock frozen to 0; network blocked; no token id/timestamp/other mints. Highlight = own tx only (hash, timestamp, tokenId, mintIteration, blockNumber...). Verse = hash, editionNumber, totalEditions(dynamic), input. Art Blocks = hash + tokenId; Engine Flex PostParams/custom hooks can inject on-chain data (needs AB team + Solidity). fxhash open-form passed ancestor hashes ($fx.lineage) but no timestamps; fxhash closed.
+- 09:20 steer from Joshua (via parent): per-mint content MUST come from each mint's tx hash; real inter-mint time must affect composition; index only a deep-time helper. => token N needs [{index, txHash, timestamp}] 1..N.
+- 09:23 steer: each mint's hash also sets a SURFACE EVENT (flood, fire, die-off, camp...) shown live at the top; that event produces the layer/artifacts later tokens see buried. Event is a trait.
+- 09:25 taphonomy/sedimentology sources gathered (Payne 1965; buried-pig study Rai 2022; Athy 1930; peat:lignite 2:1-4:1, peat 0.9-1.3 mm/yr; oil window 60-120C ~2 km+; AAPG kerogen; Allison 1988 anoxia insufficient; Seilacher obrution; varves ~0.6-1 mm/yr; glass weathering CMOG; Tezos 250 mutez/byte).
+- 09:45 WORLD.md written: options A (Lick, 30 ka floodplain, recommended default), B (Hell Creek 68 Ma -> K-Pg -> coal -> ranch), C (After Us, 2027 -> +100 ka). Shared mechanics: one site, lateral windows; progress p=0.05+0.7ln(1+gap/8h); era table piecewise map; Sadler-style thickness.
+- 09:55 tools/history.js: simulated runs steady(2000/122d), bursty(3010/172d), dormant(981/268d incl. 4-mo + 2-mo silences), launch(2500). Hashes realistic format only.
+- 10:40 engine v1 assembled (src/world.js+main.js -> art.js); tools/render.js headless. First renders steady t1 (mammoth death!) and t50.
+
+## 2026-11-20 10:20 PT — engine v1.1, renders to disk
+- Rig rewritten as side profile with taphonomic poses: `mired` (lick mud, legs sunk, belly on mud; as at mire/sinkhole sites) and `sternal`. After advanced decay, parts above the burial level at that moment lose support and fall (rib cage collapse); parts held in mud stay articulated. Hide opens in holes as flesh declines.
+- Deaths/burials scaled by world time per mint (a burst of mints in one season cannot make a burst of carcasses).
+- Floods/pond/background fill hollows (`level`), removing the runaway tilt seen in 2000+ mint tokens.
+- Feature lookup x-binned (late tokens 158 s → ~20 s; remaining cost is the simulation, not pixels).
+- Added tools/quick.sh, tools/sheet.py, tools/dist.js; histories/steady-hashes-{bursty,dormant}-timing.json (identical hashes, different timestamps) for the timing comparison.
+- 10:18 rendered timeline/steady_1.png
+- 10:18 rendered timeline/steady_3.png
+- 10:18 rendered timeline/steady_2.png
+- 10:18 rendered timeline/steady_5.png
+- 10:18 rendered timeline/steady_10.png
+- 10:18 rendered timeline/steady_20.png
+- 10:19 rendered timeline/steady_50.png
+- 10:19 rendered timeline/steady_200.png
+- 10:19 rendered timeline/steady_1000.png
+- 10:19 rendered timeline/steady_2000.png
+- 10:20 timeline sheet saved: timeline/timeline-steady.png
+- 10:21 dist/sediments.html + snapshot buyer files (steady #20, #2000) built
+- 10:21 rendered compare/steady_300.png
+- 10:21 rendered compare/steady-hashes-bursty-timing_300.png
+- 10:21 rendered compare/steady-hashes-dormant-timing_300.png
+- 10:21 rendered compare/steady_900.png
+- 10:21 rendered compare/steady-hashes-bursty-timing_900.png
+- 10:21 briefs.py: project 25 added (n=25, Jun, grade promising; per-series overrides deliv/venue/ed/plat/code + README.extra.md hook; other 22 READMEs verified byte-identical). PLAN.md regenerated (25 series). src/art.js sha256 d265b92621f4762cf16a247b220535f0f3ce54b03edc912bfa36da50893eb9a6
+- 10:21 rendered compare/steady-hashes-dormant-timing_900.png
+- 10:21 rendered samples/steady_1.png
+- 10:21 timing comparison sheet saved: compare/compare-timing.png
+- 10:21 rendered samples/steady_20.png
+- 10:21 rendered samples/steady_100.png
+- 10:21 rendered samples/steady_400.png
+- 10:21 rendered samples/bursty_1.png
+- 10:22 rendered samples/bursty_20.png
+- 10:22 rendered samples/bursty_100.png
+- 10:22 rendered samples/dormant_1.png
+- 10:22 rendered samples/bursty_400.png
+- 10:22 rendered samples/dormant_20.png
+- 10:22 rendered samples/dormant_100.png
+- 10:22 rendered samples/launch_1.png
+- 10:22 rendered samples/dormant_400.png
+- 10:22 sheets regenerated with clearer captions
+- 10:22 rendered samples/launch_20.png
+- 10:22 rendered samples/launch_100.png
+- 10:22 rendered samples/launch_400.png
+- 10:22 verified dist/snapshot-steady-20.html in headless Chrome: renders, History=Snapshot, traits match node render
+- 10:22 rendered samples/bursty_3010.png
+- 10:22 rendered samples/steady_1500.png
+- 10:22 rendered samples/dormant_981.png
+- 10:23 rendered samples/launch_2500.png
+- 10:23 contact sheet saved: contact-sheet-runs.png
+- 10:24 rendered heroes/steady_1.png
+- 10:25 rendered heroes/steady_10.png
+- 10:26 rendered heroes/steady_20.png
+- 10:27 rendered heroes/steady_200.png
+- 10:27 heroes reviewed (steady 1/10/20/200 @1600); briefs crit updated; PLAN.md + README regenerated. Engine frozen at art.js sha256 d265b926…eb9a6 for all renders in timeline/, compare/, samples/, heroes/.
+
+## 2026-11-20 10:34 PT — round 2 started (rendering pass; world still A pending)
+- v1.1 src archived to _archive/src_v1.1 (sha256 d265b926…). Plan: new src/fauna.js (spline anatomy, one rig for flesh+skeleton, real bone shapes, Hill/Behrensmeyer disarticulation order, bones settle flat), wide camera, clock dormancy term, faster prologue burial, near-horizontal strata with lenses/channels/root traces, trait wording.
+
+## 2026-11-20 10:58 PT — round 2 engine v2.0 frozen for renders
+- art.js sha256 180a29350dcbc39ad79de0e0f5c6b7bd07fb0e05cd708ca3e36cd2ef60d6f570
+- iteration notes: fixed bbox-edge alpha artefact (sdPoly quick-reject), herd no longer overlaps exposed carcasses, carcasses survive shallow scours (reworked), no scours in the prologue mire, sternal folded-leg offset fixed, stronger bloat, hide splits along the flank, bones sag with the collapsing body (no upright scapula), mired legs hold only where below the mud line, hide gone by t≈1.35, mired share cut (prologue 55%, later 30%), LOD on fine textures, gley softened, fossil bone browns, package-level bed tones, ice-wedge casts rarer/wider V, trait wording (stateName/Deepest State ranked over drawn remains).
+- pacing (stated): KD dormancy term 0.25→0.5; background bed now linear in years (rate×dy, was rate×dy^0.6); prologue spring-mire accretion 0.3 m/yr. Result: dormant-timing run has 3.1 m and 2.1 m blank loess beds (122-day and 61-day pauses) vs ≤0.27 m beds in steady; token 20 carcass buried 0.65 m.
+- v1.1 outputs moved to _archive/out_v1.1/
+- 10:58 rendered timeline/steady_2.png
+- 10:58 rendered timeline/steady_1.png
+- 10:58 rendered timeline/steady_10.png
+- 10:58 rendered timeline/steady_20.png
+- 10:58 rendered timeline/steady_3.png
+- 10:58 rendered timeline/steady_5.png
+- 10:59 rendered timeline/steady_50.png
+- 10:59 rendered timeline/steady_200.png
+- 10:59 rendered timeline/steady_1000.png
+- 10:59 rendered timeline/steady_2000.png
+- 10:59 rendered compare/steady-hashes-bursty-timing_300.png
+- 10:59 rendered compare/steady_300.png
+- 10:59 rendered compare/steady-hashes-dormant-timing_300.png
+- 11:00 rendered compare/steady-hashes-dormant-timing_900.png
+- 11:00 rendered compare/steady_900.png
+- 11:00 rendered compare/steady-hashes-bursty-timing_900.png
+- 11:00 rendered samples/steady_1.png
+- 11:00 rendered samples/steady_100.png
+- 11:00 rendered samples/steady_20.png
+- 11:00 rendered samples/bursty_1.png
+- 11:00 rendered samples/steady_400.png
+- 11:00 rendered samples/bursty_20.png
+- 11:00 rendered samples/bursty_100.png
+- 11:00 rendered samples/steady_1500.png
+- 11:00 rendered samples/bursty_400.png
+- 11:00 rendered samples/dormant_1.png
+- 11:00 rendered samples/dormant_20.png
+- 11:00 rendered samples/dormant_100.png
+- 11:00 rendered samples/launch_1.png
+- 11:00 rendered samples/dormant_400.png
+- 11:00 rendered samples/launch_20.png
+- 11:00 rendered samples/launch_100.png
+- 11:00 rendered samples/dormant_981.png
+- 11:00 rendered samples/bursty_3010.png
+- 11:01 rendered samples/launch_400.png
+- 11:01 rendered samples/launch_2500.png
+- 11:03 sheets saved: timeline/timeline-steady.png, compare/compare-timing.png, contact-sheet-runs.png (v2.0)
+- 11:05 review of first v2.0 batch: a fossil-state carcass with little world time was still drawn with hide (bursty #300) → remains in a fossil state now draw as bones; mired carcasses now slump forward 3–6°. Rebuilt art.js sha256 c52c98ab6fa39cd055ad93c15a8faad38955efe020ca971d3af21837d2a6522e; re-rendering all outputs with this build.
+- 11:05 rendered timeline/steady_2.png
+- 11:05 rendered timeline/steady_10.png
+- 11:05 rendered timeline/steady_3.png
+- 11:05 rendered timeline/steady_5.png
+- 11:05 rendered timeline/steady_20.png
+- 11:05 rendered timeline/steady_1.png
+- 11:05 rendered timeline/steady_50.png
+- 11:06 rendered timeline/steady_200.png
+- 11:06 rendered timeline/steady_1000.png
+- 11:06 rendered timeline/steady_2000.png
+- 11:07 rendered compare/steady-hashes-dormant-timing_300.png
+- 11:07 rendered compare/steady-hashes-bursty-timing_300.png
+- 11:07 rendered compare/steady_300.png
+- 11:07 rendered compare/steady-hashes-bursty-timing_900.png
+- 11:07 rendered compare/steady-hashes-dormant-timing_900.png
+- 11:07 rendered compare/steady_900.png
+- 11:07 rendered samples/steady_1.png
+- 11:07 rendered samples/steady_20.png
+- 11:07 rendered samples/steady_100.png
+- 11:07 rendered samples/bursty_1.png
+- 11:07 rendered samples/steady_400.png
+- 11:07 rendered samples/bursty_20.png
+- 11:07 rendered samples/bursty_100.png
+- 11:07 rendered samples/bursty_400.png
+- 11:07 rendered samples/steady_1500.png
+- 11:07 rendered samples/dormant_1.png
+- 11:07 rendered samples/dormant_20.png
+- 11:07 rendered samples/dormant_100.png
+- 11:08 rendered samples/launch_1.png
+- 11:08 rendered samples/dormant_400.png
+- 11:08 rendered samples/dormant_981.png
+- 11:08 rendered samples/launch_20.png
+- 11:08 rendered samples/launch_100.png
+- 11:08 rendered samples/bursty_3010.png
+- 11:08 rendered samples/launch_400.png
+- 11:08 rendered samples/launch_2500.png
+- 11:12 sheets rebuilt from the final v2.0 renders: timeline/timeline-steady.png, compare/compare-timing.png, contact-sheet-runs.png
+- 11:13 rendered heroes/steady_2.png
+- 11:13 rendered heroes/steady_10.png
+
+## 2026-11-20 11:14 PT — Joshua's review of v2.0 (via parent): far too zoomed in, art too basic
+- Stopped the v2.0 hero batch (heroes/ left incomplete; v2.0 timeline/compare/samples/sheets stand as the intermediate record).
+- Plan v3: landscape-scale camera (≈48 m of face, mammoth ≈7% of width, thin surface band, metres-consistent scale); rendering rebuilt on Before the Shovels' pipeline (albedo + relief heightfield → raking light, soft shadows, AO, hue-preserving tone map, split-tone grade, vignette, grain); richer stratigraphy (laminae, contacts, krotovinas, root casts, mottles, lenses, cross-bedded fills, bedrock).

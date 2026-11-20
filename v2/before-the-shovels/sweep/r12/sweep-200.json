@@ -1,0 +1,3910 @@
+{
+"counts": {
+"Place": {
+"The Courtyard": 24,
+"The Roadside": 31,
+"The Corner": 17,
+"The Fence": 25,
+"The Fountain": 30,
+"The Bus Stop": 17,
+"The Street Corner": 22,
+"The Frontage": 34
+},
+"Hour": {
+"Winter Noon": 60,
+"Dawn": 63,
+"Dusk": 66,
+"Lamplight": 11
+},
+"Snowfall": {
+"Fresh": 103,
+"Deep": 48,
+"Dusting": 49
+},
+"Footfall": {
+"A Few": 74,
+"Solitary": 74,
+"Steady": 40,
+"Crowd": 12
+},
+"Incident": {
+"Someone Waited": 32,
+"None": 71,
+"Lost Mitten": 20,
+"A Dog": 29,
+"Sledge": 23,
+"Snow Angel": 14,
+"Child's Snow Angel": 11
+},
+"Animals": {
+"Rabbit": 40,
+"Birds": 30,
+"Cat": 20,
+"None": 64,
+"Squirrel": 18,
+"Fox": 21,
+"Deer": 7
+},
+"Wind": {
+"Still": 121,
+"Drifting": 79
+}
+},
+"treesInFrame": {
+"young": 27,
+"elm": 11,
+"maple": 32,
+"spruce": 11,
+"oak": 22,
+"birch": 24
+},
+"treesOffFrame": {
+"oak": 97,
+"elm": 83,
+"maple": 85,
+"spruce": 41,
+"birch": 16
+},
+"items": [
+{
+"i": "00",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Someone Waited",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 1969,
+"mean": 220.3,
+"sd": 30.1,
+"trees": [
+"oak*"
+]
+},
+{
+"i": "01",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 2074,
+"mean": 208.7,
+"sd": 36.2,
+"trees": [
+"young",
+"elm*"
+]
+},
+{
+"i": "02",
+"f": {
+"Place": "The Roadside",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "A Few",
+"Incident": "Lost Mitten",
+"Animals": "Birds",
+"Wind": "Still"
+},
+"ms": 1954,
+"mean": 222.9,
+"sd": 24.7,
+"trees": [
+"elm",
+"elm*"
+]
+},
+{
+"i": "03",
+"f": {
+"Place": "The Corner",
+"Hour": "Dusk",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "Someone Waited",
+"Animals": "Cat",
+"Wind": "Still"
+},
+"ms": 1953,
+"mean": 220.3,
+"sd": 24.1,
+"trees": [
+"maple*",
+"maple*"
+]
+},
+{
+"i": "04",
+"f": {
+"Place": "The Corner",
+"Hour": "Dusk",
+"Snowfall": "Dusting",
+"Footfall": "A Few",
+"Incident": "A Dog",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 2431,
+"mean": 213.0,
+"sd": 31.5,
+"trees": [
+"maple",
+"maple*"
+]
+},
+{
+"i": "05",
+"f": {
+"Place": "The Fence",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "Steady",
+"Incident": "Sledge",
+"Animals": "Cat",
+"Wind": "Still"
+},
+"ms": 1927,
+"mean": 226.3,
+"sd": 22.0,
+"trees": [
+"elm*"
+]
+},
+{
+"i": "06",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dawn",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "A Dog",
+"Animals": "Squirrel",
+"Wind": "Drifting"
+},
+"ms": 2619,
+"mean": 217.2,
+"sd": 26.0,
+"trees": [
+"elm",
+"maple*",
+"maple*",
+"maple*"
+]
+},
+{
+"i": "07",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1734,
+"mean": 221.3,
+"sd": 28.3,
+"trees": [
+"spruce",
+"elm*"
+]
+},
+{
+"i": "08",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "Snow Angel",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 1627,
+"mean": 218.6,
+"sd": 27.6,
+"trees": [
+"elm*",
+"spruce*"
+]
+},
+{
+"i": "09",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Fox",
+"Wind": "Still"
+},
+"ms": 1984,
+"mean": 206.1,
+"sd": 36.4,
+"trees": [
+"young",
+"maple*",
+"elm*"
+]
+},
+{
+"i": "10",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "A Dog",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 1877,
+"mean": 208.0,
+"sd": 34.7,
+"trees": [
+"oak",
+"spruce*",
+"oak*"
+]
+},
+{
+"i": "100",
+"f": {
+"Place": "The Roadside",
+"Hour": "Lamplight",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "A Dog",
+"Animals": "Fox",
+"Wind": "Still"
+},
+"ms": 1662,
+"mean": 114.3,
+"sd": 12.1,
+"trees": [
+"young",
+"maple*"
+]
+},
+{
+"i": "101",
+"f": {
+"Place": "The Roadside",
+"Hour": "Lamplight",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "Snow Angel",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1711,
+"mean": 116.5,
+"sd": 13.2,
+"trees": [
+"young",
+"oak*"
+]
+},
+{
+"i": "102",
+"f": {
+"Place": "The Fence",
+"Hour": "Dusk",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 2019,
+"mean": 219.4,
+"sd": 17.9,
+"trees": [
+"maple*",
+"maple*"
+]
+},
+{
+"i": "103",
+"f": {
+"Place": "The Bus Stop",
+"Hour": "Winter Noon",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Cat",
+"Wind": "Still"
+},
+"ms": 1588,
+"mean": 219.0,
+"sd": 25.0,
+"trees": [
+"elm*"
+]
+},
+{
+"i": "104",
+"f": {
+"Place": "The Bus Stop",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Someone Waited",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1844,
+"mean": 216.9,
+"sd": 24.2,
+"trees": [
+"oak*",
+"spruce*",
+"elm*"
+]
+},
+{
+"i": "105",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "Someone Waited",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 2349,
+"mean": 208.2,
+"sd": 31.2,
+"trees": [
+"maple",
+"maple*",
+"maple*",
+"elm*"
+]
+},
+{
+"i": "106",
+"f": {
+"Place": "The Fountain",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "Steady",
+"Incident": "Lost Mitten",
+"Animals": "Fox",
+"Wind": "Still"
+},
+"ms": 1737,
+"mean": 224.5,
+"sd": 22.9,
+"trees": [
+"young",
+"oak*",
+"elm*"
+]
+},
+{
+"i": "107",
+"f": {
+"Place": "The Corner",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "A Dog",
+"Animals": "Rabbit",
+"Wind": "Drifting"
+},
+"ms": 1924,
+"mean": 224.8,
+"sd": 18.9,
+"trees": [
+"maple",
+"elm*",
+"maple*"
+]
+},
+{
+"i": "108",
+"f": {
+"Place": "The Fence",
+"Hour": "Lamplight",
+"Snowfall": "Deep",
+"Footfall": "Solitary",
+"Incident": "Someone Waited",
+"Animals": "Birds",
+"Wind": "Still"
+},
+"ms": 1638,
+"mean": 120.1,
+"sd": 16.3,
+"trees": [
+"oak",
+"oak*",
+"birch*"
+]
+},
+{
+"i": "109",
+"f": {
+"Place": "The Bus Stop",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Birds",
+"Wind": "Still"
+},
+"ms": 1866,
+"mean": 220.8,
+"sd": 22.3,
+"trees": [
+"maple",
+"maple",
+"maple*"
+]
+},
+{
+"i": "11",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Birds",
+"Wind": "Drifting"
+},
+"ms": 1803,
+"mean": 214.1,
+"sd": 32.1,
+"trees": [
+"elm*"
+]
+},
+{
+"i": "110",
+"f": {
+"Place": "The Frontage",
+"Hour": "Winter Noon",
+"Snowfall": "Dusting",
+"Footfall": "Steady",
+"Incident": "None",
+"Animals": "Squirrel",
+"Wind": "Still"
+},
+"ms": 1736,
+"mean": 216.2,
+"sd": 32.9,
+"trees": [
+"oak*"
+]
+},
+{
+"i": "111",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Dusk",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "A Dog",
+"Animals": "Cat",
+"Wind": "Still"
+},
+"ms": 1741,
+"mean": 212.0,
+"sd": 34.7,
+"trees": [
+"spruce"
+]
+},
+{
+"i": "112",
+"f": {
+"Place": "The Frontage",
+"Hour": "Dawn",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Birds",
+"Wind": "Drifting"
+},
+"ms": 1686,
+"mean": 215.4,
+"sd": 27.2,
+"trees": [
+"young",
+"elm*",
+"birch*"
+]
+},
+{
+"i": "113",
+"f": {
+"Place": "The Frontage",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "Someone Waited",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1533,
+"mean": 227.0,
+"sd": 13.8,
+"trees": [
+"young"
+]
+},
+{
+"i": "114",
+"f": {
+"Place": "The Corner",
+"Hour": "Dawn",
+"Snowfall": "Deep",
+"Footfall": "A Few",
+"Incident": "Snow Angel",
+"Animals": "Deer",
+"Wind": "Drifting"
+},
+"ms": 1889,
+"mean": 223.2,
+"sd": 21.8,
+"trees": [
+"maple",
+"oak*",
+"maple*",
+"oak*"
+]
+},
+{
+"i": "115",
+"f": {
+"Place": "The Roadside",
+"Hour": "Winter Noon",
+"Snowfall": "Dusting",
+"Footfall": "Steady",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1917,
+"mean": 212.4,
+"sd": 28.6,
+"trees": [
+"young",
+"elm*",
+"maple*",
+"maple*"
+]
+},
+{
+"i": "116",
+"f": {
+"Place": "The Corner",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "Solitary",
+"Incident": "Someone Waited",
+"Animals": "Birds",
+"Wind": "Drifting"
+},
+"ms": 1657,
+"mean": 233.1,
+"sd": 13.9,
+"trees": [
+"maple*"
+]
+},
+{
+"i": "117",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Squirrel",
+"Wind": "Still"
+},
+"ms": 1508,
+"mean": 220.8,
+"sd": 33.0,
+"trees": [
+"elm*"
+]
+},
+{
+"i": "118",
+"f": {
+"Place": "The Corner",
+"Hour": "Dusk",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "Lost Mitten",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1916,
+"mean": 223.8,
+"sd": 14.1,
+"trees": [
+"maple*",
+"maple*"
+]
+},
+{
+"i": "119",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1800,
+"mean": 220.4,
+"sd": 22.3,
+"trees": [
+"elm*"
+]
+},
+{
+"i": "12",
+"f": {
+"Place": "The Fence",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1641,
+"mean": 224.8,
+"sd": 19.0,
+"trees": [
+"elm*",
+"elm*",
+"maple*"
+]
+},
+{
+"i": "120",
+"f": {
+"Place": "The Bus Stop",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Child's Snow Angel",
+"Animals": "Rabbit",
+"Wind": "Drifting"
+},
+"ms": 1869,
+"mean": 221.7,
+"sd": 21.7,
+"trees": [
+"oak*",
+"birch*"
+]
+},
+{
+"i": "121",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "Snow Angel",
+"Animals": "Fox",
+"Wind": "Still"
+},
+"ms": 1625,
+"mean": 222.6,
+"sd": 26.6,
+"trees": [
+"spruce*",
+"elm*"
+]
+},
+{
+"i": "122",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Dawn",
+"Snowfall": "Dusting",
+"Footfall": "Steady",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1896,
+"mean": 228.5,
+"sd": 15.9,
+"trees": [
+"maple*",
+"spruce*"
+]
+},
+{
+"i": "123",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dusk",
+"Snowfall": "Deep",
+"Footfall": "A Few",
+"Incident": "A Dog",
+"Animals": "Fox",
+"Wind": "Still"
+},
+"ms": 1557,
+"mean": 201.7,
+"sd": 34.1,
+"trees": [
+"spruce*",
+"spruce*",
+"elm*"
+]
+},
+{
+"i": "124",
+"f": {
+"Place": "The Frontage",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "A Dog",
+"Animals": "Rabbit",
+"Wind": "Drifting"
+},
+"ms": 1702,
+"mean": 221.5,
+"sd": 26.0,
+"trees": [
+"elm*",
+"oak*"
+]
+},
+{
+"i": "125",
+"f": {
+"Place": "The Frontage",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "Someone Waited",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1890,
+"mean": 217.7,
+"sd": 25.5,
+"trees": [
+"young",
+"birch",
+"oak*",
+"oak*",
+"maple*"
+]
+},
+{
+"i": "126",
+"f": {
+"Place": "The Fountain",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Lost Mitten",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1729,
+"mean": 220.5,
+"sd": 22.8,
+"trees": [
+"maple*",
+"elm*",
+"elm*"
+]
+},
+{
+"i": "127",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dawn",
+"Snowfall": "Deep",
+"Footfall": "Solitary",
+"Incident": "Someone Waited",
+"Animals": "Birds",
+"Wind": "Drifting"
+},
+"ms": 1788,
+"mean": 216.3,
+"sd": 25.5,
+"trees": [
+"elm*",
+"elm*"
+]
+},
+{
+"i": "128",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Someone Waited",
+"Animals": "Cat",
+"Wind": "Still"
+},
+"ms": 1690,
+"mean": 208.3,
+"sd": 36.1,
+"trees": [
+"oak*"
+]
+},
+{
+"i": "129",
+"f": {
+"Place": "The Frontage",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "Steady",
+"Incident": "Sledge",
+"Animals": "Birds",
+"Wind": "Drifting"
+},
+"ms": 1763,
+"mean": 221.4,
+"sd": 32.3,
+"trees": [
+"birch"
+]
+},
+{
+"i": "13",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Dusk",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "A Dog",
+"Animals": "Fox",
+"Wind": "Still"
+},
+"ms": 1858,
+"mean": 214.7,
+"sd": 33.9,
+"trees": [
+"elm*"
+]
+},
+{
+"i": "130",
+"f": {
+"Place": "The Frontage",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "A Dog",
+"Animals": "Fox",
+"Wind": "Drifting"
+},
+"ms": 1499,
+"mean": 226.9,
+"sd": 24.3,
+"trees": []
+},
+{
+"i": "131",
+"f": {
+"Place": "The Frontage",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "A Few",
+"Incident": "Sledge",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1509,
+"mean": 225.3,
+"sd": 25.7,
+"trees": [
+"maple"
+]
+},
+{
+"i": "132",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "Crowd",
+"Incident": "Sledge",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 2391,
+"mean": 206.9,
+"sd": 34.2,
+"trees": [
+"oak*",
+"elm*"
+]
+},
+{
+"i": "133",
+"f": {
+"Place": "The Fence",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "Snow Angel",
+"Animals": "Deer",
+"Wind": "Still"
+},
+"ms": 1688,
+"mean": 228.2,
+"sd": 18.5,
+"trees": [
+"birch",
+"maple*",
+"oak*"
+]
+},
+{
+"i": "134",
+"f": {
+"Place": "The Corner",
+"Hour": "Dawn",
+"Snowfall": "Deep",
+"Footfall": "Steady",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1817,
+"mean": 226.3,
+"sd": 20.9,
+"trees": [
+"birch",
+"maple*"
+]
+},
+{
+"i": "135",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "Squirrel",
+"Wind": "Still"
+},
+"ms": 1559,
+"mean": 225.1,
+"sd": 24.5,
+"trees": [
+"spruce*",
+"maple*"
+]
+},
+{
+"i": "136",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "A Few",
+"Incident": "Lost Mitten",
+"Animals": "Cat",
+"Wind": "Drifting"
+},
+"ms": 1799,
+"mean": 221.9,
+"sd": 24.3,
+"trees": [
+"elm*"
+]
+},
+{
+"i": "137",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Snow Angel",
+"Animals": "Cat",
+"Wind": "Drifting"
+},
+"ms": 1898,
+"mean": 203.4,
+"sd": 39.4,
+"trees": [
+"oak*"
+]
+},
+{
+"i": "138",
+"f": {
+"Place": "The Fence",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Lost Mitten",
+"Animals": "Squirrel",
+"Wind": "Drifting"
+},
+"ms": 1846,
+"mean": 224.8,
+"sd": 25.2,
+"trees": [
+"oak",
+"oak",
+"elm*",
+"oak*"
+]
+},
+{
+"i": "139",
+"f": {
+"Place": "The Frontage",
+"Hour": "Lamplight",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "Someone Waited",
+"Animals": "Squirrel",
+"Wind": "Still"
+},
+"ms": 1725,
+"mean": 112.8,
+"sd": 15.1,
+"trees": [
+"elm",
+"elm*"
+]
+},
+{
+"i": "14",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "Someone Waited",
+"Animals": "Birds",
+"Wind": "Still"
+},
+"ms": 2037,
+"mean": 208.9,
+"sd": 32.9,
+"trees": [
+"young",
+"birch",
+"oak*",
+"elm*",
+"oak*"
+]
+},
+{
+"i": "140",
+"f": {
+"Place": "The Corner",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "Child's Snow Angel",
+"Animals": "Deer",
+"Wind": "Drifting"
+},
+"ms": 2004,
+"mean": 225.0,
+"sd": 28.2,
+"trees": [
+"maple",
+"elm",
+"elm*"
+]
+},
+{
+"i": "141",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Birds",
+"Wind": "Drifting"
+},
+"ms": 1759,
+"mean": 217.2,
+"sd": 28.1,
+"trees": [
+"spruce",
+"elm*",
+"elm*"
+]
+},
+{
+"i": "142",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Dusk",
+"Snowfall": "Deep",
+"Footfall": "Solitary",
+"Incident": "Lost Mitten",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1720,
+"mean": 212.0,
+"sd": 31.6,
+"trees": [
+"oak*",
+"maple*"
+]
+},
+{
+"i": "143",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Dawn",
+"Snowfall": "Deep",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1649,
+"mean": 217.3,
+"sd": 25.3,
+"trees": [
+"spruce*",
+"spruce*"
+]
+},
+{
+"i": "144",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "Snow Angel",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1767,
+"mean": 222.1,
+"sd": 27.4,
+"trees": [
+"young",
+"oak*",
+"elm*"
+]
+},
+{
+"i": "145",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Dawn",
+"Snowfall": "Deep",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1682,
+"mean": 211.2,
+"sd": 35.9,
+"trees": [
+"spruce*",
+"maple*",
+"spruce*"
+]
+},
+{
+"i": "146",
+"f": {
+"Place": "The Frontage",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "Sledge",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1619,
+"mean": 219.3,
+"sd": 28.3,
+"trees": [
+"oak"
+]
+},
+{
+"i": "147",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dusk",
+"Snowfall": "Deep",
+"Footfall": "A Few",
+"Incident": "A Dog",
+"Animals": "Squirrel",
+"Wind": "Still"
+},
+"ms": 1791,
+"mean": 212.8,
+"sd": 31.9,
+"trees": [
+"oak",
+"oak*"
+]
+},
+{
+"i": "148",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "Crowd",
+"Incident": "Child's Snow Angel",
+"Animals": "Birds",
+"Wind": "Still"
+},
+"ms": 2244,
+"mean": 223.7,
+"sd": 20.4,
+"trees": [
+"oak*",
+"oak*"
+]
+},
+{
+"i": "149",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Dawn",
+"Snowfall": "Deep",
+"Footfall": "A Few",
+"Incident": "Someone Waited",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1886,
+"mean": 216.3,
+"sd": 24.0,
+"trees": [
+"maple*"
+]
+},
+{
+"i": "15",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Crowd",
+"Incident": "None",
+"Animals": "Rabbit",
+"Wind": "Drifting"
+},
+"ms": 2679,
+"mean": 217.5,
+"sd": 30.4,
+"trees": [
+"oak*"
+]
+},
+{
+"i": "150",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dawn",
+"Snowfall": "Deep",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Birds",
+"Wind": "Drifting"
+},
+"ms": 1780,
+"mean": 220.5,
+"sd": 24.9,
+"trees": [
+"maple",
+"spruce*",
+"elm*"
+]
+},
+{
+"i": "151",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dawn",
+"Snowfall": "Dusting",
+"Footfall": "A Few",
+"Incident": "A Dog",
+"Animals": "Rabbit",
+"Wind": "Drifting"
+},
+"ms": 2000,
+"mean": 220.0,
+"sd": 25.8,
+"trees": [
+"maple",
+"birch",
+"oak*",
+"oak*"
+]
+},
+{
+"i": "152",
+"f": {
+"Place": "The Frontage",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1634,
+"mean": 209.8,
+"sd": 30.3,
+"trees": [
+"young",
+"oak*",
+"oak*"
+]
+},
+{
+"i": "153",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Dusk",
+"Snowfall": "Dusting",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 2040,
+"mean": 185.3,
+"sd": 43.5,
+"trees": [
+"spruce*",
+"spruce*",
+"elm*"
+]
+},
+{
+"i": "154",
+"f": {
+"Place": "The Corner",
+"Hour": "Dawn",
+"Snowfall": "Deep",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Cat",
+"Wind": "Still"
+},
+"ms": 1583,
+"mean": 228.5,
+"sd": 16.8,
+"trees": [
+"elm*"
+]
+},
+{
+"i": "155",
+"f": {
+"Place": "The Roadside",
+"Hour": "Lamplight",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Someone Waited",
+"Animals": "Fox",
+"Wind": "Drifting"
+},
+"ms": 1532,
+"mean": 115.3,
+"sd": 14.5,
+"trees": [
+"oak*"
+]
+},
+{
+"i": "156",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Snow Angel",
+"Animals": "Deer",
+"Wind": "Drifting"
+},
+"ms": 1814,
+"mean": 215.7,
+"sd": 29.7,
+"trees": [
+"birch",
+"birch*"
+]
+},
+{
+"i": "157",
+"f": {
+"Place": "The Frontage",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Snow Angel",
+"Animals": "Deer",
+"Wind": "Still"
+},
+"ms": 1703,
+"mean": 216.3,
+"sd": 28.0,
+"trees": [
+"maple*",
+"oak*"
+]
+},
+{
+"i": "158",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dusk",
+"Snowfall": "Deep",
+"Footfall": "Steady",
+"Incident": "Snow Angel",
+"Animals": "Cat",
+"Wind": "Still"
+},
+"ms": 1742,
+"mean": 212.0,
+"sd": 32.7,
+"trees": [
+"spruce*",
+"spruce*"
+]
+},
+{
+"i": "159",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Dawn",
+"Snowfall": "Deep",
+"Footfall": "A Few",
+"Incident": "Sledge",
+"Animals": "Fox",
+"Wind": "Still"
+},
+"ms": 1548,
+"mean": 219.5,
+"sd": 32.9,
+"trees": [
+"oak*"
+]
+},
+{
+"i": "16",
+"f": {
+"Place": "The Fountain",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "Someone Waited",
+"Animals": "Rabbit",
+"Wind": "Drifting"
+},
+"ms": 2070,
+"mean": 225.4,
+"sd": 24.4,
+"trees": [
+"elm",
+"maple",
+"maple*"
+]
+},
+{
+"i": "160",
+"f": {
+"Place": "The Fence",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "Crowd",
+"Incident": "Child's Snow Angel",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 2460,
+"mean": 226.6,
+"sd": 24.1,
+"trees": [
+"elm*",
+"oak*"
+]
+},
+{
+"i": "161",
+"f": {
+"Place": "The Bus Stop",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "A Dog",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 1839,
+"mean": 212.9,
+"sd": 31.2,
+"trees": [
+"maple",
+"oak*",
+"maple*"
+]
+},
+{
+"i": "162",
+"f": {
+"Place": "The Fence",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "A Dog",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1672,
+"mean": 230.5,
+"sd": 19.9,
+"trees": [
+"young",
+"oak",
+"oak*"
+]
+},
+{
+"i": "163",
+"f": {
+"Place": "The Fence",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1658,
+"mean": 228.4,
+"sd": 19.7,
+"trees": [
+"oak",
+"young",
+"elm*"
+]
+},
+{
+"i": "164",
+"f": {
+"Place": "The Corner",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Child's Snow Angel",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1606,
+"mean": 223.2,
+"sd": 29.2,
+"trees": [
+"spruce",
+"oak*"
+]
+},
+{
+"i": "165",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1834,
+"mean": 218.3,
+"sd": 24.3,
+"trees": [
+"birch",
+"oak*",
+"birch*"
+]
+},
+{
+"i": "166",
+"f": {
+"Place": "The Bus Stop",
+"Hour": "Dusk",
+"Snowfall": "Dusting",
+"Footfall": "A Few",
+"Incident": "Someone Waited",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1926,
+"mean": 204.1,
+"sd": 29.7,
+"trees": [
+"elm*",
+"maple*",
+"oak*"
+]
+},
+{
+"i": "167",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Fox",
+"Wind": "Still"
+},
+"ms": 1924,
+"mean": 207.2,
+"sd": 23.9,
+"trees": [
+"maple*",
+"maple*",
+"spruce*"
+]
+},
+{
+"i": "168",
+"f": {
+"Place": "The Fence",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "Someone Waited",
+"Animals": "Squirrel",
+"Wind": "Still"
+},
+"ms": 1808,
+"mean": 221.0,
+"sd": 24.0,
+"trees": [
+"oak",
+"maple",
+"oak*",
+"birch*",
+"oak*"
+]
+},
+{
+"i": "169",
+"f": {
+"Place": "The Fence",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 2162,
+"mean": 217.3,
+"sd": 20.4,
+"trees": [
+"young",
+"maple*",
+"elm*",
+"maple*"
+]
+},
+{
+"i": "17",
+"f": {
+"Place": "The Frontage",
+"Hour": "Dusk",
+"Snowfall": "Deep",
+"Footfall": "Solitary",
+"Incident": "Child's Snow Angel",
+"Animals": "Cat",
+"Wind": "Drifting"
+},
+"ms": 1798,
+"mean": 212.6,
+"sd": 28.1,
+"trees": [
+"maple*"
+]
+},
+{
+"i": "170",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dusk",
+"Snowfall": "Deep",
+"Footfall": "A Few",
+"Incident": "A Dog",
+"Animals": "Cat",
+"Wind": "Still"
+},
+"ms": 1763,
+"mean": 209.0,
+"sd": 32.1,
+"trees": [
+"birch",
+"oak*",
+"maple*"
+]
+},
+{
+"i": "171",
+"f": {
+"Place": "The Fence",
+"Hour": "Dusk",
+"Snowfall": "Dusting",
+"Footfall": "Steady",
+"Incident": "A Dog",
+"Animals": "Rabbit",
+"Wind": "Drifting"
+},
+"ms": 1828,
+"mean": 224.4,
+"sd": 16.6,
+"trees": [
+"oak*"
+]
+},
+{
+"i": "172",
+"f": {
+"Place": "The Frontage",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "Child's Snow Angel",
+"Animals": "Rabbit",
+"Wind": "Drifting"
+},
+"ms": 1794,
+"mean": 214.0,
+"sd": 32.8,
+"trees": [
+"maple*",
+"elm*"
+]
+},
+{
+"i": "173",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Someone Waited",
+"Animals": "Squirrel",
+"Wind": "Still"
+},
+"ms": 2287,
+"mean": 204.1,
+"sd": 32.9,
+"trees": [
+"maple*",
+"maple*",
+"maple*"
+]
+},
+{
+"i": "174",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "A Dog",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 2118,
+"mean": 200.2,
+"sd": 34.6,
+"trees": [
+"spruce",
+"oak*",
+"elm*",
+"elm*"
+]
+},
+{
+"i": "175",
+"f": {
+"Place": "The Frontage",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "Someone Waited",
+"Animals": "Birds",
+"Wind": "Drifting"
+},
+"ms": 1859,
+"mean": 221.8,
+"sd": 19.8,
+"trees": [
+"young",
+"maple*",
+"elm*",
+"oak*"
+]
+},
+{
+"i": "176",
+"f": {
+"Place": "The Fence",
+"Hour": "Dawn",
+"Snowfall": "Deep",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "Fox",
+"Wind": "Drifting"
+},
+"ms": 1730,
+"mean": 224.0,
+"sd": 22.0,
+"trees": [
+"elm",
+"maple*",
+"elm*"
+]
+},
+{
+"i": "177",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1767,
+"mean": 219.6,
+"sd": 24.1,
+"trees": [
+"birch*",
+"maple*",
+"spruce*"
+]
+},
+{
+"i": "178",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "A Dog",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 1510,
+"mean": 220.4,
+"sd": 26.6,
+"trees": [
+"birch"
+]
+},
+{
+"i": "179",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Dusk",
+"Snowfall": "Deep",
+"Footfall": "Steady",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1802,
+"mean": 220.0,
+"sd": 27.9,
+"trees": [
+"spruce",
+"oak*"
+]
+},
+{
+"i": "18",
+"f": {
+"Place": "The Bus Stop",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Cat",
+"Wind": "Still"
+},
+"ms": 1812,
+"mean": 215.3,
+"sd": 28.7,
+"trees": [
+"oak*",
+"oak*",
+"oak*"
+]
+},
+{
+"i": "180",
+"f": {
+"Place": "The Frontage",
+"Hour": "Winter Noon",
+"Snowfall": "Dusting",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "Fox",
+"Wind": "Drifting"
+},
+"ms": 1722,
+"mean": 217.9,
+"sd": 31.9,
+"trees": [
+"maple*"
+]
+},
+{
+"i": "181",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Winter Noon",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "Someone Waited",
+"Animals": "Birds",
+"Wind": "Drifting"
+},
+"ms": 1696,
+"mean": 227.7,
+"sd": 19.0,
+"trees": [
+"birch",
+"oak*",
+"oak*"
+]
+},
+{
+"i": "182",
+"f": {
+"Place": "The Bus Stop",
+"Hour": "Lamplight",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "A Dog",
+"Animals": "Squirrel",
+"Wind": "Drifting"
+},
+"ms": 1645,
+"mean": 114.9,
+"sd": 14.7,
+"trees": [
+"elm",
+"young",
+"maple*"
+]
+},
+{
+"i": "183",
+"f": {
+"Place": "The Corner",
+"Hour": "Lamplight",
+"Snowfall": "Dusting",
+"Footfall": "A Few",
+"Incident": "Lost Mitten",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 1596,
+"mean": 126.4,
+"sd": 18.6,
+"trees": [
+"spruce"
+]
+},
+{
+"i": "184",
+"f": {
+"Place": "The Corner",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Lost Mitten",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1631,
+"mean": 229.5,
+"sd": 14.6,
+"trees": [
+"birch",
+"young",
+"oak*"
+]
+},
+{
+"i": "185",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Dawn",
+"Snowfall": "Deep",
+"Footfall": "Solitary",
+"Incident": "A Dog",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1974,
+"mean": 208.3,
+"sd": 30.3,
+"trees": [
+"young",
+"oak*",
+"birch*",
+"elm*"
+]
+},
+{
+"i": "186",
+"f": {
+"Place": "The Fountain",
+"Hour": "Winter Noon",
+"Snowfall": "Dusting",
+"Footfall": "Steady",
+"Incident": "None",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 1766,
+"mean": 225.8,
+"sd": 23.8,
+"trees": [
+"oak",
+"birch",
+"maple*"
+]
+},
+{
+"i": "187",
+"f": {
+"Place": "The Frontage",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "Lost Mitten",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1577,
+"mean": 212.5,
+"sd": 24.7,
+"trees": [
+"elm*",
+"elm*"
+]
+},
+{
+"i": "188",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dusk",
+"Snowfall": "Dusting",
+"Footfall": "A Few",
+"Incident": "Someone Waited",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1775,
+"mean": 214.0,
+"sd": 28.9,
+"trees": [
+"oak*"
+]
+},
+{
+"i": "189",
+"f": {
+"Place": "The Fence",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "A Dog",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1858,
+"mean": 216.4,
+"sd": 24.4,
+"trees": [
+"elm*",
+"birch*"
+]
+},
+{
+"i": "19",
+"f": {
+"Place": "The Fence",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1860,
+"mean": 225.4,
+"sd": 16.7,
+"trees": [
+"birch*",
+"oak*"
+]
+},
+{
+"i": "190",
+"f": {
+"Place": "The Roadside",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "Crowd",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 2198,
+"mean": 222.9,
+"sd": 28.0,
+"trees": [
+"maple"
+]
+},
+{
+"i": "191",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dawn",
+"Snowfall": "Dusting",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1393,
+"mean": 216.2,
+"sd": 30.4,
+"trees": [
+"young",
+"spruce*"
+]
+},
+{
+"i": "192",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "A Dog",
+"Animals": "Birds",
+"Wind": "Still"
+},
+"ms": 1677,
+"mean": 220.1,
+"sd": 27.7,
+"trees": [
+"oak",
+"oak*"
+]
+},
+{
+"i": "193",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dawn",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "Sledge",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1648,
+"mean": 218.7,
+"sd": 30.0,
+"trees": [
+"maple",
+"oak",
+"birch*"
+]
+},
+{
+"i": "194",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dusk",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1617,
+"mean": 201.2,
+"sd": 35.8,
+"trees": [
+"elm",
+"oak*",
+"elm*"
+]
+},
+{
+"i": "195",
+"f": {
+"Place": "The Bus Stop",
+"Hour": "Dusk",
+"Snowfall": "Dusting",
+"Footfall": "Crowd",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 2394,
+"mean": 203.9,
+"sd": 34.8,
+"trees": [
+"young",
+"oak*"
+]
+},
+{
+"i": "196",
+"f": {
+"Place": "The Fence",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1851,
+"mean": 218.2,
+"sd": 28.7,
+"trees": [
+"spruce",
+"elm*"
+]
+},
+{
+"i": "197",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Winter Noon",
+"Snowfall": "Dusting",
+"Footfall": "A Few",
+"Incident": "Sledge",
+"Animals": "Rabbit",
+"Wind": "Drifting"
+},
+"ms": 1664,
+"mean": 214.0,
+"sd": 26.8,
+"trees": [
+"oak*"
+]
+},
+{
+"i": "198",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "Crowd",
+"Incident": "None",
+"Animals": "Birds",
+"Wind": "Still"
+},
+"ms": 2614,
+"mean": 189.3,
+"sd": 36.9,
+"trees": [
+"young",
+"oak*",
+"spruce*",
+"elm*"
+]
+},
+{
+"i": "199",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Lamplight",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "Birds",
+"Wind": "Still"
+},
+"ms": 1465,
+"mean": 122.0,
+"sd": 21.6,
+"trees": [
+"spruce",
+"maple*"
+]
+},
+{
+"i": "20",
+"f": {
+"Place": "The Frontage",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "Birds",
+"Wind": "Still"
+},
+"ms": 1629,
+"mean": 215.3,
+"sd": 28.3,
+"trees": [
+"oak*",
+"elm*"
+]
+},
+{
+"i": "21",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Child's Snow Angel",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 2289,
+"mean": 198.2,
+"sd": 32.8,
+"trees": [
+"maple",
+"elm*",
+"maple*",
+"oak*"
+]
+},
+{
+"i": "22",
+"f": {
+"Place": "The Roadside",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "A Few",
+"Incident": "Sledge",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 1794,
+"mean": 223.9,
+"sd": 23.8,
+"trees": [
+"oak",
+"oak*"
+]
+},
+{
+"i": "23",
+"f": {
+"Place": "The Frontage",
+"Hour": "Dawn",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Fox",
+"Wind": "Still"
+},
+"ms": 1862,
+"mean": 209.5,
+"sd": 34.7,
+"trees": [
+"spruce*",
+"maple*",
+"maple*"
+]
+},
+{
+"i": "24",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dawn",
+"Snowfall": "Dusting",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "Cat",
+"Wind": "Drifting"
+},
+"ms": 2044,
+"mean": 216.3,
+"sd": 28.4,
+"trees": [
+"maple",
+"maple",
+"oak*",
+"elm*",
+"maple*"
+]
+},
+{
+"i": "25",
+"f": {
+"Place": "The Corner",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Birds",
+"Wind": "Still"
+},
+"ms": 1444,
+"mean": 235.4,
+"sd": 11.6,
+"trees": [
+"spruce*"
+]
+},
+{
+"i": "26",
+"f": {
+"Place": "The Frontage",
+"Hour": "Dusk",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Rabbit",
+"Wind": "Drifting"
+},
+"ms": 1833,
+"mean": 208.0,
+"sd": 36.5,
+"trees": []
+},
+{
+"i": "27",
+"f": {
+"Place": "The Frontage",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "Lost Mitten",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1744,
+"mean": 209.9,
+"sd": 34.1,
+"trees": [
+"elm*"
+]
+},
+{
+"i": "28",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Sledge",
+"Animals": "Fox",
+"Wind": "Still"
+},
+"ms": 2010,
+"mean": 205.5,
+"sd": 30.1,
+"trees": [
+"oak*",
+"maple*",
+"oak*"
+]
+},
+{
+"i": "29",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "Sledge",
+"Animals": "Cat",
+"Wind": "Drifting"
+},
+"ms": 1788,
+"mean": 218.7,
+"sd": 32.3,
+"trees": [
+"maple*",
+"oak*"
+]
+},
+{
+"i": "30",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Dawn",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1817,
+"mean": 220.6,
+"sd": 33.0,
+"trees": [
+"spruce*"
+]
+},
+{
+"i": "31",
+"f": {
+"Place": "The Corner",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "Crowd",
+"Incident": "Someone Waited",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 3005,
+"mean": 212.7,
+"sd": 23.4,
+"trees": [
+"maple*",
+"oak*",
+"elm*"
+]
+},
+{
+"i": "32",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "Sledge",
+"Animals": "Birds",
+"Wind": "Still"
+},
+"ms": 2236,
+"mean": 196.1,
+"sd": 38.3,
+"trees": [
+"spruce*",
+"elm*"
+]
+},
+{
+"i": "33",
+"f": {
+"Place": "The Frontage",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Crowd",
+"Incident": "None",
+"Animals": "Rabbit",
+"Wind": "Drifting"
+},
+"ms": 2199,
+"mean": 217.3,
+"sd": 28.4,
+"trees": [
+"oak*"
+]
+},
+{
+"i": "34",
+"f": {
+"Place": "The Fence",
+"Hour": "Dawn",
+"Snowfall": "Dusting",
+"Footfall": "Steady",
+"Incident": "None",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 1757,
+"mean": 221.1,
+"sd": 22.0,
+"trees": [
+"spruce*",
+"maple*",
+"maple*"
+]
+},
+{
+"i": "35",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dusk",
+"Snowfall": "Deep",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "Deer",
+"Wind": "Drifting"
+},
+"ms": 1563,
+"mean": 208.8,
+"sd": 40.1,
+"trees": [
+"birch",
+"spruce*"
+]
+},
+{
+"i": "36",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Dawn",
+"Snowfall": "Deep",
+"Footfall": "Solitary",
+"Incident": "Lost Mitten",
+"Animals": "Fox",
+"Wind": "Drifting"
+},
+"ms": 1852,
+"mean": 218.3,
+"sd": 23.6,
+"trees": [
+"maple",
+"maple*"
+]
+},
+{
+"i": "37",
+"f": {
+"Place": "The Bus Stop",
+"Hour": "Lamplight",
+"Snowfall": "Dusting",
+"Footfall": "A Few",
+"Incident": "Sledge",
+"Animals": "Cat",
+"Wind": "Still"
+},
+"ms": 1692,
+"mean": 118.5,
+"sd": 22.6,
+"trees": [
+"birch",
+"young"
+]
+},
+{
+"i": "38",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dusk",
+"Snowfall": "Dusting",
+"Footfall": "Steady",
+"Incident": "None",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 1961,
+"mean": 204.8,
+"sd": 33.9,
+"trees": [
+"spruce",
+"elm",
+"maple*",
+"maple*",
+"elm*"
+]
+},
+{
+"i": "39",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dawn",
+"Snowfall": "Dusting",
+"Footfall": "Steady",
+"Incident": "None",
+"Animals": "Fox",
+"Wind": "Still"
+},
+"ms": 1598,
+"mean": 212.4,
+"sd": 32.2,
+"trees": [
+"young",
+"maple"
+]
+},
+{
+"i": "40",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "A Dog",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 1947,
+"mean": 207.7,
+"sd": 32.5,
+"trees": [
+"maple",
+"maple",
+"maple*",
+"elm*"
+]
+},
+{
+"i": "41",
+"f": {
+"Place": "The Corner",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1708,
+"mean": 224.0,
+"sd": 25.1,
+"trees": [
+"spruce*",
+"maple*"
+]
+},
+{
+"i": "42",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Snow Angel",
+"Animals": "Rabbit",
+"Wind": "Drifting"
+},
+"ms": 1791,
+"mean": 219.8,
+"sd": 22.6,
+"trees": [
+"young",
+"oak*"
+]
+},
+{
+"i": "43",
+"f": {
+"Place": "The Frontage",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "Lost Mitten",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1637,
+"mean": 218.5,
+"sd": 27.0,
+"trees": [
+"maple*",
+"oak*"
+]
+},
+{
+"i": "44",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Lamplight",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Cat",
+"Wind": "Drifting"
+},
+"ms": 1495,
+"mean": 121.1,
+"sd": 22.3,
+"trees": [
+"maple*"
+]
+},
+{
+"i": "45",
+"f": {
+"Place": "The Bus Stop",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Squirrel",
+"Wind": "Still"
+},
+"ms": 1582,
+"mean": 222.3,
+"sd": 26.2,
+"trees": [
+"oak*",
+"elm*"
+]
+},
+{
+"i": "46",
+"f": {
+"Place": "The Frontage",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "Crowd",
+"Incident": "Lost Mitten",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 2589,
+"mean": 220.4,
+"sd": 27.6,
+"trees": [
+"maple*",
+"oak*",
+"oak*"
+]
+},
+{
+"i": "47",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "Lost Mitten",
+"Animals": "Rabbit",
+"Wind": "Drifting"
+},
+"ms": 1672,
+"mean": 225.6,
+"sd": 18.8,
+"trees": []
+},
+{
+"i": "48",
+"f": {
+"Place": "The Bus Stop",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Sledge",
+"Animals": "Squirrel",
+"Wind": "Still"
+},
+"ms": 1617,
+"mean": 228.0,
+"sd": 16.6,
+"trees": [
+"spruce*",
+"oak*"
+]
+},
+{
+"i": "49",
+"f": {
+"Place": "The Bus Stop",
+"Hour": "Dawn",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "Sledge",
+"Animals": "Birds",
+"Wind": "Still"
+},
+"ms": 1982,
+"mean": 209.5,
+"sd": 29.1,
+"trees": [
+"maple",
+"oak*",
+"maple*",
+"elm*"
+]
+},
+{
+"i": "50",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 1593,
+"mean": 217.3,
+"sd": 34.5,
+"trees": [
+"maple",
+"maple"
+]
+},
+{
+"i": "51",
+"f": {
+"Place": "The Fence",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 1684,
+"mean": 226.2,
+"sd": 17.6,
+"trees": [
+"birch",
+"birch",
+"elm*",
+"maple*"
+]
+},
+{
+"i": "52",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Dusk",
+"Snowfall": "Deep",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 1650,
+"mean": 224.2,
+"sd": 22.8,
+"trees": [
+"oak",
+"oak*"
+]
+},
+{
+"i": "53",
+"f": {
+"Place": "The Fountain",
+"Hour": "Winter Noon",
+"Snowfall": "Dusting",
+"Footfall": "A Few",
+"Incident": "Sledge",
+"Animals": "Fox",
+"Wind": "Still"
+},
+"ms": 1968,
+"mean": 212.4,
+"sd": 30.2,
+"trees": [
+"oak",
+"oak",
+"maple*",
+"oak*",
+"oak*"
+]
+},
+{
+"i": "54",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Dawn",
+"Snowfall": "Deep",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1652,
+"mean": 227.6,
+"sd": 17.5,
+"trees": [
+"birch",
+"oak*",
+"oak*"
+]
+},
+{
+"i": "55",
+"f": {
+"Place": "The Roadside",
+"Hour": "Winter Noon",
+"Snowfall": "Dusting",
+"Footfall": "A Few",
+"Incident": "Someone Waited",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1547,
+"mean": 217.7,
+"sd": 27.6,
+"trees": [
+"elm*"
+]
+},
+{
+"i": "56",
+"f": {
+"Place": "The Corner",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "Lost Mitten",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 1859,
+"mean": 223.7,
+"sd": 17.2,
+"trees": [
+"maple",
+"maple*"
+]
+},
+{
+"i": "57",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dawn",
+"Snowfall": "Deep",
+"Footfall": "Steady",
+"Incident": "Lost Mitten",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1869,
+"mean": 215.6,
+"sd": 27.4,
+"trees": [
+"maple*",
+"oak*",
+"maple*"
+]
+},
+{
+"i": "58",
+"f": {
+"Place": "The Fence",
+"Hour": "Dusk",
+"Snowfall": "Deep",
+"Footfall": "Steady",
+"Incident": "None",
+"Animals": "Birds",
+"Wind": "Drifting"
+},
+"ms": 1969,
+"mean": 210.8,
+"sd": 27.4,
+"trees": [
+"elm*",
+"elm*"
+]
+},
+{
+"i": "59",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dusk",
+"Snowfall": "Dusting",
+"Footfall": "A Few",
+"Incident": "Sledge",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 2395,
+"mean": 183.2,
+"sd": 44.0,
+"trees": [
+"oak",
+"elm*",
+"oak*",
+"elm*"
+]
+},
+{
+"i": "60",
+"f": {
+"Place": "The Corner",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 1486,
+"mean": 227.7,
+"sd": 23.5,
+"trees": [
+"spruce*",
+"birch*"
+]
+},
+{
+"i": "61",
+"f": {
+"Place": "The Fence",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "A Few",
+"Incident": "Snow Angel",
+"Animals": "Squirrel",
+"Wind": "Still"
+},
+"ms": 1504,
+"mean": 231.6,
+"sd": 17.0,
+"trees": [
+"birch",
+"oak*"
+]
+},
+{
+"i": "62",
+"f": {
+"Place": "The Frontage",
+"Hour": "Dawn",
+"Snowfall": "Deep",
+"Footfall": "A Few",
+"Incident": "A Dog",
+"Animals": "Cat",
+"Wind": "Still"
+},
+"ms": 1516,
+"mean": 216.5,
+"sd": 27.7,
+"trees": [
+"young",
+"oak*",
+"oak*"
+]
+},
+{
+"i": "63",
+"f": {
+"Place": "The Roadside",
+"Hour": "Winter Noon",
+"Snowfall": "Dusting",
+"Footfall": "A Few",
+"Incident": "Sledge",
+"Animals": "Squirrel",
+"Wind": "Drifting"
+},
+"ms": 1541,
+"mean": 219.1,
+"sd": 30.5,
+"trees": [
+"spruce*",
+"birch*"
+]
+},
+{
+"i": "64",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "Snow Angel",
+"Animals": "Cat",
+"Wind": "Still"
+},
+"ms": 1868,
+"mean": 215.5,
+"sd": 29.7,
+"trees": [
+"elm*",
+"maple*"
+]
+},
+{
+"i": "65",
+"f": {
+"Place": "The Frontage",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Child's Snow Angel",
+"Animals": "Cat",
+"Wind": "Still"
+},
+"ms": 1622,
+"mean": 213.9,
+"sd": 29.1,
+"trees": [
+"young",
+"elm*"
+]
+},
+{
+"i": "66",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "Birds",
+"Wind": "Drifting"
+},
+"ms": 1897,
+"mean": 213.1,
+"sd": 29.5,
+"trees": [
+"maple",
+"maple",
+"spruce*",
+"maple*"
+]
+},
+{
+"i": "67",
+"f": {
+"Place": "The Fence",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "Steady",
+"Incident": "Someone Waited",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1578,
+"mean": 221.2,
+"sd": 23.7,
+"trees": [
+"maple*",
+"elm*",
+"oak*"
+]
+},
+{
+"i": "68",
+"f": {
+"Place": "The Fence",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "Lost Mitten",
+"Animals": "Birds",
+"Wind": "Drifting"
+},
+"ms": 1759,
+"mean": 220.7,
+"sd": 19.4,
+"trees": [
+"oak*",
+"oak*",
+"maple*"
+]
+},
+{
+"i": "69",
+"f": {
+"Place": "The Fence",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "Someone Waited",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 1449,
+"mean": 229.3,
+"sd": 23.3,
+"trees": [
+"elm",
+"spruce"
+]
+},
+{
+"i": "70",
+"f": {
+"Place": "The Frontage",
+"Hour": "Dusk",
+"Snowfall": "Dusting",
+"Footfall": "Crowd",
+"Incident": "A Dog",
+"Animals": "Birds",
+"Wind": "Still"
+},
+"ms": 2293,
+"mean": 205.9,
+"sd": 34.3,
+"trees": []
+},
+{
+"i": "71",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "Rabbit",
+"Wind": "Drifting"
+},
+"ms": 1600,
+"mean": 232.9,
+"sd": 17.6,
+"trees": [
+"birch"
+]
+},
+{
+"i": "72",
+"f": {
+"Place": "The Fence",
+"Hour": "Dusk",
+"Snowfall": "Dusting",
+"Footfall": "Steady",
+"Incident": "None",
+"Animals": "Squirrel",
+"Wind": "Drifting"
+},
+"ms": 1893,
+"mean": 224.0,
+"sd": 20.4,
+"trees": [
+"oak*"
+]
+},
+{
+"i": "73",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Someone Waited",
+"Animals": "Rabbit",
+"Wind": "Drifting"
+},
+"ms": 1601,
+"mean": 221.3,
+"sd": 26.8,
+"trees": [
+"oak"
+]
+},
+{
+"i": "74",
+"f": {
+"Place": "The Bus Stop",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "Fox",
+"Wind": "Drifting"
+},
+"ms": 2013,
+"mean": 215.5,
+"sd": 19.9,
+"trees": [
+"oak*",
+"elm*"
+]
+},
+{
+"i": "75",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Dawn",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "Lost Mitten",
+"Animals": "Birds",
+"Wind": "Drifting"
+},
+"ms": 1663,
+"mean": 207.6,
+"sd": 40.1,
+"trees": [
+"birch",
+"elm*"
+]
+},
+{
+"i": "76",
+"f": {
+"Place": "The Fountain",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "Birds",
+"Wind": "Still"
+},
+"ms": 1461,
+"mean": 232.0,
+"sd": 19.8,
+"trees": []
+},
+{
+"i": "77",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "Sledge",
+"Animals": "Fox",
+"Wind": "Drifting"
+},
+"ms": 2076,
+"mean": 211.7,
+"sd": 25.8,
+"trees": [
+"oak*",
+"elm*"
+]
+},
+{
+"i": "78",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Someone Waited",
+"Animals": "Squirrel",
+"Wind": "Still"
+},
+"ms": 1971,
+"mean": 208.1,
+"sd": 28.2,
+"trees": [
+"oak*",
+"birch*",
+"maple*"
+]
+},
+{
+"i": "79",
+"f": {
+"Place": "The Fountain",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "Crowd",
+"Incident": "A Dog",
+"Animals": "Rabbit",
+"Wind": "Drifting"
+},
+"ms": 2648,
+"mean": 227.8,
+"sd": 24.1,
+"trees": []
+},
+{
+"i": "80",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Child's Snow Angel",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1793,
+"mean": 226.4,
+"sd": 20.1,
+"trees": [
+"maple*"
+]
+},
+{
+"i": "81",
+"f": {
+"Place": "The Frontage",
+"Hour": "Dusk",
+"Snowfall": "Deep",
+"Footfall": "Solitary",
+"Incident": "Someone Waited",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1642,
+"mean": 209.4,
+"sd": 30.0,
+"trees": [
+"maple*",
+"oak*"
+]
+},
+{
+"i": "82",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Winter Noon",
+"Snowfall": "Dusting",
+"Footfall": "A Few",
+"Incident": "Sledge",
+"Animals": "Birds",
+"Wind": "Still"
+},
+"ms": 1781,
+"mean": 226.0,
+"sd": 25.7,
+"trees": [
+"oak",
+"spruce*"
+]
+},
+{
+"i": "83",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dawn",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "Lost Mitten",
+"Animals": "Squirrel",
+"Wind": "Still"
+},
+"ms": 1901,
+"mean": 202.4,
+"sd": 42.5,
+"trees": [
+"maple",
+"maple",
+"spruce*",
+"elm*"
+]
+},
+{
+"i": "84",
+"f": {
+"Place": "The Frontage",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Child's Snow Angel",
+"Animals": "Fox",
+"Wind": "Still"
+},
+"ms": 1809,
+"mean": 217.2,
+"sd": 26.1,
+"trees": [
+"maple",
+"oak*",
+"spruce*",
+"oak*"
+]
+},
+{
+"i": "85",
+"f": {
+"Place": "The Bus Stop",
+"Hour": "Winter Noon",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "Sledge",
+"Animals": "Squirrel",
+"Wind": "Still"
+},
+"ms": 1769,
+"mean": 217.8,
+"sd": 31.9,
+"trees": [
+"birch",
+"elm*"
+]
+},
+{
+"i": "86",
+"f": {
+"Place": "The Frontage",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "Snow Angel",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1608,
+"mean": 224.8,
+"sd": 26.3,
+"trees": []
+},
+{
+"i": "87",
+"f": {
+"Place": "The Bus Stop",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "Solitary",
+"Incident": "A Dog",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1589,
+"mean": 229.6,
+"sd": 20.7,
+"trees": [
+"spruce*"
+]
+},
+{
+"i": "88",
+"f": {
+"Place": "The Roadside",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Someone Waited",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1794,
+"mean": 204.5,
+"sd": 38.9,
+"trees": [
+"maple*",
+"spruce*"
+]
+},
+{
+"i": "89",
+"f": {
+"Place": "The Courtyard",
+"Hour": "Dusk",
+"Snowfall": "Deep",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1854,
+"mean": 223.5,
+"sd": 22.1,
+"trees": [
+"oak"
+]
+},
+{
+"i": "90",
+"f": {
+"Place": "The Frontage",
+"Hour": "Dawn",
+"Snowfall": "Dusting",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1594,
+"mean": 217.7,
+"sd": 28.9,
+"trees": [
+"elm*"
+]
+},
+{
+"i": "91",
+"f": {
+"Place": "The Fence",
+"Hour": "Winter Noon",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "A Dog",
+"Animals": "Birds",
+"Wind": "Still"
+},
+"ms": 1991,
+"mean": 219.4,
+"sd": 24.8,
+"trees": [
+"birch",
+"oak",
+"spruce*",
+"maple*",
+"elm*"
+]
+},
+{
+"i": "92",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dusk",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "Someone Waited",
+"Animals": "Deer",
+"Wind": "Still"
+},
+"ms": 1947,
+"mean": 214.3,
+"sd": 29.6,
+"trees": [
+"elm",
+"birch",
+"birch*"
+]
+},
+{
+"i": "93",
+"f": {
+"Place": "The Frontage",
+"Hour": "Winter Noon",
+"Snowfall": "Fresh",
+"Footfall": "A Few",
+"Incident": "A Dog",
+"Animals": "Rabbit",
+"Wind": "Still"
+},
+"ms": 1632,
+"mean": 215.1,
+"sd": 28.2,
+"trees": [
+"maple*",
+"maple*",
+"spruce*"
+]
+},
+{
+"i": "94",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dawn",
+"Snowfall": "Dusting",
+"Footfall": "Solitary",
+"Incident": "None",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 1466,
+"mean": 229.0,
+"sd": 22.8,
+"trees": []
+},
+{
+"i": "95",
+"f": {
+"Place": "The Frontage",
+"Hour": "Lamplight",
+"Snowfall": "Fresh",
+"Footfall": "Solitary",
+"Incident": "Sledge",
+"Animals": "Fox",
+"Wind": "Still"
+},
+"ms": 1524,
+"mean": 114.9,
+"sd": 13.8,
+"trees": []
+},
+{
+"i": "96",
+"f": {
+"Place": "The Bus Stop",
+"Hour": "Dawn",
+"Snowfall": "Fresh",
+"Footfall": "Steady",
+"Incident": "Someone Waited",
+"Animals": "None",
+"Wind": "Drifting"
+},
+"ms": 2089,
+"mean": 217.8,
+"sd": 23.7,
+"trees": [
+"maple",
+"elm*"
+]
+},
+{
+"i": "97",
+"f": {
+"Place": "The Fountain",
+"Hour": "Dusk",
+"Snowfall": "Dusting",
+"Footfall": "Steady",
+"Incident": "Sledge",
+"Animals": "Cat",
+"Wind": "Drifting"
+},
+"ms": 1806,
+"mean": 215.9,
+"sd": 29.6,
+"trees": [
+"oak*",
+"birch*"
+]
+},
+{
+"i": "98",
+"f": {
+"Place": "The Frontage",
+"Hour": "Winter Noon",
+"Snowfall": "Deep",
+"Footfall": "Solitary",
+"Incident": "Someone Waited",
+"Animals": "None",
+"Wind": "Still"
+},
+"ms": 1654,
+"mean": 220.1,
+"sd": 28.1,
+"trees": [
+"elm*"
+]
+},
+{
+"i": "99",
+"f": {
+"Place": "The Street Corner",
+"Hour": "Dawn",
+"Snowfall": "Deep",
+"Footfall": "A Few",
+"Incident": "None",
+"Animals": "Birds",
+"Wind": "Still"
+},
+"ms": 1972,
+"mean": 210.9,
+"sd": 31.2,
+"trees": [
+"oak",
+"spruce*",
+"spruce*",
+"elm*"
+]
+}
+]
+}

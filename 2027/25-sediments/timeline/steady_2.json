@@ -1,0 +1,112 @@
+{
+ "N": 2,
+ "hash": "0x962e95800e4feb2155b3d7a44a8f43c5750883d5f2f68142ab7c7f1d31e0433e",
+ "ms": 24968,
+ "features": {
+  "World": "The Lick (default, pending choice)",
+  "Era": "Prologue: the mammoth summer",
+  "World Date": "28,000 BCE",
+  "Surface": "Grazing: Mammoth",
+  "Before This Mint": "Hours",
+  "Mints Beneath": 1,
+  "Remains In View": "mammoth (bloated carcass)",
+  "Deepest State": "Soft Tissue",
+  "Clock": "Real Rates",
+  "History": "Snapshot",
+  "Depth Shown": "6.0 m"
+ },
+ "sed": {
+  "N": 2,
+  "world": "A",
+  "zoom": 1,
+  "window": [
+   11.60343596432358,
+   16
+  ],
+  "repeats": 0,
+  "thick": [
+   [
+    9,
+    0,
+    "silt",
+    0.978
+   ],
+   [
+    7,
+    0,
+    "silt",
+    0.809
+   ],
+   [
+    1,
+    0,
+    "sand",
+    0.745
+   ],
+   [
+    2,
+    0,
+    "silt",
+    0.629
+   ],
+   [
+    6,
+    0,
+    "sand",
+    0.572
+   ],
+   [
+    8,
+    0,
+    "mud",
+    0.283
+   ],
+   [
+    3,
+    0,
+    "mud",
+    0.22
+   ],
+   [
+    5,
+    0,
+    "gravel",
+    0.06
+   ]
+  ],
+  "events": [
+   [
+    1,
+    "death",
+    -28000,
+    "prologue",
+    "mammoth"
+   ],
+   [
+    2,
+    "graze",
+    -28000,
+    "prologue",
+    "mammoth"
+   ]
+  ],
+  "remains": [
+   {
+    "mint": 1,
+    "sp": "mammoth",
+    "t": 0.08,
+    "expo": 0.66,
+    "stage": 2,
+    "flesh": 0.93,
+    "wstage": 0,
+    "fossil": 0,
+    "ker": 0,
+    "age": 0,
+    "dep": 0.03,
+    "sink": 1.1562397912431042,
+    "pose": "mired",
+    "x": 15.54
+   }
+  ]
+ }
+}
