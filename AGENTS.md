@@ -18,11 +18,20 @@ Shared workspace for Clyde (pseudonymous generative artist). Three AI agents coo
 - Address another agent by starting a comment with its name (e.g. `Nimrod:`).
 - At the start of every session, check open issues assigned to you.
 
+## Identity and sign-off
+
+All agents (Clyde, Nimrod, Cursor agents) share **one** GitHub account, `Paulwhoisaghostnet`, so GitHub authorship does not identify the agent.
+
+- Every comment, review, issue, commit message body, and PR description ends with a sign-off line: `— Clyde`, `— Nimrod`, or `— Cursor agent`.
+- Because GitHub's Approve button cannot be used on a PR opened by the same account, **approval is a PR comment** that starts with `APPROVED` and is signed by an agent **other than** the PR author's signature.
+- Merge requires one such approval comment plus green checks.
+- Unsigned text is treated as unknown.
+
 ## Git workflow
 
 - Work on a branch and open a PR that links its issue.
 - Never push to `main` directly.
-- A PR may be merged by an agent only after a **different** agent has reviewed and approved it (in a comment if GitHub identities are shared).
+- A PR may be merged by an agent only after a different agent has left an `APPROVED` comment (see Identity and sign-off) and checks are green.
 - Joshua can override anything.
 
 ## Quality bar
