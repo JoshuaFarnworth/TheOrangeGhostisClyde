@@ -1,0 +1,22 @@
+// SEATING PLAN — simulated annealing (Kirkpatrick, Gelatt & Vecchi 1983) on a wedding seating plan with family ties and feuds.
+// Rule: swap two guests; keep the swap if the plan improves, or sometimes even if it gets worse, less often as it "cools".
+// Families want one table; neighbours who like each other score, neighbours who feud cost. Some plans cannot satisfy everyone:
+// the physicist's word for that is frustration. The red marks are what the best plan found still had to accept.
+const T=ri(5,8),S=8,N=T*S,fam=[];let f=0;for(let i=0;i<N;){const n=Math.min(N-i,R()<0.2?ri(9,12):ri(2,6));for(let j=0;j<n;j++)fam.push(f);i+=n;f++}
+const rel=new Map(),key=(a,b)=>a<b?a+','+b:b+','+a;
+for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){const u=R();if(fam[i]===fam[j]){if(u<0.18)rel.set(key(i,j),-1);else if(u<0.6)rel.set(key(i,j),1)}else if(u<0.025)rel.set(key(i,j),-1);else if(u<0.05)rel.set(key(i,j),1)}
+let seat=[...Array(N).keys()];for(let i=N-1;i>0;i--){const j=Math.floor(R()*(i+1));[seat[i],seat[j]]=[seat[j],seat[i]]}
+function energy(s){let e=0;for(let t=0;t<T;t++)for(let k=0;k<S;k++){const a=s[t*S+k],b=s[t*S+(k+1)%S],r=rel.get(key(a,b))||0;e+=r<0?2:-r}
+  const tabOf=new Map();for(let p=0;p<N;p++){const g=fam[s[p]],t=(p/S)|0;if(!tabOf.has(g))tabOf.set(g,new Set());tabOf.get(g).add(t)}for(const v of tabOf.values())e+=(v.size-1)*3;return e}
+let E=energy(seat),temp=6;for(let it=0;it<30000;it++){const i=Math.floor(R()*N),j=Math.floor(R()*N);[seat[i],seat[j]]=[seat[j],seat[i]];const e=energy(seat);
+  if(e<=E||R()<Math.exp((E-e)/temp))E=e;else[seat[i],seat[j]]=[seat[j],seat[i]];temp*=0.99975}
+function setup(){createCanvas(W,H);pixelDensity(2);background(PAPER);const cols=T>6?3:2,pos=[];
+  for(let t=0;t<T;t++)pos.push([W*(cols===3?[0.2,0.5,0.8][t%3]:[0.3,0.7][t%2]),170+Math.floor(t/cols)*230]);
+  const sp=p=>{const t=(p/S)|0,a=(p%S)/S*Math.PI*2-Math.PI/2;return[pos[t][0]+Math.cos(a)*82,pos[t][1]+Math.sin(a)*82]};let feuds=0;
+  stroke(160,150,130,90);strokeWeight(0.8);noFill();for(let p=0;p<N;p++)for(let q=p+1;q<N;q++)if(fam[seat[p]]===fam[seat[q]]&&((p/S)|0)!==((q/S)|0)){const A=sp(p),B=sp(q);bezier(A[0],A[1],A[0],A[1]-60,B[0],B[1]-60,B[0],B[1])}
+  for(const[x,y]of pos){noStroke();fill('#e6dfcf');circle(x,y,130);stroke(90,80,66);strokeWeight(1);noFill();circle(x,y,130)}
+  for(let p=0;p<N;p++){const q=Math.floor(p/S)*S+(p+1)%S,r=rel.get(key(seat[p],seat[q]))||0,A=sp(p),B=sp(q);
+    if(r){stroke(r<0?color(190,45,35):color(40,40,40,150));strokeWeight(r<0?6:2);line(A[0],A[1],B[0],B[1]);if(r<0)feuds++}}
+  for(let p=0;p<N;p++){const[x,y]=sp(p);noStroke();fill(30,28,26);circle(x,y,9)}
+  const split=new Set();for(let p=0;p<N;p++)for(let q=p+1;q<N;q++)if(fam[seat[p]]===fam[seat[q]]&&((p/S)|0)!==((q/S)|0))split.add(fam[seat[p]]);
+  label(`${N} guests · ${f} families · the best plan found still seats ${feuds} feud${feuds===1?'':'s'} side by side and splits ${split.size} famil${split.size===1?'y':'ies'}`);window.__done=true}

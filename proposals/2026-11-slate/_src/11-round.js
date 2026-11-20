@@ -1,0 +1,20 @@
+// ROUND — Smith's quarter-circle Truchet tiles (Truchet 1704; Smith 1987) on a kitchen floor.
+// Rule: each tile is laid one of two ways. Every arc joins others into a single line. Some lines run wall to wall;
+// most close on themselves. Closed lines are inked; lines that leave the room are left pale.
+const C=ri(9,15),Rw=Math.round(C*1.25),bias=rr(0.35,0.65);
+const tiles=[];for(let i=0;i<C*Rw;i++)tiles.push(R()<bias?0:1);
+// edge-midpoint ids: H(x,y) top edge of cell (x,y) [y in 0..Rw]; V(x,y) left edge [x in 0..C]
+const Hid=(x,y)=>y*C+x,Vid=(x,y)=>(Rw+1)*C+y*(C+1)+x,adj=new Map(),arcs=[];
+const link=(a,b,arc)=>{for(const[p,q]of[[a,b],[b,a]]){if(!adj.has(p))adj.set(p,[]);adj.get(p).push([q,arc])}};
+for(let y=0;y<Rw;y++)for(let x=0;x<C;x++){const t=tiles[y*C+x],T=Hid(x,y),B=Hid(x,y+1),L=Vid(x,y),Rr=Vid(x+1,y);
+  const pairs=t?[[T,Rr,'tr'],[B,L,'bl']]:[[T,L,'tl'],[B,Rr,'br']];for(const[a,b,c]of pairs){const arc={x,y,c,comp:-1};arcs.push(arc);link(a,b,arc)}}
+const comps=[],seen=new Set();
+for(const [start] of adj){if(seen.has(start))continue;const q=[start],list=new Set();let open=false;
+  while(q.length){const p=q.pop();if(seen.has(p))continue;seen.add(p);const nb=adj.get(p);if(nb.length<2)open=true;for(const[n,arc]of nb){list.add(arc);if(!seen.has(n))q.push(n)}}
+  const id=comps.length;for(const a of list)a.comp=id;comps.push({n:list.size,open})}
+function setup(){createCanvas(W,H);pixelDensity(2);background(PAPER);const s=Math.min(640/C,820/Rw),x0=(W-C*s)/2,y0=90;
+  for(let y=0;y<Rw;y++)for(let x=0;x<C;x++){noStroke();fill(232-((x+y)%2)*3,224,206);rect(x0+x*s,y0+y*s,s,s);stroke(180,170,150);strokeWeight(1);noFill();rect(x0+x*s,y0+y*s,s,s)}
+  noFill();strokeCap(SQUARE);for(const a of arcs){const k=comps[a.comp],cx=x0+(a.x+(a.c.includes('r')?1:0))*s,cy=y0+(a.y+(a.c.includes('b')?1:0))*s;
+    stroke(k.open?color(150,165,170):color(28,44,60));strokeWeight(k.open?s*0.12:s*0.16);
+    const st={tl:0,tr:HALF_PI,br:PI,bl:PI+HALF_PI}[a.c];arc(cx,cy,s,s,st,st+HALF_PI)}
+  const loops=comps.filter(c=>!c.open).length;label(`${C}×${Rw} tiles · ${loops} closed loops · ${comps.length-loops} lines that leave the room`);window.__done=true}

@@ -1,0 +1,21 @@
+// MOVING DAY — bottom-left bin packing (Baker, Coffman & Rivest 1980) of a household into one van.
+// Rule: items go in largest first; each is placed at the lowest, then leftmost, spot where it fits and is at least 60% supported. What does not fit stays on the kerb.
+// The van is fixed; the household changes with the seed.
+const VW=560,VH=300;const LIB=[['sofa',230,90],['bed',200,40],['mattress',200,26],['fridge',70,170],['wardrobe',110,190],['table',150,75],['chair',45,90],['chair',45,90],
+ ['books',60,45],['books',60,45],['books',60,45],['kitchen',60,50],['kitchen',60,50],['clothes',70,55],['clothes',70,55],['bike',150,95],['cot',110,80],['toys',55,45],
+ ['photos',40,30],['records',45,40],['tools',55,35],['christmas',60,40],['plant',40,110],['lamp',30,130],['desk',140,75],['mum’s',60,45],['keep',40,35],['tv',100,65]];
+const items=LIB.filter(()=>R()<0.72).map(([n,w,h])=>({n,w:w*rr(1.1,1.3),h:h*rr(1.1,1.3),c:pick(['#c9b48a','#b9a27a','#d5c39e','#a88f66'])}));
+items.sort((a,b)=>b.w*b.h-a.w*a.h);const placed=[],kerb=[];
+const hit=(x,y,w,h)=>x<0||y<0||x+w>VW||y+h>VH||placed.some(p=>x<p.x+p.w&&x+w>p.x&&y<p.y+p.h&&y+h>p.y)||!held(x,y,w);
+const held=(x,y,w)=>{if(y===0)return true;let s=0;for(const p of placed)if(Math.abs(p.y+p.h-y)<0.5)s+=Math.max(0,Math.min(x+w,p.x+p.w)-Math.max(x,p.x));return s>=0.6*w};   // nothing floats
+for(const it of items){let best=null;const xs=[0,...placed.map(p=>p.x+p.w)],ys=[0,...placed.map(p=>p.y+p.h)];
+  for(const y of ys)for(const x of xs){if(!hit(x,y,it.w,it.h)&&(!best||y<best.y||(y===best.y&&x<best.x)))best={x,y}}
+  if(best){it.x=best.x;it.y=best.y;placed.push(it)}else kerb.push(it)}
+function crate(it,x,y){stroke(60,50,40);strokeWeight(1);fill(it.c);rect(x,y-it.h,it.w,it.h);noStroke();fill(40,34,28,190);textFont('Courier New');textSize(Math.min(13,it.h*0.4));textAlign(CENTER,CENTER);text(it.n,x+it.w/2,y-it.h/2);textAlign(LEFT,BASELINE)}
+function setup(){createCanvas(W,H);pixelDensity(2);background(PAPER);const vx=(W-VW)/2,vy=560;
+  stroke(40,36,32);strokeWeight(2.5);noFill();rect(vx-4,vy-VH-4,VW+8,VH+8);fill('#3a3632');circle(vx+90,vy+28,46);circle(vx+VW-90,vy+28,46);
+  for(const p of placed)crate(p,vx+p.x,vy-p.y);
+  stroke(40,36,32);strokeWeight(1);line(40,vy+52,W-40,vy+52);let kx=vx,ky=H-110;
+  kx=60;ky=H-90;for(const k of kerb){if(kx+k.w>W-40)break;crate(k,kx,ky);kx+=k.w+8}
+  noStroke();fill(30,28,26,150);textFont('monospace');textSize(11);text('the van',vx,vy-VH-16);if(kerb.length)text('the kerb',vx,ky-Math.max(...kerb.map(k=>k.h))-12);
+  label(`${items.length} things · ${placed.length} in the van · ${kerb.length} left on the kerb`);window.__done=true}

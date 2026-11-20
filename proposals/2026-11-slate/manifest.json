@@ -1,0 +1,97 @@
+{
+ "01-pollard": {
+  "preview_seed": "e",
+  "index_html_sha256": "062a0d39e1cce8af7652bdf63df988a60790c3da0b043ab1c9c341e0f09c9620",
+  "url": "01-pollard/index.html?seed=e"
+ },
+ "02-most-lines-end": {
+  "preview_seed": "h",
+  "index_html_sha256": "afe0b0fa307aff64b3ec67fa344f1230432c2c1f8bd10633ff6d3ab0d3c1a915",
+  "url": "02-most-lines-end/index.html?seed=h"
+ },
+ "03-one-stitch": {
+  "preview_seed": "c",
+  "index_html_sha256": "f5c0bb821b7cf10ceadaf2e470a3a6e28dab523e3f85e8fffe889bdff59b0996",
+  "url": "03-one-stitch/index.html?seed=c"
+ },
+ "04-said-again": {
+  "preview_seed": "b",
+  "index_html_sha256": "00afdac9b47479cccd330bdc6a564afbadad5063fd4be3a8d751aab6d5ad8e5b",
+  "url": "04-said-again/index.html?seed=b"
+ },
+ "05-mild-preferences": {
+  "preview_seed": "a",
+  "index_html_sha256": "bf858462e5431bdc93cef5d325db9fd84465a47095269f41e74fa87299f4401c",
+  "url": "05-mild-preferences/index.html?seed=a"
+ },
+ "06-net-curtains": {
+  "preview_seed": "d",
+  "index_html_sha256": "72817be3e3bf88302589ace6b95cd5d67ca353a3dc7761dad45122788bbdb36c",
+  "url": "06-net-curtains/index.html?seed=d"
+ },
+ "07-held": {
+  "preview_seed": "c",
+  "index_html_sha256": "dddcf8a47926bb8b2353ab9f99dd4289d1a6165d28f402a8d36ecacb97d81773",
+  "url": "07-held/index.html?seed=c"
+ },
+ "08-calico": {
+  "preview_seed": "c",
+  "index_html_sha256": "8059546d5b2a7b693a96bf10876668c5b538b181543149ce802af72e9a391c96",
+  "url": "08-calico/index.html?seed=c"
+ },
+ "09-pseudofossil": {
+  "preview_seed": "a",
+  "index_html_sha256": "2cfe7ddace80325777a1fd22326e5612f996378c1fbcd915553a1c1ab4a4dd40",
+  "url": "09-pseudofossil/index.html?seed=a"
+ },
+ "10-towels": {
+  "preview_seed": "c",
+  "index_html_sha256": "b817a7a3552533ab5d37b828d857feb17a673aacdbdf786a76af0ce819feba10",
+  "url": "10-towels/index.html?seed=c"
+ },
+ "11-round": {
+  "preview_seed": "c",
+  "index_html_sha256": "41f2689995aa695e83e3bd9a674db3acc956a1f26c891c2cc1c2e5badc3f084f",
+  "url": "11-round/index.html?seed=c"
+ },
+ "12-habit": {
+  "preview_seed": "a",
+  "index_html_sha256": "e84d8ebbb27a9347c3802badf2f9178cf9133507e2aeee1dd1d5b061a61928f2",
+  "url": "12-habit/index.html?seed=a"
+ },
+ "13-washing-line": {
+  "preview_seed": "h",
+  "index_html_sha256": "078b64f37721a6e8277e48a159684de55533d69971f86b02a621873121e4de64",
+  "url": "13-washing-line/index.html?seed=h"
+ },
+ "14-signature": {
+  "preview_seed": "c",
+  "index_html_sha256": "c15f112572ad1a9be86db1cb1ebd779247fec062dff86bb5b533fa51329b8ee5",
+  "url": "14-signature/index.html?seed=c"
+ },
+ "15-thaw": {
+  "preview_seed": "b",
+  "index_html_sha256": "97df0db8ea9d412b45784e2412f1d9a81b71b6a4b236809599addb10337220d6",
+  "url": "15-thaw/index.html?seed=b"
+ },
+ "16-moving-day": {
+  "preview_seed": "c",
+  "index_html_sha256": "b7039ad35c215b55940d063af635a9108ca16413cf35c7ca6db77667f4f25030",
+  "url": "16-moving-day/index.html?seed=c"
+ },
+ "17-seating-plan": {
+  "preview_seed": "a",
+  "index_html_sha256": "68f37938760ddb6cd3cf1376453dd3142afa175b4b240c4ba30e4ef7fc9347f8",
+  "url": "17-seating-plan/index.html?seed=a"
+ },
+ "18-opposite": {
+  "preview_seed": "b",
+  "index_html_sha256": "1acb7028e761a980dc459d54d8634115bf46bd56e8e1c67b20b0a95f754d81cc",
+  "url": "18-opposite/index.html?seed=b"
+ },
+ "19-in-step": {
+  "preview_seed": "a",
+  "index_html_sha256": "9a04b4ecbd5099bb7d35ea612703398aa79b0abc30e1e2d94075e5bf8822441a",
+  "url": "19-in-step/index.html?seed=a"
+ }
+}

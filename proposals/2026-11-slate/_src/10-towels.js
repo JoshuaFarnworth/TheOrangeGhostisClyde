@@ -1,0 +1,17 @@
+// TOWELS — sequential spacing on a beach and the Voronoi cells it implies.
+// Rule: each new arrival tries a few dozen spots and lays their towel where the nearest stranger is farthest away,
+// traded against being close to the water. Nobody negotiates; the faint lines are the territories that result.
+const n=ri(6,42),wantWater=rr(0.04,0.25),X0=60,Y0=80,BW=680,BH=820,shore=Y0+rr(110,170);
+const T=[];for(let k=0;k<n;k++){let best=null,bs=-1e9;for(let c=0;c<50;c++){const x=rr(X0+30,X0+BW-30),y=rr(shore+30,Y0+BH-30);
+  let d=Math.min(x-X0,X0+BW-x)*1.2;for(const t of T)d=Math.min(d,Math.hypot(t.x-x,t.y-y));const sc=d-wantWater*(y-shore);if(sc>bs){bs=sc;best={x,y}}}
+  best.a=rr(-0.3,0.3)+(R()<0.15?Math.PI/2:0);best.w=rr(46,60);best.h=best.w*rr(1.7,2.0);best.c=pick(['#c8553d','#2e6f8e','#e2b93b','#5c8a5a','#d9d4c7','#7d5a8c']);best.s=ri(0,3);T.push(best)}
+function setup(){createCanvas(W,H);pixelDensity(2);background(PAPER);noStroke();
+  for(let y=Y0;y<Y0+BH;y+=4)for(let x=X0;x<X0+BW;x+=4){const k=noise(x*0.02,y*0.02);fill(226+k*12,212+k*10,180+k*8);rect(x,y,4,4)}
+  fill('#8fb3b8');beginShape();vertex(X0,Y0);vertex(X0+BW,Y0);for(let x=X0+BW;x>=X0;x-=10)vertex(x,shore+8*Math.sin(x*0.02+3));endShape(CLOSE);
+  stroke(255,255,255,170);strokeWeight(1.5);noFill();beginShape();for(let x=X0;x<=X0+BW;x+=10)vertex(x,shore+8*Math.sin(x*0.02+3)+3);endShape();
+  noStroke();fill(90,70,50,110);for(let y=shore+12;y<Y0+BH;y+=3)for(let x=X0;x<X0+BW;x+=3){let a=1e9,b=1e9;for(const t of T){const d=Math.hypot(t.x-x,t.y-y);if(d<a){b=a;a=d}else if(d<b)b=d}
+    if(b-a<1.2&&(x+y)%6<3)rect(x,y,1.2,1.2)}
+  for(const t of T){push();translate(t.x,t.y);rotate(t.a);fill(0,0,0,30);rect(-t.w/2+3,-t.h/2+3,t.w,t.h,2);fill(t.c);rect(-t.w/2,-t.h/2,t.w,t.h,2);
+    fill(255,255,255,140);for(let k=0;k<t.s;k++)rect(-t.w/2,-t.h/2+t.h*(0.2+0.25*k),t.w,4);pop()}
+  let g=0;for(const t of T){let d=1e9;for(const u of T)if(u!==t)d=Math.min(d,Math.hypot(u.x-t.x,u.y-t.y));g+=d}
+  label(`${n} towels · mean gap to the nearest stranger ${(g/n/40).toFixed(1)} m`);window.__done=true}
