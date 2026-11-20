@@ -1,0 +1,20 @@
+// PSEUDOFOSSIL — diffusion-limited aggregation (Witten & Sander 1981) as manganese dendrites on a split limestone slab.
+// Rule: one particle at a time wanders at random until it touches the deposit, then sticks with probability s.
+// Nothing here is alive, yet the result is routinely mistaken for fossil ferns.
+const GW=200,GH=240,s=rr(0.3,0.9),N=ri(2600,4200),crack=pick(['left','bottom']);
+const G=new Int32Array(GW*GH);let reach=2;
+const idx=(x,y)=>y*GW+x;
+const dist=(x,y)=>crack==='left'?x:GH-1-y;
+function stuck(x,y){for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const X=x+dx,Y=y+dy;if(X>=0&&Y>=0&&X<GW&&Y<GH&&G[idx(X,Y)])return true}return false}
+function grow(){for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const c=crack==='left'?x:GH-1-y;if(c<=1+Math.floor(3*noise(x*0.05,y*0.05)))G[idx(x,y)]=1}
+  let n=2;for(let p=0;p<N;p++){let x,y;const d=Math.min(reach+6,(crack==='left'?GW:GH)-2),t=Math.floor(R()*(crack==='left'?GH:GW));
+  if(crack==='left'){x=d;y=t}else{x=t;y=GH-1-d}
+  for(let k=0;k<200000;k++){const m=Math.floor(R()*4);x+=m===0?1:m===1?-1:0;y+=m===2?1:m===3?-1:0;
+    if(x<0||y<0||x>=GW||y>=GH||dist(x,y)>reach+20){if(crack==='left'){x=d;y=Math.floor(R()*GH)}else{x=Math.floor(R()*GW);y=GH-1-d}continue}
+    if(!G[idx(x,y)]&&stuck(x,y)&&R()<s){G[idx(x,y)]=++n;reach=Math.max(reach,dist(x,y));break}}}return n}
+function setup(){createCanvas(W,H);pixelDensity(2);noiseSeed(ri(0,1e6));background(PAPER);
+  const n=grow(),x0=100,y0=110,cs=600/GW;noStroke();
+  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const k=noise(x*0.02,y*0.06)*0.6+noise(x*0.3,y*0.3)*0.4;fill(220+k*25,208+k*24,184+k*20);rect(x0+x*cs,y0+y*cs*0.833,cs+0.6,cs*0.833+0.6)}
+  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const v=G[idx(x,y)];if(v>1){const age=1-v/n;fill(45+20*(1-age),33,24,150+100*age);circle(x0+(x+0.5)*cs,y0+(y+0.5)*cs*0.833,cs*1.15)}}
+  stroke(70,60,50);strokeWeight(1);noFill();rect(x0,y0,600,GH*cs*0.833);
+  label(`${n-1} particles · sticking ${s.toFixed(2)} · grown from the ${crack} fracture`);window.__done=true}

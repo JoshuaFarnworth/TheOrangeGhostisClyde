@@ -1,0 +1,30 @@
+// CALICO — clonal growth (Eden 1961) of X-inactivation patches on two cats with one genome.
+// Rule: the genome fixes how many founder cells there are and where white spotting falls. Each founder randomly silences one X
+// (orange or black) and every cell it gives rise to keeps that choice. Patches are grown by Eden growth: a random edge cell is
+// filled by a copy of a random filled neighbour. Both cats share the genome; each has its own chance.
+const GX=96,GY=80,founders=ri(8,22),whiteAmt=rr(0.15,0.45),wseed=[rr(0,99),rr(0,99)];
+function develop(r){const g=new Int8Array(GX*GY).fill(-1),edge=[];const push=i=>edge.push(i);
+  for(let k=0;k<founders;k++){const i=Math.floor(r()*GX*GY);g[i]=r()<0.5?1:2;}
+  for(let i=0;i<g.length;i++)if(g[i]>0)push(i);
+  let filled=founders;while(filled<GX*GY&&edge.length){const e=Math.floor(r()*edge.length),i=edge[e];const x=i%GX,y=(i/GX)|0;
+    const nb=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>[x+dx,y+dy]).filter(([a,b])=>a>=0&&b>=0&&a<GX&&b<GY&&g[b*GX+a]<0);
+    if(!nb.length){edge[e]=edge[edge.length-1];edge.pop();continue}const [a,b]=nb[Math.floor(r()*nb.length)];g[b*GX+a]=g[i];push(b*GX+a);filled++}
+  return g}
+const cats=[develop(rng(SEED+'/first kitten')),develop(rng(SEED+'/second kitten'))];
+function tri(u,v,a,b,c){const s=(p,q,r)=>(p[0]-r[0])*(q[1]-r[1])-(q[0]-r[0])*(p[1]-r[1]);const d1=s([u,v],a,b),d2=s([u,v],b,c),d3=s([u,v],c,a);return !((d1<0||d2<0||d3<0)&&(d1>0||d2>0||d3>0))}
+function inside(u,v){   // a cat curled asleep, seen from above: body, head, two ears, tail wrapped round
+  const body=((u-0.56)/0.38)**2+((v-0.56)/0.32)**2<1,head=((u-0.2)/0.12)**2+((v-0.42)/0.17)**2<1;
+  const ears=tri(u,v,[0.11,0.33],[0.16,0.27],[0.09,0.2])||tri(u,v,[0.2,0.25],[0.26,0.27],[0.23,0.14]);
+  const t=Math.hypot((u-0.56)/0.4,(v-0.58)/0.345),tail=Math.abs(t-1)<0.06&&v>0.62&&u>0.2;return body||head||ears||tail}
+function white(u,v){return noise(u*3+wseed[0],v*3+wseed[1])+(v-0.5)*0.9<0.5-whiteAmt+0.25}
+function cat(g,x0,y0,w,h,flip){const cw=w/GX,ch=h/GY;strokeCap(ROUND);
+  for(let y=0;y<GY;y++)for(let x=0;x<GX;x++){const u=x/GX,v=y/GY,uu=flip?1-u:u;if(!inside(uu,v))continue;
+    const c=white(uu,v)?'#eeeae0':(g[y*GX+x]===1?'#c47a3a':'#2a2522');const a=Math.atan2(v-0.55,uu-0.52)+HALF_PI+(noise(x*0.2,y*0.2)-0.5);
+    stroke(c);strokeWeight(cw*0.9);const px=x0+x*cw,py=y0+y*ch;line(px,py,px+Math.cos(a)*cw*1.6,py+Math.sin(a)*ch*1.6);
+    if(!inside(uu+1/GX,v)||!inside(uu-1/GX,v)||!inside(uu,v+1/GY)||!inside(uu,v-1/GY)){stroke(60,50,44,120);strokeWeight(1.2);point(px+cw/2,py+ch/2)}}
+  noFill();stroke(40,34,30,90);strokeWeight(1);}
+function setup(){createCanvas(W,H);pixelDensity(2);background(PAPER);noiseSeed(Math.floor(wseed[0]*1000));
+  noStroke();fill('#5d6670');rect(50,70,700,410,18);fill('#6a5f58');rect(50,490,700,440,18);   // two cushions
+  cat(cats[0],90,110,620,380,false);cat(cats[1],90,520,620,380,true);
+  let same=0;for(let i=0;i<cats[0].length;i++)same+=cats[0][i]===cats[1][i];
+  label(`one genome · ${founders} founder cells · patches agree on ${Math.round(same/cats[0].length*100)}% of the coat`);window.__done=true}
