@@ -1,0 +1,263 @@
+/* px.js: Clyde's pixel toolkit for the 2027 series (shared, concatenated ahead of each main.js).
+ * Everything renders into a float buffer and is written once with putImageData, so the same file
+ * runs in a browser, on Aleatory, and headless in node. No randomness lives here. */
+var PX = (function () {
+  function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function sstep(a, b, x) { x = clamp((x - a) / (b - a), 0, 1); return x * x * (3 - 2 * x); }
+  function ihash(n) { n = (n ^ 61) ^ (n >>> 16); n = (n + (n << 3)) | 0; n = n ^ (n >>> 4); n = Math.imul(n, 0x27d4eb2d); n = n ^ (n >>> 15); return (n >>> 0) / 4294967296; }
+  function h2(x, y, s) { return ihash((Math.imul(x | 0, 73856093) ^ Math.imul(y | 0, 19349663) ^ Math.imul((s | 0) + 1, 83492791)) | 0); }
+  // value noise on an integer lattice, smooth (cheap, deterministic, no rng needed)
+  function vnoise(x, y, s) {
+    var xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi;
+    fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy);
+    var a = h2(xi, yi, s), b = h2(xi + 1, yi, s), c = h2(xi, yi + 1, s), d = h2(xi + 1, yi + 1, s);
+    return lerp(lerp(a, b, fx), lerp(c, d, fx), fy) * 2 - 1;
+  }
+  function fbm(x, y, s, oct, lac, gain) {
+    oct = oct || 4; lac = lac || 2.03; gain = gain || 0.5;
+    var a = 0.5, t = 0, n = 0;
+    for (var o = 0; o < oct; o++) { t += a * vnoise(x, y, s + o * 17); n += a; a *= gain; x *= lac; y *= lac; var tx = x * 0.8 - y * 0.6; y = x * 0.6 + y * 0.8; x = tx; }
+    return t / n;
+  }
+  // separable box blur, 3 passes ~ gaussian(sigma); edges clamp
+  function boxPass(src, dst, w, h, r, horiz) {
+    var n = horiz ? w : h, m = horiz ? h : w, sx = horiz ? 1 : w, sy = horiz ? w : 1, inv = 1 / (2 * r + 1);
+    for (var j = 0; j < m; j++) {
+      var base = j * sy, acc = 0, k;
+      for (k = -r; k <= r; k++) acc += src[base + clamp(k, 0, n - 1) * sx];
+      for (var i = 0; i < n; i++) {
+        dst[base + i * sx] = acc * inv;
+        acc += src[base + Math.min(i + r + 1, n - 1) * sx] - src[base + Math.max(i - r, 0) * sx];
+      }
+    }
+  }
+  function blur(F, w, h, sigma, tmp) {
+    if (sigma < 0.4) return F;
+    var r = Math.max(1, Math.round(Math.sqrt(12 * sigma * sigma / 3 + 1) / 2 - 0.5)); tmp = tmp || new Float32Array(w * h);
+    for (var p = 0; p < 3; p++) { boxPass(F, tmp, w, h, r, true); boxPass(tmp, F, w, h, r, false); }
+    return F;
+  }
+  function blurXY(F, w, h, sx, sy) { var tmp = new Float32Array(w * h), r; for (var p = 0; p < 3; p++) { if (sx >= 0.4) { r = Math.max(1, Math.round(sx * 0.95)); boxPass(F, tmp, w, h, r, true); F.set(tmp); } if (sy >= 0.4) { r = Math.max(1, Math.round(sy * 0.95)); boxPass(F, tmp, w, h, r, false); F.set(tmp); } } return F; }
+  function bil(F, w, h, x, y) {
+    x = clamp(x, 0, w - 1.001); y = clamp(y, 0, h - 1.001);
+    var xi = x | 0, yi = y | 0, fx = x - xi, fy = y - yi, i = yi * w + xi;
+    return (F[i] * (1 - fx) + F[i + 1] * fx) * (1 - fy) + (F[i + w] * (1 - fx) + F[i + w + 1] * fx) * fy;
+  }
+  // even-odd scanline polygon fill; pts = [[x,y],...] in pixel units; fn(index, x, y)
+  function fillPoly(pts, w, h, fn) {
+    var y0 = Infinity, y1 = -Infinity, n = pts.length, k;
+    for (k = 0; k < n; k++) { y0 = Math.min(y0, pts[k][1]); y1 = Math.max(y1, pts[k][1]); }
+    y0 = Math.max(0, Math.floor(y0)); y1 = Math.min(h - 1, Math.ceil(y1));
+    var xs = [];
+    for (var y = y0; y <= y1; y++) {
+      var yc = y + 0.5; xs.length = 0;
+      for (k = 0; k < n; k++) {
+        var a = pts[k], b = pts[(k + 1) % n];
+        if ((a[1] <= yc && b[1] > yc) || (b[1] <= yc && a[1] > yc)) xs.push(a[0] + (yc - a[1]) / (b[1] - a[1]) * (b[0] - a[0]));
+      }
+      xs.sort(function (p, q) { return p - q; });
+      for (k = 0; k + 1 < xs.length; k += 2) {
+        var xa = Math.max(0, Math.ceil(xs[k] - 0.5)), xb = Math.min(w - 1, Math.floor(xs[k + 1] - 0.5));
+        for (var x = xa; x <= xb; x++) fn(y * w + x, x, y);
+      }
+    }
+  }
+  function forDisc(cx, cy, r, w, h, fn) {
+    var x0 = Math.max(0, Math.floor(cx - r)), x1 = Math.min(w - 1, Math.ceil(cx + r)), y0 = Math.max(0, Math.floor(cy - r)), y1 = Math.min(h - 1, Math.ceil(cy + r));
+    for (var y = y0; y <= y1; y++) for (var x = x0; x <= x1; x++) { var dx = x + 0.5 - cx, dy = y + 0.5 - cy, d = Math.sqrt(dx * dx + dy * dy); if (d <= r) fn(y * w + x, d, dx, dy); }
+  }
+  function segDist(px, py, ax, ay, bx, by) {
+    var vx = bx - ax, vy = by - ay, l2 = vx * vx + vy * vy, t = l2 > 0 ? clamp(((px - ax) * vx + (py - ay) * vy) / l2, 0, 1) : 0;
+    var dx = px - ax - t * vx, dy = py - ay - t * vy; return Math.sqrt(dx * dx + dy * dy);
+  }
+  function convexHull(P) {
+    P = P.slice().sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
+    function cr(o, a, b) { return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]); }
+    var lo = [], up = [], i;
+    for (i = 0; i < P.length; i++) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], P[i]) <= 0) lo.pop(); lo.push(P[i]); }
+    for (i = P.length - 1; i >= 0; i--) { while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], P[i]) <= 0) up.pop(); up.push(P[i]); }
+    up.pop(); lo.pop(); return lo.concat(up);
+  }
+  function canvas(C, VW, VH, bg) {
+    var cv = C.setupCanvas(VW, VH, bg), PW = cv.canvas.width, PH = cv.canvas.height;
+    var img = cv.ctx.createImageData(PW, PH);
+    return { cv: cv, ctx: cv.ctx, img: img, px8: img.data, PW: PW, PH: PH, s: PW / VW };
+  }
+  // write linear-light float RGB to the canvas. opt: {expo, filmic, grain, vig, seed}
+  function finish(o, R, G, B, opt) {
+    opt = opt || {}; var PW = o.PW, PH = o.PH, d = o.px8, ex = opt.expo || 1, gr = opt.grain == null ? 0.012 : opt.grain, vg = opt.vig || 0, fl = !!opt.filmic, sd = opt.seed || 1;
+    for (var y = 0; y < PH; y++) for (var x = 0; x < PW; x++) {
+      var i = y * PW + x, r = R[i] * ex, g = G[i] * ex, b = B[i] * ex;
+      if (fl) { r = 1 - Math.exp(-r); g = 1 - Math.exp(-g); b = 1 - Math.exp(-b); }
+      if (vg) { var u = x / PW - 0.5, v = y / PH - 0.5, f = 1 - vg * (u * u + v * v) * 2; r *= f; g *= f; b *= f; }
+      var lum = 0.3 * r + 0.59 * g + 0.11 * b, n = (ihash(i * 7 + sd) + ihash(i * 13 + 5 + sd) - 1) * gr * (1 - 0.6 * lum);
+      d[i * 4] = clamp(Math.pow(clamp(r, 0, 1), 1 / 2.2) + n, 0, 1) * 255;
+      d[i * 4 + 1] = clamp(Math.pow(clamp(g, 0, 1), 1 / 2.2) + n, 0, 1) * 255;
+      d[i * 4 + 2] = clamp(Math.pow(clamp(b, 0, 1), 1 / 2.2) + n, 0, 1) * 255;
+      d[i * 4 + 3] = 255;
+    }
+    o.ctx.putImageData(o.img, 0, 0);
+  }
+
+  // anti-aliased polyline into a float coverage buffer (max-combine). pts in pixel units, w = line width in px.
+  function line(F, W, H, pts, w, val, press) {
+    val = val == null ? 1 : val; var hw = Math.max(w, 0.7) / 2;
+    for (var k = 0; k + 1 < pts.length; k++) {
+      var a = pts[k], b = pts[k + 1], x0 = Math.max(0, Math.floor(Math.min(a[0], b[0]) - hw - 1)), x1 = Math.min(W - 1, Math.ceil(Math.max(a[0], b[0]) + hw + 1)), y0 = Math.max(0, Math.floor(Math.min(a[1], b[1]) - hw - 1)), y1 = Math.min(H - 1, Math.ceil(Math.max(a[1], b[1]) + hw + 1));
+      var pa = press ? press[k] : 1, cov0 = w < 0.7 ? w / 0.7 : 1;
+      for (var y = y0; y <= y1; y++) for (var x = x0; x <= x1; x++) { var d = segDist(x + 0.5, y + 0.5, a[0], a[1], b[0], b[1]), c = clamp(hw + 0.5 - d, 0, 1) * cov0 * val * pa, i = y * W + x; if (c > F[i]) F[i] = c; }
+    }
+  }
+  // handwriting-like scribble: coupled oscillators (Hollerbach 1981) with drift. Returns array of strokes (word = stroke).
+  // rnd: function()->[0,1). x,y start, h = x-height, n = letters, slant (radians). Units arbitrary (caller's).
+  function scribble(rnd, x, y, h, n, slant, ws) {
+    // cursive-like strokes: per letter, alternate baseline/x-height key points (ascenders, descenders, loops),
+    // then Chaikin-smoothed so turns are rounded the way a moving pen rounds them. y grows downward.
+    var out = [], key = [], cx = x, sl = Math.tan(slant == null ? 0.2 : slant), v = (ws || 0.6) * h, base = y;
+    function flush() { if (key.length < 2) { key = []; return; } var P = key; for (var it = 0; it < 3; it++) { var Q = [P[0]]; for (var k = 0; k + 1 < P.length; k++) { var a = P[k], b = P[k + 1]; Q.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25], [a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]); } Q.push(P[P.length - 1]); P = Q; }
+      out.push(P.map(function (p) { return [p[0] - (p[1] - base) * sl, p[1]]; })); key = []; }
+    key.push([cx, base]);
+    for (var L = 0; L < n; L++) {
+      var kind = rnd(), hh = h * (0.85 + 0.3 * rnd()), humps = kind < 0.2 ? 2 : 1;
+      if (kind > 0.2 && kind < 0.36) { key.push([cx + 0.15 * h, base - 2.1 * h], [cx - 0.05 * h, base - 1.6 * h]); }   // ascender loop
+      for (var u = 0; u < humps; u++) { key.push([cx + 0.18 * v, base - hh], [cx + 0.5 * v, base - hh * 0.9]); cx += v * (0.7 + 0.3 * rnd()); key.push([cx, base]); }
+      if (kind > 0.9) { key.push([cx - 0.1 * h, base + 1.0 * h], [cx - 0.35 * h, base + 0.7 * h], [cx + 0.1 * h, base]); }   // descender
+      if (kind > 0.36 && kind < 0.5) { key.push([cx - 0.3 * v, base - hh * 0.7], [cx - 0.1 * v, base - hh], [cx + 0.2 * v, base]); cx += 0.2 * v; }   // e/o-ish
+      base += (rnd() - 0.5) * 0.05 * h; cx += v * 0.1;
+      if (rnd() < 0.16 && L < n - 1) { flush(); cx += h * (0.6 + 0.4 * rnd()); key.push([cx, base]); }
+    }
+    flush(); return out;
+  }
+  function srgb2lin(c) { return Math.pow(c / 255, 2.2); }
+  function col(hex) { var c = hex.replace('#', ''); return [srgb2lin(parseInt(c.substr(0, 2), 16)), srgb2lin(parseInt(c.substr(2, 2), 16)), srgb2lin(parseInt(c.substr(4, 2), 16))]; }
+  return { clamp: clamp, lerp: lerp, sstep: sstep, ihash: ihash, h2: h2, vnoise: vnoise, fbm: fbm, blur: blur, blurXY: blurXY, bil: bil, fillPoly: fillPoly, forDisc: forDisc, segDist: segDist, convexHull: convexHull, line: line, scribble: scribble, canvas: canvas, finish: finish, col: col };
+})();
+/* Dry Where It Stood, by Clyde (2027).
+ * A car park just after a shower, from above. The cars have gone. Where each one stood through the rain there is
+ * a dry rectangle, and its edges and its freckles tell you when it left.
+ * Engine: rain falls on a slanted line (wind), so each parked body shields a footprint swept downwind between its
+ * sill and roof heights; a car that left before the rain stopped lets drops back in (a freckled ghost); a car that
+ * left afterwards leaves a clean one. After the rain the film of water evaporates from the aggregate tops first
+ * (mottled drying), creeps a few centimetres into dry ground, and survives longest in depressions of the asphalt
+ * heightfield, which fill as puddles. Light: wet asphalt loses albedo (water fills the pores); still water reflects
+ * only ~2% looking straight down, so puddles read dark, except where they mirror a lamp head. */
+(function () {
+  var C = window.CLYDE, R = C.rng('main'), RW = R.fork('world'), RC = R.fork('cars'), RL = R.fork('light'), RX = R.fork('texture');
+  var clamp = PX.clamp, lerp = PX.lerp, sstep = PX.sstep, PI = Math.PI;
+  var WM = 12, HM = 15, VW = 1000, VH = 1250, CL = 0.02, GW = 600, GH = 750;
+  var Q = C.platform === 'standalone' ? C.query : null;
+
+  var layout = RW.weighted([['One Row', 34], ['Two Rows', 40], ['Angled', 26]]);
+  var since = RW.weighted([['Just Stopped', 34], ['Half An Hour', 40], ['Drying', 26]]);
+  var hour = RL.weighted([['Overcast Day', 40], ['Dusk', 30], ['Night', 30]]);
+  var depart = RC.weighted([['One Car', 34], ['Two Cars', 30], ['A Few', 26], ['End Of Day', 10]]);
+  var incident = RC.weighted([['None', 52], ['Through The Puddle', 20], ['Oil', 16], ['Wheel Stop', 12]]);
+  if (Q && Q.get('since')) since = Q.get('since'); if (Q && Q.get('hour')) hour = Q.get('hour'); if (Q && Q.get('layout')) layout = Q.get('layout'); if (Q && Q.get('depart')) depart = Q.get('depart');
+  if (incident === 'Through The Puddle' && since === 'Just Stopped') incident = 'Oil';
+  var paint = RW.weighted([['White Lines', 70], ['Yellow Lines', 30]]);
+  var wind = RW.range(0, 2 * PI), slant = RW.range(0.1, 0.55);   // rain: horizontal drift per metre of fall
+  var wx = Math.cos(wind) * slant, wy = Math.sin(wind) * slant;
+
+  // ---------------- bays ----------------
+  var bays = [], bw = 2.5, bd = 5.0, ang = layout === 'Angled' ? RW.pick([60, 70]) * PI / 180 : PI / 2;
+  var rot = RW.chance(0.5);   // rows horizontal (bays point up/down) or vertical
+  function addRow(y0, facing) {   // bays along x at row front y0, extending in +facing*y
+    var step = bw / Math.sin(ang), n = Math.ceil(WM / step) + 2, off = RW.range(-step, 0);
+    for (var k = 0; k < n; k++) { var x = off + k * step; bays.push({ x: x, y: y0, f: facing, a: ang }); }
+  }
+  var aisleY;
+  if (layout === 'Two Rows') { var mid = RW.range(5.5, 9.5); addRow(mid - 0.05, -1); addRow(mid + 0.05, 1); aisleY = RW.chance(0.5) ? mid - bd - 3.5 : mid + bd + 3.5; }
+  else { var y0 = RW.chance(0.5) ? RW.range(0.5, 3) : HM - RW.range(0.5, 3); var f = y0 < HM / 2 ? 1 : -1; addRow(f > 0 ? y0 : y0, f); aisleY = y0 + f * (bd + 3.2); }
+  // bay polygon in metres: front edge on the row line, depth along facing (angled bays lean)
+  function bayPoly(b) { var dx = Math.cos(b.a) * bd * (b.f > 0 ? 1 : 1), dy = Math.sin(b.a) * bd * b.f, sx = bw / Math.sin(b.a); return [[b.x, b.y], [b.x + sx, b.y], [b.x + sx + dx, b.y + dy], [b.x + dx, b.y + dy]]; }
+  // which bays had a car through the rain, and when each left (minutes relative to the end of the rain; <0 = during)
+  var inFrame = bays.filter(function (b) { var p = bayPoly(b), cx = (p[0][0] + p[2][0]) / 2; return cx > 0.6 && cx < WM - 0.6; });
+  var nGo = { 'One Car': 1, 'Two Cars': 2, 'A Few': RC.int(3, 4), 'End Of Day': RC.int(5, 8) }[depart]; nGo = Math.min(nGo, inFrame.length);
+  var gone = RC.shuffle(inFrame).slice(0, nGo);
+  var elapsed = { 'Just Stopped': 4, 'Half An Hour': 30, 'Drying': 75 }[since];
+  gone.forEach(function (b, k) {
+    b.car = { len: RC.range(4.1, 4.9), wid: RC.range(1.72, 1.9), sill: RC.range(0.25, 0.4), roof: RC.range(1.4, 1.7), back: RC.range(0.15, 0.5), side: RC.range(-0.15, 0.15) };
+    b.left = k === 0 && depart === 'One Car' ? RC.range(0, elapsed * 0.9) : RC.chance(0.35) ? -RC.pareto(2, 1.2) : RC.range(0, elapsed * 0.95);   // minutes after the rain ended
+    if (b.left < -25) b.left = -25;
+  });
+
+  // ---------------- fields ----------------
+  var N = GW * GH, H = new Float32Array(N), DRY = new Float32Array(N), SPK = new Float32Array(N), seed = (RX.rand() * 1e6) | 0;
+  var sxl = RW.range(-1, 1) * 0.006, syl = RW.range(-1, 1) * 0.006;   // drainage slope (m/m)
+  for (var y = 0; y < GH; y++) for (var x = 0; x < GW; x++) { var X = x * CL, Y = y * CL; H[y * GW + x] = sxl * X + syl * Y + 0.006 * PX.fbm(X * 0.18, Y * 0.18, seed, 4) + 0.003 * PX.fbm(X * 0.7, Y * 0.7, seed + 3, 3) - 0.004 * Math.exp(-Math.pow((Y - aisleY) / 1.4, 2)) * (0.6 + 0.4 * PX.vnoise(X * 0.3, 0, seed + 5)); }
+  var Hb = PX.blur(Float32Array.from(H), GW, GH, 60), PD = new Float32Array(N), fill = RW.range(0.0012, 0.0028);
+  for (var i = 0; i < N; i++) PD[i] = Math.max(0, (Hb[i] - H[i]) - (0.0035 - fill));   // depth of standing water in depressions (m)
+  // rain shadows
+  gone.forEach(function (b) {
+    var p = bayPoly(b), ux = (p[3][0] - p[0][0]) / bd, uy = (p[3][1] - p[0][1]) / bd, vx = (p[1][0] - p[0][0]), vy = (p[1][1] - p[0][1]), vl = Math.hypot(vx, vy); vx /= vl; vy /= vl;
+    var c = b.car, cx = (p[0][0] + p[1][0]) / 2 + vx * c.side + ux * (bd - c.len / 2 - c.back) * 1, cy = (p[0][1] + p[1][1]) / 2 + vy * c.side + uy * (bd - c.len / 2 - c.back);
+    b.cx = cx; b.cy = cy; b.ux = ux; b.uy = uy; b.vx = vx; b.vy = vy;
+    var M = new Float32Array(N), hl = c.len / 2, hw = c.wid / 2;
+    for (var z = c.sill; z <= c.roof; z += 0.1) {   // body shields the ground along the slant; nose and tail taper
+      var taper = sstep(c.roof, c.sill + 0.6, z), L2 = hl - 0.05 - (1 - taper) * 0.5, W2 = hw - 0.04 - (z > 1.0 ? (z - 1.0) * 0.35 : 0);
+      var ox = -wx * z, oy = -wy * z, rr = 0.25, pts = [];
+      for (var q = 0; q < 4; q++) { var su = q < 2 ? -1 : 1, sv = q === 0 || q === 3 ? -1 : 1; for (var t = 0; t <= 4; t++) { var a = (q * 4 + t) / 16 * 2 * PI + PI / 4; } }
+      var corners = [[-L2, -W2], [L2, -W2], [L2, W2], [-L2, W2]];
+      corners.forEach(function (cc, qi) { for (var t2 = 0; t2 <= 4; t2++) { var a2 = (qi * 0.5 + t2 / 8) * PI - PI, sgu = cc[0] > 0 ? 1 : -1, sgv = cc[1] > 0 ? 1 : -1; var lu = cc[0] - sgu * rr + rr * Math.cos(a2 + (qi === 1 ? PI / 2 : qi === 2 ? PI : qi === 3 ? 1.5 * PI : 0) + PI / 2) * 0; } });
+      var poly = [[-L2 + rr, -W2], [L2 - rr, -W2], [L2, -W2 + rr], [L2, W2 - rr], [L2 - rr, W2], [-L2 + rr, W2], [-L2, W2 - rr], [-L2, -W2 + rr]].map(function (pp) { return [(cx + ux * pp[0] + vx * pp[1] - ox) / CL, (cy + uy * pp[0] + vy * pp[1] - oy) / CL]; });
+      PX.fillPoly(poly, GW, GH, function (ii) { M[ii] = 1; });
+    }
+    // the tyres touched the ground at the corners: dry too, and pressed
+    PX.blur(M, GW, GH, 1.6);   // water creeps a little way into dry ground
+    var during = b.left < 0 ? -b.left : 0, spots = 1 - Math.exp(-during / 6);
+    for (var ii2 = 0; ii2 < N; ii2++) if (M[ii2] > 0.01) { var dryv = sstep(0.35, 0.75, M[ii2] + 0.12 * PX.vnoise((ii2 % GW) * 0.6, ((ii2 / GW) | 0) * 0.6, seed + 9)); if (dryv > DRY[ii2]) { DRY[ii2] = dryv; SPK[ii2] = spots; } }
+  });
+
+  // ---------------- light ----------------
+  var lamps = [];
+  if (hour !== 'Overcast Day') { var nl = RL.int(1, 2); for (var l = 0; l < nl; l++) lamps.push({ x: RL.range(1, WM - 1), y: RL.chance(0.5) ? RL.range(-1, 2) : RL.range(HM - 2, HM + 1), h: 8, col: RL.chance(0.6) ? [1.0, 0.62, 0.25] : [0.95, 0.97, 1.0] }); }
+  var skyAmb = hour === 'Overcast Day' ? 1.0 : hour === 'Dusk' ? 0.22 : 0.035, skyCol = hour === 'Dusk' ? [0.6, 0.7, 1.0] : hour === 'Night' ? [0.5, 0.6, 1.0] : [0.92, 0.96, 1.0];
+  var o = PX.canvas(C, VW, VH, '#0e0f11'), PW = o.PW, PH = o.PH, Rr = new Float32Array(PW * PH), Gg = new Float32Array(PW * PH), Bb = new Float32Array(PW * PH);
+  var mpp = WM / PW, camX = WM / 2, camY = HM / 2, camH = 40;
+  var paintC = paint === 'White Lines' ? [0.62, 0.62, 0.6] : [0.62, 0.48, 0.12];
+  var polys = bays.map(bayPoly);
+  for (var py = 0; py < PH; py++) for (var px = 0; px < PW; px++) {
+    var I = py * PW + px, X = (px + 0.5) * mpp, Y = (py + 0.5) * mpp, gx = X / CL, gy = Y / CL;
+    // asphalt: aggregate in binder
+    var agg = PX.vnoise(X * 140, Y * 140, seed + 20), agg2 = PX.vnoise(X * 420, Y * 420, seed + 21), wearN = PX.fbm(X * 0.5, Y * 0.5, seed + 22, 3);
+    var stone = sstep(0.25, 0.6, agg) * 0.6 + sstep(0.3, 0.7, agg2) * 0.4, alb = (0.07 + 0.08 * stone) * (1 + 0.25 * wearN) * (1 + 0.15 * Math.exp(-Math.pow((Y - aisleY) / 1.2, 2)) * 0);
+    // paint: bay lines (10 cm), worn
+    var pm = 0;
+    for (var k = 0; k < polys.length; k++) { var p = polys[k]; var d1 = PX.segDist(X, Y, p[0][0], p[0][1], p[3][0], p[3][1]); if (d1 < 0.06) pm = Math.max(pm, sstep(0.06, 0.04, d1)); }
+    if (pm > 0) { var pw = sstep(-0.15, 0.25, PX.fbm(X * 6, Y * 6, seed + 23, 4) + 0.15) * (0.75 + 0.25 * PX.vnoise(X * 40, Y * 40, seed + 24)) * (0.7 + 0.3 * stone); pm *= pw; }
+    if (incident === 'Wheel Stop') for (var k3 = 0; k3 < polys.length; k3++) { var p3 = polys[k3], ux3 = (p3[3][0] - p3[0][0]) / bd, uy3 = (p3[3][1] - p3[0][1]) / bd, mx = (p3[0][0] + p3[1][0]) / 2 + ux3 * (bd - 0.45), my = (p3[0][1] + p3[1][1]) / 2 + uy3 * (bd - 0.45);
+      var su3 = (X - mx) * ux3 + (Y - my) * uy3, sv3 = -(X - mx) * uy3 + (Y - my) * ux3; if (Math.abs(su3) < 0.08 && Math.abs(sv3) < 0.9) { pm = 0; alb = 0.2 * (0.85 + 0.2 * PX.vnoise(X * 80, Y * 80, seed + 25)); if (Math.abs(su3) > 0.06) alb *= 0.7; } }
+    var r = lerp(alb, paintC[0], pm), g = lerp(alb, paintC[1], pm), b = lerp(alb * 1.03, paintC[2], pm);
+    // oil under where engines sat
+    for (var k2 = 0; k2 < gone.length; k2++) { var bb = gone[k2]; var fu = (X - bb.cx) * bb.ux + (Y - bb.cy) * bb.uy, fv = (X - bb.cx) * bb.vx + (Y - bb.cy) * bb.vy, ou = fu - bb.car.len * 0.32;
+      var oil = sstep(0.55, 0.1, Math.hypot(ou / 1.3, fv) + 0.25 * PX.fbm(X * 4, Y * 4, seed + 30 + k2, 3)) * (incident === 'Oil' ? 0.8 : 0.35);
+      r *= 1 - oil * 0.55; g *= 1 - oil * 0.55; b *= 1 - oil * 0.5; }
+    // wetness
+    var dry = PX.bil(DRY, GW, GH, gx, gy), spk = PX.bil(SPK, GW, GH, gx, gy), pd = PX.bil(PD, GW, GH, gx, gy);
+    var film = 0.00035 * (0.8 + 0.4 * PX.fbm(X * 0.8, Y * 0.8, seed + 40, 3)), evap = elapsed * 0.0000032 * (1.3 - 0.9 * stone);   // aggregate tops dry first
+    var wet = sstep(0, 0.00012, film - evap) * (1 - dry);
+    var ghostMem = dry * (0.22 + 0.55 * sstep(100, 15, elapsed)) * (1 - wet * 0.5);
+    if (dry > 0 && spk > 0) { var drop = PX.vnoise(X * 260, Y * 260, seed + 41) * 0.5 + 0.5, dr2 = PX.vnoise(X * 600, Y * 600, seed + 42) * 0.5 + 0.5; var sp = sstep(1 - spk * 0.6, 1 - spk * 0.6 + 0.08, Math.max(drop, dr2 * 0.95)); wet = Math.max(wet, dry * sp * sstep(0, 0.00012, film * 0.6 - evap)); }
+    var pud = sstep(0.0002, 0.0012, pd - evap * 0.3);
+    wet = Math.max(wet, pud);
+    // tyres through the aisle puddle after things dried
+    if (incident === 'Through The Puddle') { var tyY = aisleY + 0.0, tx0 = WM * 0.2; for (var tt = -1; tt <= 1; tt += 2) { var ty = tyY + tt * 0.78 + 0.15 * Math.sin(X * 0.25); var dty = Math.abs(Y - ty); if (dty < 0.11) { var fade = Math.exp(-Math.abs(X - tx0) / 6) * (X > tx0 ? 1 : 0.2), tread = 0.6 + 0.4 * Math.sign(Math.sin(X * 90 + Math.abs(Y - ty) * 30)); wet = Math.max(wet, sstep(0.11, 0.08, dty) * fade * tread * 0.9); } } }
+    var al = 1 - 0.62 * wet; r *= al; g *= al; b *= al * 1.02;
+    if (ghostMem > 0) { var lift = 1 + ghostMem * 0.42; r *= lift; g *= lift; b *= lift * 0.99; }
+    // illumination
+    var Lr = skyAmb * skyCol[0], Lg = skyAmb * skyCol[1], Lb = skyAmb * skyCol[2], spR = 0, spG = 0, spB = 0;
+    for (var m = 0; m < lamps.length; m++) { var lp = lamps[m], dxl = X - lp.x, dyl = Y - lp.y, d2 = dxl * dxl + dyl * dyl + lp.h * lp.h, ill = 26 * lp.h / Math.pow(d2, 1.55); Lr += ill * lp.col[0]; Lg += ill * lp.col[1]; Lb += ill * lp.col[2];
+      // mirror point of the lamp head for a camera high above the middle; glossy spread on wet asphalt, tight on puddles
+      var mxp = (camX * lp.h + lp.x * camH) / (camH + lp.h), myp = (camY * lp.h + lp.y * camH) / (camH + lp.h), ex = X - mxp, ey = Y - myp;
+      var tox = camX - mxp, toy = camY - myp, tl = Math.hypot(tox, toy) + 1e-3; tox /= tl; toy /= tl; var ea = ex * tox + ey * toy, eb = -ex * toy + ey * tox;
+      var rough = lerp(0.22, 0.07, pud), glint = (wet > 0.05 ? wet : 0) * (0.05 + 0.62 * pud) * Math.exp(-(ea * ea / (rough * rough * 3.2) + eb * eb / (rough * rough * 0.28)));
+      spR += glint * lp.col[0]; spG += glint * lp.col[1]; spB += glint * lp.col[2]; }
+    var skyRef = 0.02 * wet * skyAmb;   // Fresnel at normal incidence: water returns ~2% of the sky
+    Rr[I] = r * Lr + spR + skyRef * skyCol[0]; Gg[I] = g * Lg + spG + skyRef * skyCol[1]; Bb[I] = b * Lb + spB + skyRef * skyCol[2];
+  }
+  var expo = hour === 'Overcast Day' ? 3.0 : hour === 'Dusk' ? 3.2 : 3.6;
+  C.features({ 'Since The Rain': since, Hour: hour, Departed: depart, Layout: layout, Lines: paint, Incident: incident, 'Left During The Rain': gone.filter(function (b) { return b.left < 0; }).length });
+  PX.finish(o, Rr, Gg, Bb, { expo: expo, filmic: true, grain: 0.018, vig: 0.3, seed: 9 });
+  C.done(o.cv.canvas, 'dry-where-it-stood');
+})();

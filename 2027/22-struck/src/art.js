@@ -1,0 +1,217 @@
+/* px.js: Clyde's pixel toolkit for the 2027 series (shared, concatenated ahead of each main.js).
+ * Everything renders into a float buffer and is written once with putImageData, so the same file
+ * runs in a browser, on Aleatory, and headless in node. No randomness lives here. */
+var PX = (function () {
+  function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function sstep(a, b, x) { x = clamp((x - a) / (b - a), 0, 1); return x * x * (3 - 2 * x); }
+  function ihash(n) { n = (n ^ 61) ^ (n >>> 16); n = (n + (n << 3)) | 0; n = n ^ (n >>> 4); n = Math.imul(n, 0x27d4eb2d); n = n ^ (n >>> 15); return (n >>> 0) / 4294967296; }
+  function h2(x, y, s) { return ihash((Math.imul(x | 0, 73856093) ^ Math.imul(y | 0, 19349663) ^ Math.imul((s | 0) + 1, 83492791)) | 0); }
+  // value noise on an integer lattice, smooth (cheap, deterministic, no rng needed)
+  function vnoise(x, y, s) {
+    var xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi;
+    fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy);
+    var a = h2(xi, yi, s), b = h2(xi + 1, yi, s), c = h2(xi, yi + 1, s), d = h2(xi + 1, yi + 1, s);
+    return lerp(lerp(a, b, fx), lerp(c, d, fx), fy) * 2 - 1;
+  }
+  function fbm(x, y, s, oct, lac, gain) {
+    oct = oct || 4; lac = lac || 2.03; gain = gain || 0.5;
+    var a = 0.5, t = 0, n = 0;
+    for (var o = 0; o < oct; o++) { t += a * vnoise(x, y, s + o * 17); n += a; a *= gain; x *= lac; y *= lac; var tx = x * 0.8 - y * 0.6; y = x * 0.6 + y * 0.8; x = tx; }
+    return t / n;
+  }
+  // separable box blur, 3 passes ~ gaussian(sigma); edges clamp
+  function boxPass(src, dst, w, h, r, horiz) {
+    var n = horiz ? w : h, m = horiz ? h : w, sx = horiz ? 1 : w, sy = horiz ? w : 1, inv = 1 / (2 * r + 1);
+    for (var j = 0; j < m; j++) {
+      var base = j * sy, acc = 0, k;
+      for (k = -r; k <= r; k++) acc += src[base + clamp(k, 0, n - 1) * sx];
+      for (var i = 0; i < n; i++) {
+        dst[base + i * sx] = acc * inv;
+        acc += src[base + Math.min(i + r + 1, n - 1) * sx] - src[base + Math.max(i - r, 0) * sx];
+      }
+    }
+  }
+  function blur(F, w, h, sigma, tmp) {
+    if (sigma < 0.4) return F;
+    var r = Math.max(1, Math.round(Math.sqrt(12 * sigma * sigma / 3 + 1) / 2 - 0.5)); tmp = tmp || new Float32Array(w * h);
+    for (var p = 0; p < 3; p++) { boxPass(F, tmp, w, h, r, true); boxPass(tmp, F, w, h, r, false); }
+    return F;
+  }
+  function blurXY(F, w, h, sx, sy) { var tmp = new Float32Array(w * h), r; for (var p = 0; p < 3; p++) { if (sx >= 0.4) { r = Math.max(1, Math.round(sx * 0.95)); boxPass(F, tmp, w, h, r, true); F.set(tmp); } if (sy >= 0.4) { r = Math.max(1, Math.round(sy * 0.95)); boxPass(F, tmp, w, h, r, false); F.set(tmp); } } return F; }
+  function bil(F, w, h, x, y) {
+    x = clamp(x, 0, w - 1.001); y = clamp(y, 0, h - 1.001);
+    var xi = x | 0, yi = y | 0, fx = x - xi, fy = y - yi, i = yi * w + xi;
+    return (F[i] * (1 - fx) + F[i + 1] * fx) * (1 - fy) + (F[i + w] * (1 - fx) + F[i + w + 1] * fx) * fy;
+  }
+  // even-odd scanline polygon fill; pts = [[x,y],...] in pixel units; fn(index, x, y)
+  function fillPoly(pts, w, h, fn) {
+    var y0 = Infinity, y1 = -Infinity, n = pts.length, k;
+    for (k = 0; k < n; k++) { y0 = Math.min(y0, pts[k][1]); y1 = Math.max(y1, pts[k][1]); }
+    y0 = Math.max(0, Math.floor(y0)); y1 = Math.min(h - 1, Math.ceil(y1));
+    var xs = [];
+    for (var y = y0; y <= y1; y++) {
+      var yc = y + 0.5; xs.length = 0;
+      for (k = 0; k < n; k++) {
+        var a = pts[k], b = pts[(k + 1) % n];
+        if ((a[1] <= yc && b[1] > yc) || (b[1] <= yc && a[1] > yc)) xs.push(a[0] + (yc - a[1]) / (b[1] - a[1]) * (b[0] - a[0]));
+      }
+      xs.sort(function (p, q) { return p - q; });
+      for (k = 0; k + 1 < xs.length; k += 2) {
+        var xa = Math.max(0, Math.ceil(xs[k] - 0.5)), xb = Math.min(w - 1, Math.floor(xs[k + 1] - 0.5));
+        for (var x = xa; x <= xb; x++) fn(y * w + x, x, y);
+      }
+    }
+  }
+  function forDisc(cx, cy, r, w, h, fn) {
+    var x0 = Math.max(0, Math.floor(cx - r)), x1 = Math.min(w - 1, Math.ceil(cx + r)), y0 = Math.max(0, Math.floor(cy - r)), y1 = Math.min(h - 1, Math.ceil(cy + r));
+    for (var y = y0; y <= y1; y++) for (var x = x0; x <= x1; x++) { var dx = x + 0.5 - cx, dy = y + 0.5 - cy, d = Math.sqrt(dx * dx + dy * dy); if (d <= r) fn(y * w + x, d, dx, dy); }
+  }
+  function segDist(px, py, ax, ay, bx, by) {
+    var vx = bx - ax, vy = by - ay, l2 = vx * vx + vy * vy, t = l2 > 0 ? clamp(((px - ax) * vx + (py - ay) * vy) / l2, 0, 1) : 0;
+    var dx = px - ax - t * vx, dy = py - ay - t * vy; return Math.sqrt(dx * dx + dy * dy);
+  }
+  function convexHull(P) {
+    P = P.slice().sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
+    function cr(o, a, b) { return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]); }
+    var lo = [], up = [], i;
+    for (i = 0; i < P.length; i++) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], P[i]) <= 0) lo.pop(); lo.push(P[i]); }
+    for (i = P.length - 1; i >= 0; i--) { while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], P[i]) <= 0) up.pop(); up.push(P[i]); }
+    up.pop(); lo.pop(); return lo.concat(up);
+  }
+  function canvas(C, VW, VH, bg) {
+    var cv = C.setupCanvas(VW, VH, bg), PW = cv.canvas.width, PH = cv.canvas.height;
+    var img = cv.ctx.createImageData(PW, PH);
+    return { cv: cv, ctx: cv.ctx, img: img, px8: img.data, PW: PW, PH: PH, s: PW / VW };
+  }
+  // write linear-light float RGB to the canvas. opt: {expo, filmic, grain, vig, seed}
+  function finish(o, R, G, B, opt) {
+    opt = opt || {}; var PW = o.PW, PH = o.PH, d = o.px8, ex = opt.expo || 1, gr = opt.grain == null ? 0.012 : opt.grain, vg = opt.vig || 0, fl = !!opt.filmic, sd = opt.seed || 1;
+    for (var y = 0; y < PH; y++) for (var x = 0; x < PW; x++) {
+      var i = y * PW + x, r = R[i] * ex, g = G[i] * ex, b = B[i] * ex;
+      if (fl) { r = 1 - Math.exp(-r); g = 1 - Math.exp(-g); b = 1 - Math.exp(-b); }
+      if (vg) { var u = x / PW - 0.5, v = y / PH - 0.5, f = 1 - vg * (u * u + v * v) * 2; r *= f; g *= f; b *= f; }
+      var lum = 0.3 * r + 0.59 * g + 0.11 * b, n = (ihash(i * 7 + sd) + ihash(i * 13 + 5 + sd) - 1) * gr * (1 - 0.6 * lum);
+      d[i * 4] = clamp(Math.pow(clamp(r, 0, 1), 1 / 2.2) + n, 0, 1) * 255;
+      d[i * 4 + 1] = clamp(Math.pow(clamp(g, 0, 1), 1 / 2.2) + n, 0, 1) * 255;
+      d[i * 4 + 2] = clamp(Math.pow(clamp(b, 0, 1), 1 / 2.2) + n, 0, 1) * 255;
+      d[i * 4 + 3] = 255;
+    }
+    o.ctx.putImageData(o.img, 0, 0);
+  }
+
+  // anti-aliased polyline into a float coverage buffer (max-combine). pts in pixel units, w = line width in px.
+  function line(F, W, H, pts, w, val, press) {
+    val = val == null ? 1 : val; var hw = Math.max(w, 0.7) / 2;
+    for (var k = 0; k + 1 < pts.length; k++) {
+      var a = pts[k], b = pts[k + 1], x0 = Math.max(0, Math.floor(Math.min(a[0], b[0]) - hw - 1)), x1 = Math.min(W - 1, Math.ceil(Math.max(a[0], b[0]) + hw + 1)), y0 = Math.max(0, Math.floor(Math.min(a[1], b[1]) - hw - 1)), y1 = Math.min(H - 1, Math.ceil(Math.max(a[1], b[1]) + hw + 1));
+      var pa = press ? press[k] : 1, cov0 = w < 0.7 ? w / 0.7 : 1;
+      for (var y = y0; y <= y1; y++) for (var x = x0; x <= x1; x++) { var d = segDist(x + 0.5, y + 0.5, a[0], a[1], b[0], b[1]), c = clamp(hw + 0.5 - d, 0, 1) * cov0 * val * pa, i = y * W + x; if (c > F[i]) F[i] = c; }
+    }
+  }
+  // handwriting-like scribble: coupled oscillators (Hollerbach 1981) with drift. Returns array of strokes (word = stroke).
+  // rnd: function()->[0,1). x,y start, h = x-height, n = letters, slant (radians). Units arbitrary (caller's).
+  function scribble(rnd, x, y, h, n, slant, ws) {
+    // cursive-like strokes: per letter, alternate baseline/x-height key points (ascenders, descenders, loops),
+    // then Chaikin-smoothed so turns are rounded the way a moving pen rounds them. y grows downward.
+    var out = [], key = [], cx = x, sl = Math.tan(slant == null ? 0.2 : slant), v = (ws || 0.6) * h, base = y;
+    function flush() { if (key.length < 2) { key = []; return; } var P = key; for (var it = 0; it < 3; it++) { var Q = [P[0]]; for (var k = 0; k + 1 < P.length; k++) { var a = P[k], b = P[k + 1]; Q.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25], [a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]); } Q.push(P[P.length - 1]); P = Q; }
+      out.push(P.map(function (p) { return [p[0] - (p[1] - base) * sl, p[1]]; })); key = []; }
+    key.push([cx, base]);
+    for (var L = 0; L < n; L++) {
+      var kind = rnd(), hh = h * (0.85 + 0.3 * rnd()), humps = kind < 0.2 ? 2 : 1;
+      if (kind > 0.2 && kind < 0.36) { key.push([cx + 0.15 * h, base - 2.1 * h], [cx - 0.05 * h, base - 1.6 * h]); }   // ascender loop
+      for (var u = 0; u < humps; u++) { key.push([cx + 0.18 * v, base - hh], [cx + 0.5 * v, base - hh * 0.9]); cx += v * (0.7 + 0.3 * rnd()); key.push([cx, base]); }
+      if (kind > 0.9) { key.push([cx - 0.1 * h, base + 1.0 * h], [cx - 0.35 * h, base + 0.7 * h], [cx + 0.1 * h, base]); }   // descender
+      if (kind > 0.36 && kind < 0.5) { key.push([cx - 0.3 * v, base - hh * 0.7], [cx - 0.1 * v, base - hh], [cx + 0.2 * v, base]); cx += 0.2 * v; }   // e/o-ish
+      base += (rnd() - 0.5) * 0.05 * h; cx += v * 0.1;
+      if (rnd() < 0.16 && L < n - 1) { flush(); cx += h * (0.6 + 0.4 * rnd()); key.push([cx, base]); }
+    }
+    flush(); return out;
+  }
+  function srgb2lin(c) { return Math.pow(c / 255, 2.2); }
+  function col(hex) { var c = hex.replace('#', ''); return [srgb2lin(parseInt(c.substr(0, 2), 16)), srgb2lin(parseInt(c.substr(2, 2), 16)), srgb2lin(parseInt(c.substr(4, 2), 16))]; }
+  return { clamp: clamp, lerp: lerp, sstep: sstep, ihash: ihash, h2: h2, vnoise: vnoise, fbm: fbm, blur: blur, blurXY: blurXY, bil: bil, fillPoly: fillPoly, forDisc: forDisc, segDist: segDist, convexHull: convexHull, line: line, scribble: scribble, canvas: canvas, finish: finish, col: col };
+})();
+/* Struck, by Clyde (2027).
+ * The striking strip on the side of a box of matches, close up. Every match that was lit left a dark scrape; the
+ * strip says how many, how hard, which way the hand moves, and whether the box got damp.
+ * Engine: a safety-match strip is red phosphorus and powdered glass in a binder. A strike drags the head along the
+ * strip: friction converts a little phosphorus, and the head leaves a grey-black streak that starts sharp where it
+ * bites, then thins and breaks up as it lifts (lit) or ends in a smear and a chip (failed). Strikes land where the
+ * thumb holds the box: centred, biased to the striking side, angled by the wrist; one direction for one person,
+ * both for a household. Repeated strikes abrade the strip to the card in the middle. */
+(function () {
+  var C = window.CLYDE, R = C.rng('main'), RU = R.fork('use'), RB = R.fork('box');
+  var clamp = PX.clamp, lerp = PX.lerp, sstep = PX.sstep, PI = Math.PI;
+  var VW = 1800, VH = 900, FW = 56, FH = 28;   // mm
+  var used = RU.weighted([['A Few Lit', 28], ['Half The Box', 42], ['Nearly Empty', 30]]), who = RU.weighted([['One Smoker', 30], ['The Hob', 34], ['Birthday Candles', 14], ['Everyone', 22]]);
+  var damp = RU.chance(0.18), n = { 'A Few Lit': RU.int(4, 10), 'Half The Box': RU.int(18, 30), 'Nearly Empty': RU.int(38, 55) }[used];
+  var sx0 = RB.range(2, 4), sx1 = FW - RB.range(2, 4), sy0 = FH / 2 - RB.range(7, 8.5), sy1 = FH / 2 + RB.range(7, 8.5), tilt = RB.gaussian(0, 0.02);
+  var o = PX.canvas(C, VW, VH, '#222'), PW = o.PW, PH = o.PH, ppm = PW / FW, N = PW * PH, BL = new Float32Array(N), AB = new Float32Array(N), CH = new Float32Array(N);
+  var dir = who === 'Everyone' ? 0 : RU.chance(0.75) ? 1 : -1, wrist = RU.gaussian(0, 0.06), bias = RU.gaussian(0, 4);
+  var lit = 0, fails = 0;
+  for (var k = 0; k < n; k++) {
+    var d = dir || (RU.chance(0.5) ? 1 : -1), fail = RU.chance(damp ? 0.45 : 0.08), y = (sy0 + sy1) / 2 + RU.gaussian(0, (sy1 - sy0) * 0.18), x = FW / 2 + bias + RU.gaussian(0, 7), L = fail ? RU.range(3, 7) : RU.range(10, 24), ang = wrist + RU.gaussian(0, 0.05) + (d < 0 ? PI : 0), press = RU.range(0.6, 1.2);
+    if (fail) fails++; else lit++;
+    var steps = Math.ceil(L / 0.08), seedK = RU.int(1, 1e6), nGroove = fail ? 1 : (1 + (RU.rand() < 0.5 ? 1 : 2));
+    for (var g = 0; g < nGroove; g++) {
+      var off = (g - (nGroove - 1) / 2) * 0.35, wob = RU.range(0.15, 0.35);
+      for (var s = 0; s <= steps; s++) {
+        var t = s / steps, along = L * t;
+        var px = x - Math.cos(ang) * L / 2 + Math.cos(ang) * L * t - Math.sin(ang) * (off + wob * PX.vnoise(along * 0.7, g, seedK));
+        var py = y - Math.sin(ang) * L / 2 + Math.sin(ang) * L * t + Math.cos(ang) * (off + wob * PX.vnoise(along * 0.7, g + 3, seedK));
+        // a strike is a thin scratch, not a disc of soot: it bites, then thins and breaks into skipped grains as the head lifts
+        var bite = fail ? sstep(0, 0.2, t) * sstep(1, 0.7, t) : sstep(0, 0.04, t) * Math.exp(-t * 1.6);
+        var skip = (!fail && t > 0.2 && PX.vnoise(along * 1.8, g * 5, seedK + 9) > (0.25 - 0.55 * t)) ? 1 : 0;
+        if (skip) continue;
+        var w = (fail ? 0.9 : 0.7) * (1 - 0.45 * t) * (0.75 + 0.4 * bite) * press;   // 0.4–1.0 mm core
+        PX.forDisc(px * ppm, py * ppm, Math.max(0.35, w) * ppm / 2, PW, PH, function (I, dd, dx, dy) {
+          var xx = I % PW, yy = (I / PW) | 0;
+          var across = (-dx * Math.sin(ang) + dy * Math.cos(ang)) / ppm, alongD = (dx * Math.cos(ang) + dy * Math.sin(ang)) / ppm;
+          var e = sstep(w / 2, w / 2 * 0.15, Math.abs(across)) * sstep(0.12, 0.0, Math.abs(alongD));
+          if (e < 0.02) return;
+          var grain = PX.h2(xx, yy, seedK + 11);
+          if (grain > 0.35 + 0.5 * bite) return;   // the powdered glass leaves a broken, scratchy deposit
+          var on = (yy / ppm > sy0 && yy / ppm < sy1 && xx / ppm > sx0 && xx / ppm < sx1) ? 1 : 0.12;
+          BL[I] = Math.min(1.0, BL[I] + e * (0.28 + 0.4 * bite) * press * on);
+          AB[I] += e * 0.004 * press * on;
+        });
+      }
+    }
+    if (fail) {
+      var tx = x + Math.cos(ang) * L / 2, ty = y + Math.sin(ang) * L / 2;
+      PX.forDisc(tx * ppm, ty * ppm, 0.85 * ppm, PW, PH, function (I, dd) { var xx = I % PW, yy = (I / PW) | 0; CH[I] = Math.max(CH[I], sstep(0.85 * ppm, 0.25 * ppm, dd) * (PX.h2(xx >> 1, yy >> 1, seedK + 7) < 0.75 ? 1 : 0)); });
+    }
+  }
+  var seed = RB.int(1, 9999), Rr = new Float32Array(N), Gg = new Float32Array(N), Bb = new Float32Array(N);
+  var strip = PX.col(RB.pick(['#5a2a1e', '#4a2c22', '#3c2a24', '#6a3524'])), card = PX.col(RB.pick(['#c9b48c', '#b9a47a', '#d6cbb0'])), print = PX.col(RB.pick(['#2b4a7a', '#a3262a', '#2f5a3a', '#1d1d1d', '#d9a21b']));
+  var Lx = -0.6, Ly = -0.5;
+  for (var py2 = 0; py2 < PH; py2++) for (var px2 = 0; px2 < PW; px2++) {
+    var I = py2 * PW + px2, X = (px2 + 0.5) / ppm, Y = (py2 + 0.5) / ppm, Yt = Y - tilt * (X - FW / 2), r, g, b;
+    // the card side of the box, a printed band, edge folds top and bottom
+    var cn = 0.93 + 0.05 * PX.fbm(X * 0.6, Y * 0.6, seed, 3) + 0.03 * PX.vnoise(X * 4, Y * 4, seed + 1);
+    r = card[0] * cn; g = card[1] * cn; b = card[2] * cn;
+    var band = Yt < 2.2 || Yt > FH - 2.2; if (band) { r = print[0] * cn; g = print[1] * cn; b = print[2] * cn; }
+    var fold = Math.min(Math.abs(Yt - 0.5), Math.abs(Yt - (FH - 0.5))); if (fold < 0.5) { var f = 0.75 + 0.25 * fold / 0.5; r *= f; g *= f; b *= f; }
+    if (Yt > sy0 && Yt < sy1 && X > sx0 && X < sx1) {
+      // grains of glass and phosphorus: lit facets
+      var g1 = PX.vnoise(X * 6, Yt * 6, seed + 2), cell = PX.h2((px2 / 2) | 0, (py2 / 2) | 0, seed + 3), hgt = 0.55 * g1 + 0.45 * cell;
+      var nxg = PX.vnoise(X * 6 + 0.15, Yt * 6, seed + 2) - g1, nyg = PX.vnoise(X * 6, Yt * 6 + 0.15, seed + 2) - g1;
+      var lam = clamp(0.82 + (nxg * Lx + nyg * Ly) * 8, 0.65, 1.2), edgeW = sstep(0, 0.45, Math.min(Yt - sy0, sy1 - Yt, X - sx0, sx1 - X));
+      var ab = clamp(AB[I], 0, 1), bare = sstep(0.5, 0.9, ab);
+      var sr = strip[0] * (0.88 + 0.22 * hgt) * lam, sg = strip[1] * (0.88 + 0.22 * hgt) * lam, sb = strip[2] * (0.88 + 0.22 * hgt) * lam;
+      sr = lerp(sr, card[0] * 0.75, bare); sg = lerp(sg, card[1] * 0.75, bare); sb = lerp(sb, card[2] * 0.75, bare);
+      r = lerp(r, sr, edgeW); g = lerp(g, sg, edgeW); b = lerp(b, sb, edgeW);
+      // a few larger glass grains, not a uniform sparkle
+      var grain = PX.h2((px2 / 3) | 0, (py2 / 3) | 0, seed + 4);
+      if (grain > 0.994 && bare < 0.4) { var gl = 0.07 * lam; r += gl; g += gl * 0.97; b += gl * 0.9; }
+    }
+    var bl = clamp(BL[I], 0, 1), ch = CH[I]; r = lerp(r, r * 0.12 + 0.02, bl); g = lerp(g, g * 0.12 + 0.018, bl); b = lerp(b, b * 0.12 + 0.018, bl);
+    if (ch > 0) { r = lerp(r, 0.01, ch * 0.9); g = lerp(g, 0.01, ch * 0.9); b = lerp(b, 0.01, ch * 0.9); }   // a failed head stalls: a short dense stub where it stopped
+    var light = 1.08 - 0.25 * (X / FW) - 0.1 * (Y / FH); Rr[I] = r * light; Gg[I] = g * light; Bb[I] = b * light;
+  }
+  C.features({ Box: used, 'Lit For': who, Matches: lit, 'Failed Strikes': fails, Damp: damp ? 'Yes' : 'No', Direction: dir === 0 ? 'Both Ways' : 'One Way' });
+  PX.finish(o, Rr, Gg, Bb, { expo: 1.15, filmic: true, grain: 0.014, vig: 0.35, seed: 22 });
+  C.done(o.cv.canvas, 'struck');
+})();

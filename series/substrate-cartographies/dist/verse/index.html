@@ -1,0 +1,464 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Substrate Cartographies by Clyde</title>
+<style>html,body{margin:0;height:100%;background:#1a1a1a}canvas{display:block}</style>
+</head>
+<body>
+<script>
+/* clyde.js: shared platform adapter + toolkit. One codebase that runs on
+ * Aleatory ($alea, ALEATORY-001 §7), fxhash ($fx, @fxhash/project-sdk), Highlight (hl-gen.js),
+ * Verse (?payload=) or standalone (?hash=...). To add a platform, add one branch here.
+ * Every random value is derived from the platform's own seeded stream.
+ */
+(function (W) {
+  'use strict';
+  var q = new URLSearchParams(W.location ? W.location.search : '');
+
+  // ---- platform detection -------------------------------------------------
+  var platform, seedStr, baseRand, setFeatures, signalDone;
+  if (W.$alea && typeof W.$alea.rand === 'function' && W.$alea.seed != null) {
+    platform = 'aleatory';
+    seedStr = String(W.$alea.seed);
+    baseRand = W.$alea.rand;
+    setFeatures = function (f) { W.$alea.features(f); };
+    signalDone = function () { W.$alea.ready(); };
+  } else if (W.$fx && typeof W.$fx.rand === 'function') {
+    platform = 'fxhash';
+    seedStr = String(W.$fx.hash);
+    baseRand = W.$fx.rand;
+    setFeatures = function (f) { W.$fx.features(f); };
+    signalDone = function () { W.$fx.preview(); };
+  } else if (typeof hl !== 'undefined' && hl && typeof hl.random === 'function' && hl.token) {
+    // Highlight (hl-gen.js): note `hl` is a top-level const, not a window property
+    platform = 'highlight';
+    seedStr = String(hl.tx.hash);
+    baseRand = function () { return hl.random(); };
+    setFeatures = function (f) { hl.token.setTraits(f); };
+    signalDone = function () { hl.token.capturePreview(); };
+  } else if (q.get('payload')) {
+    // Verse "Random Generative JS": base64 JSON payload {hash, editionNumber, totalEditions, input}
+    platform = 'verse';
+    var pl = {}; try { pl = JSON.parse(atob(q.get('payload'))); } catch (e) {}
+    seedStr = String(pl.hash || '0x0');
+    baseRand = sfc32.apply(null, cyrb128(seedStr));
+    setFeatures = function (f) { W.$artifact = W.$artifact || {}; W.$artifact.features = f; };
+    signalDone = function () { console.info('###verse-preview-capture'); W.dispatchEvent(new Event('capture-preview')); };
+  } else {
+    platform = 'standalone';
+    seedStr = q.get('hash') || q.get('seed') || (function () {
+      var h = '0x', c = '0123456789abcdef';
+      for (var i = 0; i < 64; i++) h += c[(Math.random() * 16) | 0];
+      return h;
+    })();
+    baseRand = sfc32.apply(null, cyrb128(seedStr));
+    setFeatures = function () {};
+    signalDone = function () {};
+  }
+
+  function cyrb128(str) {
+    var h1 = 1779033703, h2 = 3144134277, h3 = 1013904242, h4 = 2773480762;
+    for (var i = 0, k; i < str.length; i++) {
+      k = str.charCodeAt(i);
+      h1 = h2 ^ Math.imul(h1 ^ k, 597399067); h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
+      h3 = h4 ^ Math.imul(h3 ^ k, 951274213); h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
+    }
+    h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067); h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
+    h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213); h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
+    h1 ^= (h2 ^ h3 ^ h4); h2 ^= h1; h3 ^= h1; h4 ^= h1;
+    return [h1 >>> 0, h2 >>> 0, h3 >>> 0, h4 >>> 0];
+  }
+  function sfc32(a, b, c, d) {
+    return function () {
+      a >>>= 0; b >>>= 0; c >>>= 0; d >>>= 0;
+      var t = (a + b) | 0; a = b ^ (b >>> 9); b = (c + (c << 3)) | 0;
+      c = (c << 21) | (c >>> 11); d = (d + 1) | 0; t = (t + d) | 0; c = (c + t) | 0;
+      return (t >>> 0) / 4294967296;
+    };
+  }
+
+  // Root key: four draws from the platform stream (identical count on every path).
+  var root = '';
+  for (var i = 0; i < 4; i++) root += ((baseRand() * 4294967296) >>> 0).toString(16) + ':';
+
+  function makeRng(label) {
+    var s = cyrb128(root + label), next = sfc32(s[0], s[1], s[2], s[3]);
+    for (var j = 0; j < 12; j++) next();
+    var R = {
+      rand: next,
+      range: function (a, b) { return a + (b - a) * next(); },
+      int: function (a, b) { return Math.floor(a + (b - a + 1) * next()); },
+      chance: function (p) { return next() < p; },
+      pick: function (arr) { return arr[Math.floor(next() * arr.length)]; },
+      weighted: function (pairs) {
+        var t = 0, k; for (k = 0; k < pairs.length; k++) t += pairs[k][1];
+        var r = next() * t;
+        for (k = 0; k < pairs.length; k++) { r -= pairs[k][1]; if (r < 0) return pairs[k][0]; }
+        return pairs[pairs.length - 1][0];
+      },
+      gaussian: function (m, sd) {
+        var u = 1 - next(), v = next();
+        return (m || 0) + (sd == null ? 1 : sd) * Math.sqrt(-2 * Math.log(u)) * Math.cos(6.283185307179586 * v);
+      },
+      pareto: function (min, alpha) { return min / Math.pow(1 - next(), 1 / alpha); },
+      shuffle: function (arr) {
+        var a = arr.slice();
+        for (var k = a.length - 1; k > 0; k--) { var j2 = Math.floor(next() * (k + 1)); var t2 = a[k]; a[k] = a[j2]; a[j2] = t2; }
+        return a;
+      },
+      fork: function (l) { return makeRng(label + '/' + l); }
+    };
+    return R;
+  }
+
+  // ---- simplex noise 2D (Gustavson), permutation from an rng ----------------
+  function makeNoise(R) {
+    var p = [], perm = new Uint8Array(512), k;
+    for (k = 0; k < 256; k++) p[k] = k;
+    p = R.shuffle(p);
+    for (k = 0; k < 512; k++) perm[k] = p[k & 255];
+    var G = [[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]];
+    var F2 = 0.5 * (Math.sqrt(3) - 1), G2 = (3 - Math.sqrt(3)) / 6;
+    function n2(xin, yin) {
+      var s = (xin + yin) * F2, i = Math.floor(xin + s), j = Math.floor(yin + s);
+      var t = (i + j) * G2, x0 = xin - (i - t), y0 = yin - (j - t);
+      var i1 = x0 > y0 ? 1 : 0, j1 = 1 - i1;
+      var x1 = x0 - i1 + G2, y1 = y0 - j1 + G2, x2 = x0 - 1 + 2 * G2, y2 = y0 - 1 + 2 * G2;
+      var ii = i & 255, jj = j & 255, n = 0, tt, g;
+      tt = 0.5 - x0 * x0 - y0 * y0; if (tt > 0) { g = G[perm[ii + perm[jj]] & 7]; tt *= tt; n += tt * tt * (g[0] * x0 + g[1] * y0); }
+      tt = 0.5 - x1 * x1 - y1 * y1; if (tt > 0) { g = G[perm[ii + i1 + perm[jj + j1]] & 7]; tt *= tt; n += tt * tt * (g[0] * x1 + g[1] * y1); }
+      tt = 0.5 - x2 * x2 - y2 * y2; if (tt > 0) { g = G[perm[ii + 1 + perm[jj + 1]] & 7]; tt *= tt; n += tt * tt * (g[0] * x2 + g[1] * y2); }
+      return 70 * n; // ~[-1,1]
+    }
+    function fbm(x, y, oct) {
+      var a = 0.5, f = 1, s = 0, n = 0; oct = oct || 4;
+      for (var o = 0; o < oct; o++) { s += a * n2(x * f, y * f); n += a; a *= 0.5; f *= 2; }
+      return s / n;
+    }
+    return { n2: n2, fbm: fbm };
+  }
+
+
+  // ---- marching squares -> chained polylines (grid coords) -----------------
+  function contours(F, w, h, thr) {
+    var segs = [];
+    function lerp(a, b) { return (thr - a) / (b - a); }
+    for (var y = 0; y < h - 1; y++) for (var x = 0; x < w - 1; x++) {
+      var a = F[y * w + x], b = F[y * w + x + 1], c = F[(y + 1) * w + x + 1], d = F[(y + 1) * w + x];
+      var idx = (a > thr ? 8 : 0) | (b > thr ? 4 : 0) | (c > thr ? 2 : 0) | (d > thr ? 1 : 0);
+      if (idx === 0 || idx === 15) continue;
+      var T = [x + lerp(a, b), y], R = [x + 1, y + lerp(b, c)], B = [x + lerp(d, c), y + 1], L = [x, y + lerp(a, d)];
+      switch (idx) {
+        case 1: case 14: segs.push([L, B]); break;
+        case 2: case 13: segs.push([B, R]); break;
+        case 3: case 12: segs.push([L, R]); break;
+        case 4: case 11: segs.push([T, R]); break;
+        case 6: case 9: segs.push([T, B]); break;
+        case 7: case 8: segs.push([L, T]); break;
+        case 5: segs.push([L, T]); segs.push([B, R]); break;
+        case 10: segs.push([T, R]); segs.push([L, B]); break;
+      }
+    }
+    return chain(segs);
+  }
+  function chain(segs) {
+    var key = function (p) { return Math.round(p[0] * 1000) + ',' + Math.round(p[1] * 1000); };
+    var map = {}, used = new Uint8Array(segs.length), i;
+    for (i = 0; i < segs.length; i++) for (var e = 0; e < 2; e++) { var kk = key(segs[i][e]); (map[kk] = map[kk] || []).push(i); }
+    var lines = [];
+    function nextFrom(p) {
+      var l = map[key(p)]; if (!l) return -1;
+      for (var j = 0; j < l.length; j++) if (!used[l[j]]) return l[j];
+      return -1;
+    }
+    for (i = 0; i < segs.length; i++) {
+      if (used[i]) continue;
+      used[i] = 1; var line = [segs[i][0], segs[i][1]];
+      for (var dir = 0; dir < 2; dir++) {
+        while (true) {
+          var end = line[line.length - 1], n = nextFrom(end);
+          if (n < 0) break;
+          used[n] = 1; var s2 = segs[n];
+          line.push(key(s2[0]) === key(end) ? s2[1] : s2[0]);
+        }
+        line.reverse();
+      }
+      lines.push(line);
+    }
+    return lines;
+  }
+  // ---- exact Euclidean distance transform (Felzenszwalb) -------------------
+  // in: Uint8Array mask (1 = feature), returns Float32Array distance in cells
+  function edt(mask, w, h) {
+    var INF = 1e20, f = new Float64Array(Math.max(w, h)), d = new Float64Array(Math.max(w, h));
+    var v = new Int32Array(Math.max(w, h)), z = new Float64Array(Math.max(w, h) + 1);
+    var g = new Float64Array(w * h), x, y;
+    for (var i = 0; i < w * h; i++) g[i] = mask[i] ? 0 : INF;
+    function dt1(n) {
+      var k = 0; v[0] = 0; z[0] = -INF; z[1] = INF;
+      for (var q2 = 1; q2 < n; q2++) {
+        var s = ((f[q2] + q2 * q2) - (f[v[k]] + v[k] * v[k])) / (2 * q2 - 2 * v[k]);
+        while (s <= z[k]) { k--; s = ((f[q2] + q2 * q2) - (f[v[k]] + v[k] * v[k])) / (2 * q2 - 2 * v[k]); }
+        k++; v[k] = q2; z[k] = s; z[k + 1] = INF;
+      }
+      k = 0;
+      for (var q3 = 0; q3 < n; q3++) { while (z[k + 1] < q3) k++; d[q3] = (q3 - v[k]) * (q3 - v[k]) + f[v[k]]; }
+    }
+    for (x = 0; x < w; x++) { for (y = 0; y < h; y++) f[y] = g[y * w + x]; dt1(h); for (y = 0; y < h; y++) g[y * w + x] = d[y]; }
+    for (y = 0; y < h; y++) { for (x = 0; x < w; x++) f[x] = g[y * w + x]; dt1(w); for (x = 0; x < w; x++) g[y * w + x] = d[x]; }
+    var out = new Float32Array(w * h);
+    for (i = 0; i < w * h; i++) out[i] = Math.sqrt(g[i]);
+    return out;
+  }
+
+  // ---- canvas: fixed virtual space, fixed pixel resolution ------------------
+  function setupCanvas(VW, VH, bg) {
+    var longSide = parseInt(q.get('res'), 10) || 1600;
+    longSide = Math.max(400, Math.min(8000, longSide));
+    var k = longSide / Math.max(VW, VH);
+    var cv = document.createElement('canvas');
+    cv.width = Math.round(VW * k); cv.height = Math.round(VH * k);
+    document.body.style.cssText = 'margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:' + (bg || '#111') + ';overflow:hidden';
+    document.body.appendChild(cv);
+    function fit() {
+      var s = Math.min(W.innerWidth / cv.width, W.innerHeight / cv.height);
+      cv.style.width = Math.floor(cv.width * s) + 'px'; cv.style.height = Math.floor(cv.height * s) + 'px';
+    }
+    fit(); W.addEventListener('resize', fit);
+    var ctx = cv.getContext('2d');
+    ctx.setTransform(k, 0, 0, k, 0, 0); // draw in virtual units
+    return { canvas: cv, ctx: ctx, k: k, VW: VW, VH: VH };
+  }
+
+  // ---- vector recorder for plotter SVG -------------------------------------
+  var vec = { layers: {}, order: [], VW: 1000, VH: 1000 };
+  function poly(pts, color, closed) {
+    if (!pts || pts.length < 2) return;
+    if (!vec.layers[color]) { vec.layers[color] = []; vec.order.push(color); }
+    vec.layers[color].push({ p: pts, c: !!closed });
+  }
+  function svgString(mmLong) {
+    mmLong = mmLong || 280;
+    var s = mmLong / Math.max(vec.VW, vec.VH), mw = (vec.VW * s).toFixed(1), mh = (vec.VH * s).toFixed(1);
+    var o = ['<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="' + mw + 'mm" height="' + mh + 'mm" viewBox="0 0 ' + mw + ' ' + mh + '">'];
+    vec.order.forEach(function (col, li) {
+      o.push('<g inkscape:groupmode="layer" id="pen' + (li + 1) + '" inkscape:label="' + (li + 1) + ' ' + col + '" fill="none" stroke="' + col + '" stroke-width="0.3" stroke-linecap="round" stroke-linejoin="round">');
+      vec.layers[col].forEach(function (L) {
+        var d = L.p.map(function (p) { return (p[0] * s).toFixed(2) + ',' + (p[1] * s).toFixed(2); }).join(' ');
+        o.push(L.c ? '<polygon points="' + d + '"/>' : '<polyline points="' + d + '"/>');
+      });
+      o.push('</g>');
+    });
+    o.push('</svg>');
+    return o.join('\n');
+  }
+  function download(name, data, mime) {
+    var a = document.createElement('a');
+    a.href = typeof data === 'string' && data.indexOf('data:') === 0 ? data : URL.createObjectURL(new Blob([data], { type: mime }));
+    a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  var C = {
+    platform: platform, hash: seedStr, query: q,
+    rng: makeRng, noise: makeNoise, setupCanvas: setupCanvas, contours: contours, chain: chain, edt: edt,
+    poly: poly, svgString: svgString,
+    vectorSpace: function (VW, VH) { vec.VW = VW; vec.VH = VH; },
+    plottable: true,
+    _features: null,
+    features: function (f) { C._features = f; setFeatures(f); },
+    done: function (canvas, slug) {
+      W.__clyde = { done: true, features: C._features, hash: seedStr, platform: platform };
+      signalDone();
+      W.addEventListener('keydown', function (e) {
+        var base = (slug || 'clyde') + '-' + seedStr.slice(0, 12);
+        if (e.key === 's') download(base + '.png', canvas.toDataURL('image/png'));
+        if (e.key === 'v' && C.plottable) download(base + '.svg', svgString(), 'image/svg+xml');
+      });
+    },
+    // perceptual-ish colour helpers
+    hex2rgb: function (h) { h = h.replace('#', ''); return [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)]; },
+    mix: function (a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; },
+    rgba: function (c, a) { return 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + (a == null ? 1 : a) + ')'; }
+  };
+  W.CLYDE = C;
+})(window);
+
+</script>
+<script>
+/* Substrate Cartographies by Clyde (2026), after Jared Tarbell, "Substrate" (2003), and
+ * Inigo Quilez's domain warping. Perpendicular crack growth spreads over a warped noise
+ * terrain. The cracks bend to the terrain, and the sand they lay down takes its colour from
+ * the elevation band underneath. Cracks and contour lines go to SVG for plotting. */
+(function () {
+  var C = window.CLYDE, R = C.rng('main'), RP = R.fork('palette'), RL = R.fork('layout'), RC = R.fork('cracks');
+  var VW = 1000, VH = 1250;
+  var PAL = {
+    'Survey':       { bg: '#f3efe5', crack: '#1c1c1c', contour: '#6b7f86', sand: ['#2f5d62', '#5e8b7e', '#a7c4bc', '#c9b27c', '#8a5a44'] },
+    'Ochre Basin':  { bg: '#f4ede0', crack: '#22190f', contour: '#a48868', sand: ['#8c3b20', '#c8672f', '#e3a857', '#4f6d7a', '#2b3a42'] },
+    'Ordnance':     { bg: '#f2f0e9', crack: '#202020', contour: '#9c8f7a', sand: ['#b8463c', '#e2a33f', '#5a8f5a', '#3f6e8c', '#2d3f5c'] },
+    'Mesa':         { bg: '#f5ecdd', crack: '#2a1d1a', contour: '#a07c62', sand: ['#6b2e2e', '#b55d3a', '#e0a96d', '#3b5249', '#7d8f69'] },
+    'Glacier':      { bg: '#eef1f2', crack: '#18232b', contour: '#8aa1ad', sand: ['#1f4e79', '#4a86b5', '#9cc3d5', '#c7a96b', '#5b6c74'] },
+    'Basalt Night': { bg: '#141519', crack: '#ebe6da', contour: '#4b5560', sand: ['#3e6e8e', '#7fb0c4', '#d9a441', '#b5523b', '#e9dfc7'] }
+  };
+  var palName = RP.weighted([['Survey', 22], ['Ochre Basin', 20], ['Ordnance', 18], ['Mesa', 16], ['Glacier', 16], ['Basalt Night', 8]]);
+  var P = PAL[palName];
+  var warpName = RL.weighted([['Still', 25], ['Folded', 50], ['Torn', 25]]);
+  var warp = { Still: 0.5, Folded: 1.6, Torn: 3.2 }[warpName];
+  var growth = RL.weighted([['Straight', 34], ['Contour-bound', 46], ['Climbing', 20]]);
+  var densName = RL.weighted([['Sparse', 25], ['Settled', 50], ['Crowded', 25]]);
+  var maxBirths = { Sparse: 220, Settled: 340, Crowded: 520 }[densName], births = 0;
+  var originsName = RL.weighted([['Single', 15], ['Few', 35], ['Scattered', 50]]);
+  var nSeeds = { Single: 1, Few: 5, Scattered: 16 }[originsName];
+  var survey = RL.weighted([['Contoured', 60], ['Bare', 40]]);
+  C.features({ Palette: palName, Terrain: warpName, Growth: growth, Density: densName, Origins: originsName, Survey: survey });
+
+  var cv = C.setupCanvas(VW, VH, P.bg), ctx = cv.ctx;
+  C.vectorSpace(VW, VH);
+  var NZ = C.noise(R.fork('noise'));
+  var fs = RL.range(0.0011, 0.0019);
+  function height(x, y) {
+    var px = x * fs, py = y * fs;
+    var qx = NZ.fbm(px, py, 4), qy = NZ.fbm(px + 5.2, py + 1.3, 4);
+    return NZ.fbm(px + warp * qx, py + warp * qy, 4) * 0.5 + 0.5;
+  }
+  // terrain grid (virtual / 4)
+  var TW = 251, TH = 314, T = new Float32Array(TW * TH), lo = 1, hi = 0;
+  for (var j = 0; j < TH; j++) for (var i = 0; i < TW; i++) { var v = height(i * 4, j * 4); T[j * TW + i] = v; lo = Math.min(lo, v); hi = Math.max(hi, v); }
+  for (i = 0; i < T.length; i++) T[i] = (T[i] - lo) / (hi - lo);
+  function hAt(x, y) {
+    var gx = Math.max(0, Math.min(TW - 1.001, x / 4)), gy = Math.max(0, Math.min(TH - 1.001, y / 4));
+    var x0 = gx | 0, y0 = gy | 0, fx = gx - x0, fy = gy - y0, k0 = y0 * TW + x0;
+    return (T[k0] * (1 - fx) + T[k0 + 1] * fx) * (1 - fy) + (T[k0 + TW] * (1 - fx) + T[k0 + TW + 1] * fx) * fy;
+  }
+  var NB = P.sand.length;
+  var sandRGB = P.sand.map(C.hex2rgb);
+
+  // ---- sand buffer at virtual resolution ----------------------------------
+  var bgc = C.hex2rgb(P.bg), SB = new Float32Array(VW * VH * 3);
+  for (i = 0; i < VW * VH; i++) { SB[i * 3] = bgc[0]; SB[i * 3 + 1] = bgc[1]; SB[i * 3 + 2] = bgc[2]; }
+  function grain(x, y, col, a) {
+    var xi = x | 0, yi = y | 0; if (xi < 0 || yi < 0 || xi >= VW || yi >= VH) return;
+    var o = (yi * VW + xi) * 3;
+    SB[o] += (col[0] - SB[o]) * a; SB[o + 1] += (col[1] - SB[o + 1]) * a; SB[o + 2] += (col[2] - SB[o + 2]) * a;
+  }
+
+  // ---- crack field ----------------------------------------------------------
+  var G = 2, GW = VW / G, GH = VH / G, EMPTY = 10001;
+  var grid = new Float32Array(GW * GH).fill(EMPTY), marked = [];
+  var margin = 40 / G;
+  function inside(cx, cy) { return cx >= margin && cy >= margin && cx < GW - margin && cy < GH - margin; }
+  for (var s0 = 0; s0 < nSeeds; s0++) {
+    var sx = RC.int(GW * 0.2, GW * 0.8), sy = RC.int(GH * 0.2, GH * 0.8), si = sy * GW + sx;
+    grid[si] = RC.range(0, 360); marked.push(si);
+  }
+  var cracks = [], lines = [];
+  function SandPainter() { this.c = RC.int(0, NB - 1); this.g = RC.range(0.01, 0.1); }
+  SandPainter.prototype.render = function (x, y, ox, oy, band) {
+    this.g = Math.max(0, Math.min(1, this.g + RC.range(-0.05, 0.05)));
+    var col = sandRGB[(band + this.c) % NB], grains = 56, w = this.g / (grains - 1);
+    for (var n = 0; n < grains; n++) {
+      var a = 0.1 - n / (grains * 10), f = Math.sin(Math.sin(n * w));
+      grain((ox + (x - ox) * f) * G, (oy + (y - oy) * f) * G, col, a * 3.0);
+    }
+  };
+  function Crack() { this.sp = new SandPainter(); this.start(); }
+  Crack.prototype.start = function () {
+    this.alive = false; if (this.pts && this.pts.length > 1) lines.push(this.pts);
+    this.pts = null;
+    var tries = 0;
+    while (tries++ < 200) {
+      var idx = marked[Math.floor(RC.rand() * marked.length)], px = idx % GW, py = (idx / GW) | 0;
+      if (!inside(px, py)) continue;
+      var a = grid[idx] + (RC.chance(0.5) ? -90 : 90) + RC.range(-2, 2);
+      this.x = px + 0.61 * Math.cos(a * Math.PI / 180); this.y = py + 0.61 * Math.sin(a * Math.PI / 180);
+      this.t = a; this.alive = true; this.pts = [[this.x * G, this.y * G]]; this.n = 0; return;
+    }
+  };
+  function steer(cr) {
+    if (growth === 'Straight') return;
+    var e = 2, x = cr.x * G, y = cr.y * G;
+    var gx = hAt(x + e, y) - hAt(x - e, y), gy = hAt(x, y + e) - hAt(x, y - e);
+    if (gx * gx + gy * gy < 1e-10) return;
+    var target = growth === 'Climbing' ? Math.atan2(gy, gx) : Math.atan2(gx, -gy);
+    target *= 180 / Math.PI;
+    var d = ((target - cr.t) % 360 + 540) % 360 - 180;           // nearest of target / target+180
+    if (d > 90) d -= 180; else if (d < -90) d += 180;
+    cr.t += d * (growth === 'Climbing' ? 0.008 : 0.014);
+  }
+  Crack.prototype.move = function () {
+    if (!this.alive) return;
+    steer(this);
+    var tr = this.t * Math.PI / 180;
+    this.x += 0.42 * Math.cos(tr); this.y += 0.42 * Math.sin(tr);
+    if ((++this.n & 3) === 0) this.pts.push([this.x * G, this.y * G]);
+    // region colour: walk perpendicular to the nearest crack
+    var rx = this.x, ry = this.y, sn = Math.sin(tr), cs = Math.cos(tr), steps = 0;
+    while (steps++ < 400) {
+      rx += 0.81 * sn; ry -= 0.81 * cs;
+      var ix = rx | 0, iy = ry | 0;
+      if (ix < 0 || iy < 0 || ix >= GW || iy >= GH || grid[iy * GW + ix] !== EMPTY) break;
+    }
+    var band = Math.min(NB - 1, Math.floor(hAt(this.x * G, this.y * G) * NB));
+    this.sp.render(rx, ry, this.x, this.y, band);
+    var cx = Math.floor(this.x + RC.range(-0.33, 0.33)), cy = Math.floor(this.y + RC.range(-0.33, 0.33));
+    if (inside(cx, cy)) {
+      var gi = cy * GW + cx, gv = grid[gi];
+      if (gv === EMPTY || Math.abs(gv - this.t) < 5) { if (gv === EMPTY) marked.push(gi); grid[gi] = this.t; }
+      else if (Math.abs(gv - this.t) > 2) { this.pts.push([this.x * G, this.y * G]); this.stop(); }
+    } else { this.pts.push([this.x * G, this.y * G]); this.stop(); }
+  };
+  Crack.prototype.stop = function () {
+    if (births < maxBirths) { births++; this.start(); } else { this.alive = false; if (this.pts && this.pts.length > 1) lines.push(this.pts); this.pts = null; }
+    if (births < maxBirths) { births++; cracks.push(new Crack()); }
+  };
+  function spawn() { births++; cracks.push(new Crack()); }
+  for (var k = 0; k < 3; k++) spawn();
+  function run() {
+    for (var f = 0; f < 9000; f++) {
+      var any = false;
+      for (var c = 0; c < cracks.length; c++) { if (cracks[c].alive) { any = true; cracks[c].move(); } }
+      if (!any) break;
+    }
+  }
+  run();
+  // top-up: a sheet that froze too early (low coverage) is allowed to keep cracking
+  var minCover = { Sparse: 0.035, Settled: 0.05, Crowded: 0.065 }[densName];
+  for (var extra = 0; extra < 4 && marked.length / (GW * GH) < minCover; extra++) {
+    maxBirths += 140; for (var e2 = 0; e2 < 3; e2++) spawn(); run();
+  }
+  cracks.forEach(function (cr) { if (cr.pts && cr.pts.length > 1) lines.push(cr.pts); });
+
+  // ---- composite -------------------------------------------------------------
+  var off = document.createElement('canvas'); off.width = VW; off.height = VH;
+  var octx = off.getContext('2d'), img = octx.createImageData(VW, VH);
+  for (i = 0; i < VW * VH; i++) { img.data[i * 4] = SB[i * 3]; img.data[i * 4 + 1] = SB[i * 3 + 1]; img.data[i * 4 + 2] = SB[i * 3 + 2]; img.data[i * 4 + 3] = 255; }
+  octx.putImageData(img, 0, 0);
+  ctx.imageSmoothingEnabled = true; ctx.drawImage(off, 0, 0, VW, VH);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (survey === 'Contoured') {
+    ctx.strokeStyle = P.contour; ctx.globalAlpha = 0.85; ctx.lineWidth = 0.8;
+    for (var lv = 1; lv < 10; lv++) {
+      C.contours(T, TW, TH, lv / 10).forEach(function (L) {
+        if (L.length < 6) return;
+        var pts = L.map(function (p) { return [p[0] * 4, p[1] * 4]; });
+        stroke(pts); C.poly(pts, P.contour);
+      });
+    }
+    ctx.globalAlpha = 1;
+  }
+  ctx.strokeStyle = P.crack; ctx.lineWidth = 1.05; ctx.globalAlpha = 0.85;
+  lines.forEach(function (L) { stroke(L); C.poly(L, P.crack); });
+  ctx.globalAlpha = 1;
+  // neat-line frame, like a map sheet
+  ctx.strokeStyle = P.crack; ctx.lineWidth = 1.2;
+  var fr = [[38, 38], [VW - 38, 38], [VW - 38, VH - 38], [38, VH - 38], [38, 38]];
+  stroke(fr); C.poly(fr, P.crack);
+  function stroke(pts) { ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (var n = 1; n < pts.length; n++) ctx.lineTo(pts[n][0], pts[n][1]); ctx.stroke(); }
+  C.done(cv.canvas, 'substrate-cartographies');
+})();
+
+</script>
+</body>
+</html>

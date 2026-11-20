@@ -1,0 +1,105 @@
+{
+ "N": 1,
+ "hash": "0xe1730ea29173e417aacff33842ad4b5aebfd70edfad8e50e21483902e97b3749",
+ "ms": 12928,
+ "features": {
+  "World": "The Lick (default, pending choice)",
+  "Era": "Prologue: the mammoth summer",
+  "World Date": "28,000 BCE",
+  "Surface": "A Death: Horse",
+  "Before This Mint": "First Mint",
+  "Mints Beneath": 0,
+  "Remains In View": "horse (fresh carcass)",
+  "Deepest State": "Soft Tissue",
+  "Clock": "Real Rates",
+  "History": "Snapshot",
+  "Depth Shown": "7.3 m"
+ },
+ "sed": {
+  "N": 1,
+  "world": "A",
+  "zoom": 1,
+  "window": [
+   10.716339238453656,
+   16
+  ],
+  "repeats": 0,
+  "thick": [
+   [
+    9,
+    0,
+    "silt",
+    0.976
+   ],
+   [
+    7,
+    0,
+    "silt",
+    0.806
+   ],
+   [
+    1,
+    0,
+    "sand",
+    0.746
+   ],
+   [
+    6,
+    0,
+    "sand",
+    0.659
+   ],
+   [
+    2,
+    0,
+    "silt",
+    0.643
+   ],
+   [
+    8,
+    0,
+    "mud",
+    0.274
+   ],
+   [
+    5,
+    0,
+    "gravel",
+    0.116
+   ],
+   [
+    3,
+    0,
+    "mud",
+    0.082
+   ]
+  ],
+  "events": [
+   [
+    1,
+    "death",
+    -28000,
+    "prologue",
+    "horse"
+   ]
+  ],
+  "remains": [
+   {
+    "mint": 1,
+    "sp": "horse",
+    "t": 0,
+    "expo": 0.71,
+    "stage": 0,
+    "flesh": 1,
+    "wstage": 0,
+    "fossil": 0,
+    "ker": 0,
+    "age": 0,
+    "dep": 0,
+    "sink": 0.8138219511874952,
+    "pose": "mired",
+    "x": 20.12
+   }
+  ]
+ }
+}

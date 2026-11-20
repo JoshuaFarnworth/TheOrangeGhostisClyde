@@ -1,0 +1,256 @@
+{
+ "N": 20,
+ "hash": "0x3bea63bf1a4b0639b12228ef0bc374a822d8cbd2b9c73f9805a193873ef9bcc7",
+ "ms": 13935,
+ "features": {
+  "World": "The Lick (default, pending choice)",
+  "Era": "Prologue: the mammoth summer",
+  "World Date": "28,000 BCE",
+  "Surface": "Grazing: Bison",
+  "Before This Mint": "Seconds",
+  "Mints Beneath": 19,
+  "Remains In View": "horse (advanced decay), mammoth (advanced decay)",
+  "Deepest State": "Soft Tissue",
+  "Clock": "Real Rates",
+  "History": "Snapshot",
+  "Depth Shown": "6.1 m"
+ },
+ "sed": {
+  "N": 20,
+  "world": "A",
+  "zoom": 1,
+  "window": [
+   9.74167882092297,
+   16
+  ],
+  "repeats": 9,
+  "thick": [
+   [
+    9,
+    0,
+    "silt",
+    0.935
+   ],
+   [
+    7,
+    0,
+    "silt",
+    0.83
+   ],
+   [
+    1,
+    0,
+    "sand",
+    0.777
+   ],
+   [
+    2,
+    0,
+    "silt",
+    0.654
+   ],
+   [
+    6,
+    0,
+    "sand",
+    0.557
+   ],
+   [
+    8,
+    0,
+    "mud",
+    0.263
+   ],
+   [
+    5,
+    0,
+    "gravel",
+    0.101
+   ],
+   [
+    3,
+    0,
+    "mud",
+    0.094
+   ]
+  ],
+  "events": [
+   [
+    1,
+    "death",
+    -28000,
+    "prologue",
+    "horse"
+   ],
+   [
+    2,
+    "graze",
+    -28000,
+    "prologue",
+    "bison"
+   ],
+   [
+    3,
+    "graze",
+    -28000,
+    "prologue",
+    "bison"
+   ],
+   [
+    4,
+    "graze",
+    -28000,
+    "prologue",
+    "bison"
+   ],
+   [
+    5,
+    "graze",
+    -28000,
+    "prologue",
+    "horse"
+   ],
+   [
+    6,
+    "death",
+    -28000,
+    "prologue",
+    "mammoth"
+   ],
+   [
+    7,
+    "graze",
+    -28000,
+    "prologue",
+    "bison"
+   ],
+   [
+    8,
+    "graze",
+    -28000,
+    "prologue",
+    "bison"
+   ],
+   [
+    9,
+    "quiet",
+    -28000,
+    "prologue",
+    ""
+   ],
+   [
+    10,
+    "quiet",
+    -28000,
+    "prologue",
+    ""
+   ],
+   [
+    11,
+    "quiet",
+    -28000,
+    "prologue",
+    ""
+   ],
+   [
+    12,
+    "graze",
+    -28000,
+    "prologue",
+    "horse"
+   ],
+   [
+    13,
+    "loess",
+    -28000,
+    "prologue",
+    ""
+   ],
+   [
+    14,
+    "loess",
+    -28000,
+    "prologue",
+    ""
+   ],
+   [
+    15,
+    "quiet",
+    -28000,
+    "prologue",
+    ""
+   ],
+   [
+    16,
+    "quiet",
+    -28000,
+    "prologue",
+    ""
+   ],
+   [
+    17,
+    "graze",
+    -28000,
+    "prologue",
+    "mammoth"
+   ],
+   [
+    18,
+    "graze",
+    -28000,
+    "prologue",
+    "mammoth"
+   ],
+   [
+    19,
+    "graze",
+    -28000,
+    "prologue",
+    "mammoth"
+   ],
+   [
+    20,
+    "graze",
+    -28000,
+    "prologue",
+    "bison"
+   ]
+  ],
+  "remains": [
+   {
+    "mint": 1,
+    "sp": "horse",
+    "t": 0.449,
+    "expo": 0.52,
+    "stage": 3,
+    "flesh": 0.42,
+    "wstage": 0,
+    "fossil": 0,
+    "ker": 0,
+    "age": 0,
+    "dep": 0.24,
+    "support": 0.1177032372045827,
+    "sink": 0.8138219511874952,
+    "pose": "mired",
+    "x": 20.12
+   },
+   {
+    "mint": 6,
+    "sp": "mammoth",
+    "t": 0.347,
+    "expo": 0.63,
+    "stage": 3,
+    "flesh": 0.49,
+    "wstage": 0,
+    "fossil": 0,
+    "ker": 0,
+    "age": 0,
+    "dep": 0.24,
+    "support": 0.2718808338827377,
+    "sink": 1.0634277554580476,
+    "pose": "mired",
+    "x": 22.15
+   }
+  ]
+ }
+}

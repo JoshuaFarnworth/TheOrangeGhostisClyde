@@ -1,0 +1,855 @@
+/* clyde.js: shared platform adapter + toolkit. One codebase that runs on
+ * Aleatory ($alea, ALEATORY-001 §7), fxhash ($fx, @fxhash/project-sdk), Highlight (hl-gen.js),
+ * Verse (?payload=) or standalone (?hash=...). To add a platform, add one branch here.
+ * Every random value is derived from the platform's own seeded stream.
+ */
+(function (W) {
+  'use strict';
+  var q = new URLSearchParams(W.location ? W.location.search : '');
+
+  // ---- platform detection -------------------------------------------------
+  var platform, seedStr, baseRand, setFeatures, signalDone;
+  if (W.$alea && typeof W.$alea.rand === 'function' && W.$alea.seed != null) {
+    platform = 'aleatory';
+    seedStr = String(W.$alea.seed);
+    baseRand = W.$alea.rand;
+    setFeatures = function (f) { W.$alea.features(f); };
+    signalDone = function () { W.$alea.ready(); };
+  } else if (W.$fx && typeof W.$fx.rand === 'function') {
+    platform = 'fxhash';
+    seedStr = String(W.$fx.hash);
+    baseRand = W.$fx.rand;
+    setFeatures = function (f) { W.$fx.features(f); };
+    signalDone = function () { W.$fx.preview(); };
+  } else if (typeof hl !== 'undefined' && hl && typeof hl.random === 'function' && hl.token) {
+    // Highlight (hl-gen.js): note `hl` is a top-level const, not a window property
+    platform = 'highlight';
+    seedStr = String(hl.tx.hash);
+    baseRand = function () { return hl.random(); };
+    setFeatures = function (f) { hl.token.setTraits(f); };
+    signalDone = function () { hl.token.capturePreview(); };
+  } else if (q.get('payload')) {
+    // Verse "Random Generative JS": base64 JSON payload {hash, editionNumber, totalEditions, input}
+    platform = 'verse';
+    var pl = {}; try { pl = JSON.parse(atob(q.get('payload'))); } catch (e) {}
+    seedStr = String(pl.hash || '0x0');
+    baseRand = sfc32.apply(null, cyrb128(seedStr));
+    setFeatures = function (f) { W.$artifact = W.$artifact || {}; W.$artifact.features = f; };
+    signalDone = function () { console.info('###verse-preview-capture'); W.dispatchEvent(new Event('capture-preview')); };
+  } else {
+    platform = 'standalone';
+    seedStr = q.get('hash') || q.get('seed') || (function () {
+      var h = '0x', c = '0123456789abcdef';
+      for (var i = 0; i < 64; i++) h += c[(Math.random() * 16) | 0];
+      return h;
+    })();
+    baseRand = sfc32.apply(null, cyrb128(seedStr));
+    setFeatures = function () {};
+    signalDone = function () {};
+  }
+
+  function cyrb128(str) {
+    var h1 = 1779033703, h2 = 3144134277, h3 = 1013904242, h4 = 2773480762;
+    for (var i = 0, k; i < str.length; i++) {
+      k = str.charCodeAt(i);
+      h1 = h2 ^ Math.imul(h1 ^ k, 597399067); h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
+      h3 = h4 ^ Math.imul(h3 ^ k, 951274213); h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
+    }
+    h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067); h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
+    h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213); h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
+    h1 ^= (h2 ^ h3 ^ h4); h2 ^= h1; h3 ^= h1; h4 ^= h1;
+    return [h1 >>> 0, h2 >>> 0, h3 >>> 0, h4 >>> 0];
+  }
+  function sfc32(a, b, c, d) {
+    return function () {
+      a >>>= 0; b >>>= 0; c >>>= 0; d >>>= 0;
+      var t = (a + b) | 0; a = b ^ (b >>> 9); b = (c + (c << 3)) | 0;
+      c = (c << 21) | (c >>> 11); d = (d + 1) | 0; t = (t + d) | 0; c = (c + t) | 0;
+      return (t >>> 0) / 4294967296;
+    };
+  }
+
+  // Root key: four draws from the platform stream (identical count on every path).
+  var root = '';
+  for (var i = 0; i < 4; i++) root += ((baseRand() * 4294967296) >>> 0).toString(16) + ':';
+
+  function makeRng(label) {
+    var s = cyrb128(root + label), next = sfc32(s[0], s[1], s[2], s[3]);
+    for (var j = 0; j < 12; j++) next();
+    var R = {
+      rand: next,
+      range: function (a, b) { return a + (b - a) * next(); },
+      int: function (a, b) { return Math.floor(a + (b - a + 1) * next()); },
+      chance: function (p) { return next() < p; },
+      pick: function (arr) { return arr[Math.floor(next() * arr.length)]; },
+      weighted: function (pairs) {
+        var t = 0, k; for (k = 0; k < pairs.length; k++) t += pairs[k][1];
+        var r = next() * t;
+        for (k = 0; k < pairs.length; k++) { r -= pairs[k][1]; if (r < 0) return pairs[k][0]; }
+        return pairs[pairs.length - 1][0];
+      },
+      gaussian: function (m, sd) {
+        var u = 1 - next(), v = next();
+        return (m || 0) + (sd == null ? 1 : sd) * Math.sqrt(-2 * Math.log(u)) * Math.cos(6.283185307179586 * v);
+      },
+      pareto: function (min, alpha) { return min / Math.pow(1 - next(), 1 / alpha); },
+      shuffle: function (arr) {
+        var a = arr.slice();
+        for (var k = a.length - 1; k > 0; k--) { var j2 = Math.floor(next() * (k + 1)); var t2 = a[k]; a[k] = a[j2]; a[j2] = t2; }
+        return a;
+      },
+      fork: function (l) { return makeRng(label + '/' + l); }
+    };
+    return R;
+  }
+
+  // ---- simplex noise 2D (Gustavson), permutation from an rng ----------------
+  function makeNoise(R) {
+    var p = [], perm = new Uint8Array(512), k;
+    for (k = 0; k < 256; k++) p[k] = k;
+    p = R.shuffle(p);
+    for (k = 0; k < 512; k++) perm[k] = p[k & 255];
+    var G = [[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]];
+    var F2 = 0.5 * (Math.sqrt(3) - 1), G2 = (3 - Math.sqrt(3)) / 6;
+    function n2(xin, yin) {
+      var s = (xin + yin) * F2, i = Math.floor(xin + s), j = Math.floor(yin + s);
+      var t = (i + j) * G2, x0 = xin - (i - t), y0 = yin - (j - t);
+      var i1 = x0 > y0 ? 1 : 0, j1 = 1 - i1;
+      var x1 = x0 - i1 + G2, y1 = y0 - j1 + G2, x2 = x0 - 1 + 2 * G2, y2 = y0 - 1 + 2 * G2;
+      var ii = i & 255, jj = j & 255, n = 0, tt, g;
+      tt = 0.5 - x0 * x0 - y0 * y0; if (tt > 0) { g = G[perm[ii + perm[jj]] & 7]; tt *= tt; n += tt * tt * (g[0] * x0 + g[1] * y0); }
+      tt = 0.5 - x1 * x1 - y1 * y1; if (tt > 0) { g = G[perm[ii + i1 + perm[jj + j1]] & 7]; tt *= tt; n += tt * tt * (g[0] * x1 + g[1] * y1); }
+      tt = 0.5 - x2 * x2 - y2 * y2; if (tt > 0) { g = G[perm[ii + 1 + perm[jj + 1]] & 7]; tt *= tt; n += tt * tt * (g[0] * x2 + g[1] * y2); }
+      return 70 * n; // ~[-1,1]
+    }
+    function fbm(x, y, oct) {
+      var a = 0.5, f = 1, s = 0, n = 0; oct = oct || 4;
+      for (var o = 0; o < oct; o++) { s += a * n2(x * f, y * f); n += a; a *= 0.5; f *= 2; }
+      return s / n;
+    }
+    return { n2: n2, fbm: fbm };
+  }
+
+
+  // ---- marching squares -> chained polylines (grid coords) -----------------
+  function contours(F, w, h, thr) {
+    var segs = [];
+    function lerp(a, b) { return (thr - a) / (b - a); }
+    for (var y = 0; y < h - 1; y++) for (var x = 0; x < w - 1; x++) {
+      var a = F[y * w + x], b = F[y * w + x + 1], c = F[(y + 1) * w + x + 1], d = F[(y + 1) * w + x];
+      var idx = (a > thr ? 8 : 0) | (b > thr ? 4 : 0) | (c > thr ? 2 : 0) | (d > thr ? 1 : 0);
+      if (idx === 0 || idx === 15) continue;
+      var T = [x + lerp(a, b), y], R = [x + 1, y + lerp(b, c)], B = [x + lerp(d, c), y + 1], L = [x, y + lerp(a, d)];
+      switch (idx) {
+        case 1: case 14: segs.push([L, B]); break;
+        case 2: case 13: segs.push([B, R]); break;
+        case 3: case 12: segs.push([L, R]); break;
+        case 4: case 11: segs.push([T, R]); break;
+        case 6: case 9: segs.push([T, B]); break;
+        case 7: case 8: segs.push([L, T]); break;
+        case 5: segs.push([L, T]); segs.push([B, R]); break;
+        case 10: segs.push([T, R]); segs.push([L, B]); break;
+      }
+    }
+    return chain(segs);
+  }
+  function chain(segs) {
+    var key = function (p) { return Math.round(p[0] * 1000) + ',' + Math.round(p[1] * 1000); };
+    var map = {}, used = new Uint8Array(segs.length), i;
+    for (i = 0; i < segs.length; i++) for (var e = 0; e < 2; e++) { var kk = key(segs[i][e]); (map[kk] = map[kk] || []).push(i); }
+    var lines = [];
+    function nextFrom(p) {
+      var l = map[key(p)]; if (!l) return -1;
+      for (var j = 0; j < l.length; j++) if (!used[l[j]]) return l[j];
+      return -1;
+    }
+    for (i = 0; i < segs.length; i++) {
+      if (used[i]) continue;
+      used[i] = 1; var line = [segs[i][0], segs[i][1]];
+      for (var dir = 0; dir < 2; dir++) {
+        while (true) {
+          var end = line[line.length - 1], n = nextFrom(end);
+          if (n < 0) break;
+          used[n] = 1; var s2 = segs[n];
+          line.push(key(s2[0]) === key(end) ? s2[1] : s2[0]);
+        }
+        line.reverse();
+      }
+      lines.push(line);
+    }
+    return lines;
+  }
+  // ---- exact Euclidean distance transform (Felzenszwalb) -------------------
+  // in: Uint8Array mask (1 = feature), returns Float32Array distance in cells
+  function edt(mask, w, h) {
+    var INF = 1e20, f = new Float64Array(Math.max(w, h)), d = new Float64Array(Math.max(w, h));
+    var v = new Int32Array(Math.max(w, h)), z = new Float64Array(Math.max(w, h) + 1);
+    var g = new Float64Array(w * h), x, y;
+    for (var i = 0; i < w * h; i++) g[i] = mask[i] ? 0 : INF;
+    function dt1(n) {
+      var k = 0; v[0] = 0; z[0] = -INF; z[1] = INF;
+      for (var q2 = 1; q2 < n; q2++) {
+        var s = ((f[q2] + q2 * q2) - (f[v[k]] + v[k] * v[k])) / (2 * q2 - 2 * v[k]);
+        while (s <= z[k]) { k--; s = ((f[q2] + q2 * q2) - (f[v[k]] + v[k] * v[k])) / (2 * q2 - 2 * v[k]); }
+        k++; v[k] = q2; z[k] = s; z[k + 1] = INF;
+      }
+      k = 0;
+      for (var q3 = 0; q3 < n; q3++) { while (z[k + 1] < q3) k++; d[q3] = (q3 - v[k]) * (q3 - v[k]) + f[v[k]]; }
+    }
+    for (x = 0; x < w; x++) { for (y = 0; y < h; y++) f[y] = g[y * w + x]; dt1(h); for (y = 0; y < h; y++) g[y * w + x] = d[y]; }
+    for (y = 0; y < h; y++) { for (x = 0; x < w; x++) f[x] = g[y * w + x]; dt1(w); for (x = 0; x < w; x++) g[y * w + x] = d[x]; }
+    var out = new Float32Array(w * h);
+    for (i = 0; i < w * h; i++) out[i] = Math.sqrt(g[i]);
+    return out;
+  }
+
+  // ---- canvas: fixed virtual space, fixed pixel resolution ------------------
+  function setupCanvas(VW, VH, bg) {
+    var longSide = parseInt(q.get('res'), 10) || 1600;
+    longSide = Math.max(400, Math.min(8000, longSide));
+    var k = longSide / Math.max(VW, VH);
+    var cv = document.createElement('canvas');
+    cv.width = Math.round(VW * k); cv.height = Math.round(VH * k);
+    document.body.style.cssText = 'margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:' + (bg || '#111') + ';overflow:hidden';
+    document.body.appendChild(cv);
+    function fit() {
+      var s = Math.min(W.innerWidth / cv.width, W.innerHeight / cv.height);
+      cv.style.width = Math.floor(cv.width * s) + 'px'; cv.style.height = Math.floor(cv.height * s) + 'px';
+    }
+    fit(); W.addEventListener('resize', fit);
+    var ctx = cv.getContext('2d');
+    ctx.setTransform(k, 0, 0, k, 0, 0); // draw in virtual units
+    return { canvas: cv, ctx: ctx, k: k, VW: VW, VH: VH };
+  }
+
+  // ---- vector recorder for plotter SVG -------------------------------------
+  var vec = { layers: {}, order: [], VW: 1000, VH: 1000 };
+  function poly(pts, color, closed) {
+    if (!pts || pts.length < 2) return;
+    if (!vec.layers[color]) { vec.layers[color] = []; vec.order.push(color); }
+    vec.layers[color].push({ p: pts, c: !!closed });
+  }
+  function svgString(mmLong) {
+    mmLong = mmLong || 280;
+    var s = mmLong / Math.max(vec.VW, vec.VH), mw = (vec.VW * s).toFixed(1), mh = (vec.VH * s).toFixed(1);
+    var o = ['<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="' + mw + 'mm" height="' + mh + 'mm" viewBox="0 0 ' + mw + ' ' + mh + '">'];
+    vec.order.forEach(function (col, li) {
+      o.push('<g inkscape:groupmode="layer" id="pen' + (li + 1) + '" inkscape:label="' + (li + 1) + ' ' + col + '" fill="none" stroke="' + col + '" stroke-width="0.3" stroke-linecap="round" stroke-linejoin="round">');
+      vec.layers[col].forEach(function (L) {
+        var d = L.p.map(function (p) { return (p[0] * s).toFixed(2) + ',' + (p[1] * s).toFixed(2); }).join(' ');
+        o.push(L.c ? '<polygon points="' + d + '"/>' : '<polyline points="' + d + '"/>');
+      });
+      o.push('</g>');
+    });
+    o.push('</svg>');
+    return o.join('\n');
+  }
+  function download(name, data, mime) {
+    var a = document.createElement('a');
+    a.href = typeof data === 'string' && data.indexOf('data:') === 0 ? data : URL.createObjectURL(new Blob([data], { type: mime }));
+    a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  var C = {
+    platform: platform, hash: seedStr, query: q,
+    rng: makeRng, noise: makeNoise, setupCanvas: setupCanvas, contours: contours, chain: chain, edt: edt,
+    poly: poly, svgString: svgString,
+    vectorSpace: function (VW, VH) { vec.VW = VW; vec.VH = VH; },
+    plottable: true,
+    _features: null,
+    features: function (f) { C._features = f; setFeatures(f); },
+    done: function (canvas, slug) {
+      W.__clyde = { done: true, features: C._features, hash: seedStr, platform: platform };
+      signalDone();
+      W.addEventListener('keydown', function (e) {
+        var base = (slug || 'clyde') + '-' + seedStr.slice(0, 12);
+        if (e.key === 's') download(base + '.png', canvas.toDataURL('image/png'));
+        if (e.key === 'v' && C.plottable) download(base + '.svg', svgString(), 'image/svg+xml');
+      });
+    },
+    // perceptual-ish colour helpers
+    hex2rgb: function (h) { h = h.replace('#', ''); return [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)]; },
+    mix: function (a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; },
+    rgba: function (c, a) { return 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + (a == null ? 1 : a) + ')'; }
+  };
+  W.CLYDE = C;
+})(window);
+
+var FONT={"B":{"upm":1000,"g":{" ":[280,""],"A":[754,"M44 32L78 32Q108 32 131 56Q154 79 166 113L377 730L419 730L633 83Q650 32 692 32L732 32L732 0L381 0L381 32L453 32Q465 32 472 42Q480 51 480 64Q480 75 474 93L442 189L232 189L211 128Q200 100 200 77Q200 59 214 46Q229 32 252 32L299 32L299 0L44 0ZM245 226L430 226L339 501Z"],"B":[710,"M62 32L132 32Q146 32 151 38Q156 43 156 56L156 656Q156 670 151 675Q146 680 132 680L62 680L62 712L414 712Q473 712 524 690Q576 668 607 630Q638 591 638 542Q638 476 589 435Q540 394 469 375L469 369Q515 362 560 340Q604 317 633 280Q662 243 662 194Q662 133 630 89Q598 45 544 22Q491 0 427 0L62 0ZM396 388Q450 388 469 426Q488 465 488 542Q488 607 465 644Q442 680 402 680L328 680Q315 680 310 675Q304 670 304 656L304 388ZM396 32Q449 32 476 68Q502 103 502 194Q502 285 476 320Q449 356 396 356L304 356L304 56Q304 43 310 38Q315 32 328 32Z"],"C":[660,"M70 356Q70 457 104 542Q138 628 202 679Q265 730 350 730Q387 730 418 718Q450 705 485 681Q508 666 519 666Q527 666 532 670Q537 675 541 685L559 722L592 722L592 415L560 415Q537 544 480 621Q424 698 350 698Q303 698 272 652Q240 606 240 506L240 206Q240 107 276 60Q311 14 360 14Q479 14 537 123Q566 176 576 275L612 275Q609 231 598 186Q588 142 571 109Q540 49 486 16Q433 -18 360 -18Q267 -18 202 34Q136 87 103 172Q70 258 70 356Z"],"D":[786,"M62 32L132 32Q146 32 151 38Q156 43 156 56L156 656Q156 670 151 675Q146 680 132 680L62 680L62 712L434 712Q517 712 586 668Q655 623 696 544Q736 464 736 362Q736 260 696 177Q655 94 586 47Q516 0 434 0L62 0ZM417 32Q481 32 524 76Q566 121 566 206L566 506Q566 591 524 636Q481 680 417 680L328 680Q315 680 310 675Q304 670 304 656L304 56Q304 43 310 38Q315 32 328 32Z"],"E":[690,"M62 32L132 32Q146 32 151 38Q156 43 156 56L156 656Q156 670 151 675Q146 680 132 680L62 680L62 712L624 712L630 480L598 480Q598 487 588 525Q577 563 558 594Q535 634 505 657Q475 680 438 680L328 680Q315 680 310 675Q304 670 304 656L304 380L355 380Q382 380 405 402Q428 424 442 456Q455 489 455 518L487 518L487 205L455 205Q455 235 442 268Q428 300 405 322Q382 344 355 344L304 344L304 56Q304 43 310 38Q315 32 328 32L437 32Q492 32 529 76Q566 120 585 174Q593 197 599 231Q605 265 606 276L638 276L632 0L62 0Z"],"F":[670,"M62 32L132 32Q146 32 151 38Q156 43 156 56L156 656Q156 670 151 675Q146 680 132 680L62 680L62 712L626 712L634 438L602 438Q602 446 592 492Q582 538 566 571Q545 616 510 648Q474 680 430 680L328 680Q315 680 310 675Q304 670 304 656L304 380L355 380Q382 380 405 402Q428 424 442 456Q455 489 455 518L487 518L487 205L455 205Q455 235 442 268Q428 300 405 322Q382 344 355 344L304 344L304 56Q304 43 310 38Q315 32 328 32L419 32L419 0L62 0Z"],"G":[720,"M70 356Q70 456 108 542Q146 628 214 679Q282 730 368 730Q411 730 442 718Q474 705 510 681Q533 666 544 666Q557 666 566 685L583 722L616 722L616 434L585 434Q550 561 496 630Q441 698 368 698Q307 698 274 654Q240 609 240 506L240 206Q240 14 350 14Q402 14 435 58Q468 102 468 161L468 298Q468 312 463 317Q458 322 444 322L356 322L356 354L688 354L688 322L640 322Q627 322 622 317Q616 312 616 298L616 -13L584 -13L560 78Q557 88 551 96Q545 103 536 103Q518 103 505 82Q480 44 440 13Q400 -18 350 -18Q265 -18 202 33Q138 84 104 170Q70 255 70 356Z"],"H":[824,"M62 32L132 32Q146 32 151 38Q156 43 156 56L156 656Q156 670 151 675Q146 680 132 680L62 680L62 712L398 712L398 680L328 680Q315 680 310 675Q304 670 304 656L304 392L540 392L540 656Q540 670 535 675Q530 680 516 680L444 680L444 712L782 712L782 680L712 680Q699 680 694 675Q688 670 688 656L688 56Q688 43 694 38Q699 32 712 32L782 32L782 0L446 0L446 32L516 32Q530 32 535 38Q540 43 540 56L540 356L304 356L304 56Q304 43 310 38Q315 32 328 32L398 32L398 0L62 0Z"],"I":[440,"M62 32L132 32Q146 32 151 38Q156 43 156 56L156 656Q156 670 151 675Q146 680 132 680L62 680L62 712L398 712L398 680L328 680Q315 680 310 675Q304 670 304 656L304 56Q304 43 310 38Q315 32 328 32L398 32L398 0L62 0Z"],"J":[540,"M36 154Q36 189 49 216Q62 242 83 256Q104 271 126 271Q158 271 178 250Q197 230 197 202Q197 168 179 148Q161 127 136 118Q119 112 112 102Q104 93 104 76Q104 63 116 48Q129 33 152 24Q174 14 202 14Q278 14 278 130L278 656Q278 670 273 675Q268 680 254 680L174 680L174 712L512 712L512 680L450 680Q437 680 432 675Q426 670 426 656L426 194Q426 129 395 81Q364 33 316 8Q267 -18 214 -18Q165 -18 124 2Q84 22 60 60Q36 99 36 154Z"],"K":[770,"M62 32L132 32Q146 32 151 38Q156 43 156 56L156 656Q156 670 151 675Q146 680 132 680L62 680L62 712L390 712L390 680L328 680Q315 680 310 675Q304 670 304 656L304 360L497 584Q511 600 516 612Q522 623 522 638Q522 656 512 668Q502 680 486 680L457 680L457 712L704 712L704 680L669 680Q648 680 626 666Q603 651 586 630L452 475L663 76Q676 51 688 42Q700 32 723 32L750 32L750 0L436 0L436 32L476 32Q485 32 491 38Q497 45 497 53Q497 59 496 66Q494 74 492 78L347 354L304 305L304 56Q304 43 310 38Q315 32 328 32L390 32L390 0L62 0Z"],"L":[670,"M62 32L132 32Q145 32 150 38Q156 45 156 59L156 656Q156 670 151 675Q146 680 132 680L62 680L62 712L398 712L398 680L328 680Q315 680 310 675Q304 670 304 656L304 59Q304 45 310 38Q315 32 328 32L429 32Q483 32 522 88Q560 144 579 206Q586 229 594 263Q602 297 604 308L636 308L628 0L62 0Z"],"M":[890,"M199 537L192 537L192 122Q192 77 222 54Q253 32 296 32L296 0L48 0L48 32Q91 32 122 54Q152 77 152 122L152 656Q152 670 147 675Q142 680 128 680L48 680L48 712L287 712L470 220L604 712L858 712L858 680L788 680Q775 680 770 675Q764 670 764 656L764 56Q764 43 770 38Q775 32 788 32L858 32L858 0L522 0L522 32L592 32Q606 32 611 38Q616 43 616 56L616 625L442 -12L403 -12Z"],"N":[764,"M218 517L214 517L214 136Q214 90 250 61Q285 32 340 32L340 0L48 0L48 32Q103 32 138 61Q174 90 174 136L174 563Q174 574 172 579Q170 584 163 594L123 654Q113 669 101 674Q89 680 66 680L48 680L48 712L270 712L590 255L590 576Q590 622 554 651Q519 680 464 680L464 712L756 712L756 680Q701 680 666 651Q630 622 630 576L630 -18L592 -18Z"],"O":[712,"M70 356Q70 451 111 538Q152 624 220 677Q289 730 366 730Q443 730 512 677Q580 624 621 538Q662 451 662 356Q662 261 621 174Q580 88 512 35Q443 -18 366 -18Q289 -18 220 35Q152 88 111 174Q70 261 70 356ZM492 206L492 506Q492 609 460 654Q427 698 366 698Q305 698 272 654Q240 609 240 506L240 206Q240 103 272 58Q305 14 366 14Q427 14 460 58Q492 103 492 206Z"],"P":[702,"M62 32L132 32Q146 32 151 38Q156 43 156 56L156 656Q156 670 151 675Q146 680 132 680L62 680L62 712L418 712Q488 712 542 688Q597 665 628 622Q658 580 658 526Q658 471 628 428Q597 385 542 360Q488 336 418 336L304 336L304 56Q304 43 310 38Q315 32 328 32L416 32L416 0L62 0ZM403 368Q455 368 476 410Q498 452 498 526Q498 599 477 640Q456 680 403 680L328 680Q315 680 310 675Q304 670 304 656L304 368Z"],"R":[730,"M456 126L456 250Q456 298 432 331Q409 364 360 364L304 364L304 56Q304 43 310 38Q315 32 328 32L416 32L416 0L62 0L62 32L132 32Q146 32 151 38Q156 43 156 56L156 656Q156 670 151 675Q146 680 132 680L62 680L62 712L386 712Q494 712 560 664Q626 617 626 536Q626 467 576 427Q525 387 442 377L442 370Q520 356 562 314Q604 273 604 185L604 74Q604 32 632 32Q658 32 670 75Q682 118 682 180L714 180Q714 83 688 30Q662 -24 595 -24Q531 -24 494 14Q456 52 456 126ZM371 396Q424 396 445 435Q466 474 466 544Q466 612 445 646Q424 680 371 680L328 680Q315 680 310 675Q304 670 304 656L304 396Z"],"S":[620,"M210 26Q187 43 177 50Q167 56 158 56Q137 56 132 22L127 -10L96 -10L90 306L122 306Q136 230 170 163Q203 96 250 55Q298 14 353 14Q432 14 461 49Q490 84 490 128Q490 154 472 174Q453 195 418 218L204 356Q157 386 124 431Q92 476 92 538Q92 635 148 682Q205 730 288 730Q359 730 430 680Q453 662 466 662Q484 662 488 685L494 712L526 712L536 452L504 452Q485 521 451 577Q417 633 372 666Q328 698 280 698Q227 698 202 677Q176 656 176 614Q176 557 265 499L480 360Q521 333 546 286Q570 239 570 188Q570 136 545 89Q520 42 470 12Q420 -18 347 -18Q303 -18 268 -6Q233 7 210 26Z"],"T":[716,"M190 32L270 32Q284 32 289 38Q294 43 294 56L294 646Q294 662 284 671Q274 680 257 680Q210 680 171 628Q132 577 113 508Q102 471 98 446Q93 420 92 414L60 414L68 712L668 712L676 414L644 414Q643 420 638 446Q634 471 623 508Q604 577 565 628Q526 680 479 680Q462 680 452 671Q442 662 442 646L442 56Q442 43 448 38Q453 32 466 32L546 32L546 0L190 0Z"],"U":[794,"M156 237L156 656Q156 670 151 675Q146 680 132 680L68 680L68 712L392 712L392 680L328 680Q315 680 310 675Q304 670 304 656L304 198Q304 106 339 64Q374 22 447 22Q496 22 535 46Q574 70 596 110Q618 150 618 198L618 590Q618 635 588 658Q557 680 514 680L514 712L762 712L762 680Q719 680 688 658Q658 635 658 590L658 208Q658 145 630 94Q601 42 546 12Q492 -18 419 -18Q329 -18 270 18Q211 53 184 110Q156 168 156 237Z"],"V":[772,"M158 622Q147 655 130 668Q112 680 79 680L46 680L46 712L393 712L393 680L343 680Q329 680 319 672Q309 665 309 655Q309 644 313 633L461 212L576 569Q586 599 586 620Q586 642 572 661Q558 680 530 680L480 680L480 712L750 712L750 680L719 680Q652 680 623 589L426 -18L384 -18Z"],"W":[1076,"M158 615Q147 648 126 664Q105 680 63 680L44 680L44 712L369 712L369 680L340 680Q326 680 318 670Q309 660 309 645Q309 633 314 620L440 235L534 555L512 622Q501 655 484 668Q466 680 433 680L416 680L416 712L744 712L744 680L695 680Q681 680 672 671Q663 662 663 651Q663 641 666 629L793 239L884 568Q886 575 888 592Q891 610 891 622Q891 644 878 662Q866 680 838 680L788 680L788 712L1058 712L1058 680L1027 680Q960 680 931 589L762 -18L720 -18L556 488L408 -18L366 -18Z"],"Y":[736,"M222 32L286 32Q300 32 305 38Q310 43 310 56L310 269L140 636Q128 661 115 670Q102 680 81 680L46 680L46 712L360 712L360 680L332 680Q318 680 311 670Q304 660 304 648Q304 632 310 620L442 333L534 562Q548 594 548 619Q548 643 535 662Q522 680 494 680L466 680L466 712L714 712L714 680L684 680Q650 680 628 658Q605 637 593 607L458 278L458 56Q458 43 464 38Q469 32 482 32L546 32L546 0L222 0Z"]}},"I":{"upm":1000,"g":{"F":[680,"M-2 32L74 32Q101 32 108 59L269 653Q271 661 271 665Q271 680 250 680L174 680L182 712L734 712L688 484L663 484Q664 488 665 500Q666 513 666 532Q666 616 639 648Q612 680 558 680L394 680Q367 680 360 653L287 384L394 384Q433 384 457 406Q481 427 492 456Q504 485 515 526L540 526L454 202L429 202Q439 246 439 277Q439 312 426 332Q412 352 379 352L279 352L199 59Q197 51 197 48Q197 32 218 32L330 32L322 0L-10 0Z"],"i":[334,"M216 638Q216 661 231 676Q246 690 268 690Q291 690 306 676Q320 661 320 638Q320 616 306 601Q291 586 268 586Q246 586 231 601Q216 616 216 638ZM97 84Q97 106 103 136Q109 167 117 186L181 335Q186 346 192 364Q197 382 197 394Q197 408 192 417Q186 426 175 426Q141 426 110 374Q78 322 56 262L36 268Q63 348 102 402Q141 456 186 456Q212 456 230 431Q249 406 249 360Q249 338 243 306Q237 275 229 258L165 109Q160 98 154 80Q149 62 149 50Q149 36 155 27Q161 18 172 18Q206 18 237 70Q268 122 290 182L310 176Q283 95 244 42Q206 -12 161 -12Q134 -12 116 12Q97 36 97 84Z"],"g":[480,"M-17 -150Q-17 -122 0 -106Q16 -90 37 -90Q56 -90 66 -102Q77 -115 77 -130Q77 -155 58 -170Q53 -175 51 -179Q49 -183 49 -192Q49 -224 92 -224Q126 -224 152 -212Q177 -199 201 -167Q226 -134 242 -96Q257 -59 268 -16Q274 3 286 48Q299 92 305 117L302 119Q281 74 240 31Q200 -12 154 -12Q101 -12 72 26Q42 63 42 125Q42 185 64 244Q87 302 113 343Q146 396 192 426Q237 456 283 456Q313 456 337 433Q361 410 369 368L373 366L395 444L461 444L338 -7Q325 -54 297 -106Q269 -159 233 -192Q202 -221 166 -234Q131 -248 100 -248Q47 -248 15 -222Q-17 -196 -17 -150ZM294 150Q314 195 329 250Q344 305 344 340Q344 384 326 408Q308 432 277 432Q246 432 218 398Q190 364 170 320Q145 264 130 201Q114 138 114 85Q114 55 124 34Q135 12 160 12Q197 12 231 50Q265 87 294 150Z"],"a":[536,"M42 125Q42 186 60 242Q78 299 101 335Q136 390 182 423Q229 456 277 456Q308 456 333 434Q358 413 369 368L373 366L395 444L461 444L376 129Q362 73 362 49Q362 35 366 28Q370 22 380 22Q407 22 436 66Q465 111 489 182L509 176Q483 99 446 44Q408 -12 362 -12Q304 -12 304 90Q304 103 304 110Q305 116 305 117L302 119Q281 74 240 31Q200 -12 154 -12Q101 -12 72 26Q42 63 42 125ZM294 150Q314 195 329 250Q344 305 344 340Q344 384 326 408Q308 432 277 432Q246 432 218 398Q190 364 170 320Q145 264 130 201Q114 138 114 85Q114 55 124 34Q135 12 160 12Q197 12 231 50Q265 87 294 150Z"],"b":[480,"M68 136Q68 165 74 185L206 666Q208 674 208 677Q208 688 191 688L102 688L109 712L286 712L188 353L193 349Q220 396 258 426Q295 456 338 456Q390 456 418 412Q446 368 446 310Q446 247 412 172Q377 96 335 52Q303 20 268 4Q233 -12 188 -12Q156 -12 128 6Q101 24 84 58Q68 91 68 136ZM313 120Q374 235 374 349Q374 379 362 406Q351 432 330 432Q296 432 260 398Q223 365 194 306Q169 256 154 202Q138 149 138 106Q138 69 150 40Q161 12 202 12Q236 12 262 42Q288 72 313 120Z"],"c":[424,"M52 158Q52 218 74 276Q96 335 140 381Q175 418 210 437Q246 456 290 456Q328 456 357 432Q386 408 386 356Q386 326 370 306Q353 286 329 286Q310 286 300 298Q290 309 290 324Q290 353 322 376Q333 385 333 402Q333 411 322 422Q311 432 286 432Q208 432 150 258Q139 225 132 176Q124 126 124 98Q124 54 144 33Q163 12 191 12Q253 12 292 62Q331 112 347 155L368 148Q344 80 295 34Q246 -12 186 -12Q126 -12 89 38Q52 87 52 158Z"],"d":[530,"M42 125Q42 185 64 244Q87 302 113 343Q146 396 192 426Q237 456 283 456Q313 456 337 433Q361 410 369 368L373 366L454 666L455 673Q455 688 438 688L350 688L357 712L534 712L376 129Q362 73 362 49Q362 35 366 28Q370 22 380 22Q407 22 436 67Q466 112 489 182L509 176Q481 98 444 43Q408 -12 362 -12Q304 -12 304 90Q304 103 304 110Q305 116 305 117L302 119Q281 74 240 31Q200 -12 154 -12Q101 -12 72 26Q42 63 42 125ZM294 150Q314 195 329 250Q344 305 344 340Q344 384 326 408Q308 432 277 432Q246 432 218 398Q190 364 170 320Q145 264 130 201Q114 138 114 85Q114 55 124 34Q135 12 160 12Q197 12 231 50Q265 87 294 150Z"],"e":[410,"M52 158Q52 218 74 276Q96 335 140 381Q212 456 290 456Q330 456 356 436Q381 417 381 372Q381 294 280 247Q246 231 212 224Q178 218 138 215Q133 194 128 160Q124 127 124 98Q124 54 144 33Q163 12 191 12Q253 12 292 62Q331 112 347 155L368 148Q344 80 295 34Q246 -12 186 -12Q126 -12 89 38Q52 87 52 158ZM261 265Q293 279 313 309Q333 339 333 378Q333 407 321 420Q309 432 291 432Q250 432 215 394Q180 357 164 313Q159 297 153 275Q147 253 144 240Q217 245 261 265Z"],"0":[580,"M72 256Q72 358 114 462Q157 565 233 632Q309 700 402 700Q482 700 520 627Q558 554 558 428Q558 326 516 222Q473 119 397 52Q321 -16 228 -16Q148 -16 110 57Q72 130 72 256ZM412 238Q441 325 460 405Q478 485 478 540Q478 668 404 668Q340 668 296 608Q252 549 218 446Q152 248 152 143Q152 16 226 16Q292 16 334 74Q377 133 412 238Z"],"1":[580,"M62 32L155 32Q170 32 178 38Q187 44 191 58L328 563Q315 554 293 546Q271 537 257 533Q243 529 238 527L204 516L197 536Q269 557 326 590Q384 622 421 684L452 684L282 58Q280 50 280 47Q280 39 286 36Q291 32 302 32L400 32L392 0L54 0Z"],"2":[580,"M183 61Q163 88 148 101Q132 114 114 114Q93 114 84 105Q74 96 74 70Q74 57 81 52Q90 44 94 38Q98 31 98 23Q98 11 91 2Q84 -8 68 -8Q51 -8 42 2Q32 11 32 26Q32 90 68 144Q104 199 174 235L310 315Q373 352 422 414Q470 476 470 540Q470 593 443 630Q416 668 353 668Q316 668 280 647Q243 626 219 596Q195 565 195 540Q195 507 212 507Q218 507 228 513Q242 520 252 520Q274 520 285 507Q296 494 296 474Q296 448 277 429Q258 410 228 410Q201 410 178 434Q156 459 156 499Q156 556 186 602Q217 648 264 674Q312 700 362 700Q456 700 511 650Q566 601 566 522Q566 461 528 414Q490 367 442 338Q393 309 331 280L216 227Q167 205 142 182Q116 158 116 143Q144 143 197 120Q235 105 266 96Q297 87 329 87Q368 87 400 104Q431 121 445 155L464 201L483 201Q467 116 423 50Q379 -17 305 -17Q264 -17 236 4Q209 25 183 61Z"],"3":[580,"M52 120Q52 169 82 194Q112 220 147 220Q174 220 187 204Q200 187 200 166Q200 145 186 130Q172 116 150 116Q138 116 130 121Q122 126 112 126Q104 126 99 120Q94 115 94 105Q94 59 132 38Q170 16 216 16Q250 16 281 34Q312 52 336 86Q363 126 378 182Q392 237 392 278Q392 316 380 341Q367 366 320 366Q308 366 300 362Q291 359 281 350Q257 328 235 328Q218 328 209 335Q200 342 200 354Q200 368 210 380Q221 391 240 391L343 391Q372 391 400 412Q429 434 448 466Q472 507 472 575Q472 616 448 642Q423 668 371 668Q338 668 306 656Q274 645 254 626Q233 606 233 583Q233 562 244 562Q247 562 253 565Q262 568 269 568Q288 568 296 558Q304 549 304 530Q304 508 290 492Q275 477 248 477Q221 477 204 498Q186 518 186 548Q186 594 214 628Q241 663 285 682Q329 700 377 700Q430 700 471 678Q512 657 535 619Q558 581 558 534Q558 491 532 457Q507 423 470 402Q432 381 398 376L397 369Q432 356 460 320Q488 284 488 226Q488 173 462 124Q435 74 393 42Q359 16 312 0Q264 -16 213 -16Q176 -16 139 0Q102 16 77 47Q52 78 52 120Z"],"4":[580,"M126 32L219 32Q234 32 242 38Q250 44 254 58L294 208L64 208L74 244L290 438Q345 492 398 570Q451 648 462 694L544 694Q536 656 504 613Q472 570 409 510L116 244L303 244L347 396Q386 423 416 460Q446 498 461 535L478 535L398 244L556 244L546 208L389 208L349 58Q347 50 347 47Q347 39 352 36Q358 32 370 32L463 32L454 0L117 0Z"],"5":[580,"M62 114Q62 154 85 180Q108 207 140 207Q169 207 184 192Q200 178 200 150Q200 130 186 116Q173 102 149 102L133 103Q124 103 116 99Q106 92 106 82Q106 53 137 34Q168 16 216 16Q264 16 303 44Q342 72 370 126Q389 164 402 217Q414 270 414 312Q414 418 313 418Q279 418 246 394Q212 370 195 317Q191 304 183 295Q175 286 166 286Q137 286 137 310Q137 326 144 338Q152 351 167 367Q194 396 202 422L252 585Q266 631 266 658Q266 670 263 683L287 700Q311 672 343 649Q375 626 410 626Q456 626 492 644Q529 661 559 700L574 685Q541 633 500 600Q460 566 391 566Q337 566 292 609L236 423L240 420Q254 432 282 442Q310 452 330 452Q415 452 462 408Q508 364 508 284Q508 232 485 172Q462 112 419 68Q381 29 330 6Q279 -16 222 -16Q150 -16 106 20Q62 56 62 114Z"],"6":[580,"M90 212Q90 284 116 374Q142 465 189 540Q240 622 304 661Q369 700 431 700Q455 700 478 692Q500 684 515 671Q548 643 548 595Q548 554 527 528Q506 502 477 502Q456 502 442 514Q429 525 429 545Q429 572 444 584Q458 597 475 600Q500 606 500 625Q500 633 497 640Q494 646 483 655Q465 668 429 668Q381 668 334 625Q286 582 254 514Q215 433 203 347L210 342Q236 382 275 404Q314 426 355 426Q428 426 468 380Q509 333 509 261Q509 209 486 156Q464 102 428 62Q400 32 356 8Q313 -16 252 -16Q181 -16 136 41Q90 98 90 212ZM378 101Q399 140 410 188Q422 236 422 284Q422 330 402 360Q381 390 342 390Q259 390 203 265Q178 210 178 120Q178 74 200 45Q223 16 260 16Q296 16 326 40Q357 63 378 101Z"],"7":[580,"M144 54Q144 106 194 176Q245 246 320 330L508 538L504 542Q495 536 484 533Q472 530 464 530Q433 530 411 542Q389 553 362 576Q341 594 326 603Q310 612 291 612Q260 612 238 589Q217 566 191 515L170 474L151 474L219 702L238 702Q234 689 234 673Q234 660 238 652Q242 644 251 644Q277 667 300 680Q324 692 354 692Q380 692 401 676Q422 660 442 633Q461 607 478 594Q494 580 514 580Q535 580 544 588Q554 596 554 606Q554 619 542 625Q535 630 532 636Q528 641 528 651Q528 666 536 674Q545 681 555 681Q592 681 592 633Q592 607 573 578Q554 550 512 501Q405 376 366 324Q326 272 302 214Q284 170 278 136Q272 101 272 62Q272 25 254 4Q237 -17 208 -17Q178 -17 161 1Q144 19 144 54Z"],"8":[580,"M68 161Q68 212 93 254Q118 296 154 318Q179 334 198 341Q217 348 251 354Q225 373 204 412Q184 450 184 497Q184 576 235 635Q264 668 308 684Q351 700 390 700Q476 700 527 659Q578 618 578 544Q578 503 560 462Q543 421 513 398Q490 380 458 366Q427 351 404 347Q446 311 466 275Q486 239 486 192Q486 144 470 107Q453 70 420 41Q390 14 346 -1Q302 -16 248 -16Q205 -16 164 4Q122 24 95 64Q68 104 68 161ZM524 522Q524 591 489 630Q454 668 386 668Q359 668 328 654Q298 641 276 609Q254 577 254 526Q254 495 262 478Q271 460 290 443L381 363Q423 369 456 394Q488 418 506 452Q524 487 524 522ZM414 142Q414 215 376 248L271 336Q236 328 212 318Q189 309 166 287Q143 265 128 232Q112 199 112 162Q112 93 150 54Q187 16 260 16Q301 16 336 33Q372 50 393 79Q414 108 414 142Z"],"9":[580,"M121 13Q88 41 88 89Q88 130 109 156Q130 182 159 182Q180 182 194 170Q207 159 207 139Q207 112 192 100Q178 87 161 84Q136 78 136 59Q136 51 139 44Q142 38 153 29Q171 16 207 16Q255 16 302 59Q350 102 382 170Q421 251 433 337L426 342Q400 302 361 280Q322 258 281 258Q208 258 168 304Q127 351 127 423Q127 475 150 528Q172 582 208 622Q236 652 280 676Q323 700 384 700Q455 700 500 643Q546 586 546 472Q546 400 520 310Q494 219 447 144Q396 62 332 23Q267 -16 205 -16Q181 -16 158 -8Q136 0 121 13ZM433 419Q458 474 458 564Q458 610 436 639Q413 668 376 668Q340 668 310 644Q279 621 258 583Q237 544 226 496Q214 448 214 400Q214 354 234 324Q255 294 294 294Q377 294 433 419Z"]," ":[280,""],".":[280,"M60 50Q60 77 78 94Q95 112 122 112Q149 112 166 94Q184 77 184 50Q184 23 166 6Q149 -12 122 -12Q95 -12 78 6Q60 23 60 50Z"]}},"R":{"upm":1000,"g":{"A":[764,"M46 32L83 32Q142 32 169 105L384 712L409 712L626 76Q636 51 650 42Q664 32 686 32L742 32L742 0L432 0L432 32L498 32Q513 32 523 40Q533 47 533 57Q533 70 529 79L482 212L248 212L224 145Q210 105 210 87Q210 65 221 48Q232 32 259 32L320 32L320 0L46 0ZM259 244L471 244L367 549Z"],"B":[690,"M62 32L134 32Q161 32 161 59L161 653Q161 667 154 674Q148 680 134 680L62 680L62 712L388 712Q447 712 498 690Q550 668 581 630Q612 591 612 542Q612 474 566 430Q520 386 459 373L459 369Q500 366 540 344Q581 321 608 282Q634 243 634 194Q634 133 602 89Q570 45 516 22Q463 0 399 0L62 0ZM384 388Q465 388 494 430Q524 471 524 542Q524 602 486 641Q448 680 392 680L280 680Q266 680 260 674Q253 667 253 653L253 388ZM388 32Q449 32 488 68Q528 105 528 194Q528 283 488 320Q449 356 388 356L253 356L253 59Q253 32 280 32Z"]," ":[280,""]}}};/* Lexicon: words that fire before they are understood. [word, weight, valence 1-9, arousal 1-9]
+ * Valence/arousal are Clyde's own rough ratings in the spirit of published affective norms
+ * (Warriner, Kuperman & Brysbaert 2013); they drive the physics, not the other way round. */
+var LEX = {
+  'Alarm':      [['FIRE', 3, 2.6, 7.4], ['DEADLINE', 2.4, 2.9, 6.6], ['LUMP', 2, 2.4, 6.0], ['POSITIVE', 1.4, 2.5, 7.0], ['URGENT', 2, 3.0, 6.9], ['BLOOD', 2, 2.7, 6.8], ['SIREN', 1.6, 3.0, 7.0], ['AUDIT', 1.2, 3.2, 5.8],
+                 ['SPIDER', 1.4, 2.8, 6.4], ['FALLING', 1.6, 2.9, 6.6], ['BIOPSY', 1.2, 2.6, 6.2], ['DROWN', 1.4, 2.0, 6.9], ['WAKE UP', 1.2, 3.6, 6.3], ['NOW', 1.6, 4.0, 6.6]],
+  'Attachment': [['HOME', 3, 7.9, 4.2], ['MOTHER', 3, 7.4, 5.0], ['STAY', 2, 6.6, 4.4], ['HOLD', 2, 6.8, 4.6], ['LOVE', 2.2, 8.0, 5.4], ['SAFE', 1.6, 7.6, 3.6], ['DAUGHTER', 1.2, 7.2, 4.9],
+                 ['FATHER', 2, 6.9, 4.8], ['SISTER', 1.4, 7.0, 4.6], ['KITCHEN', 1.2, 6.8, 3.8], ['BLANKET', 1.2, 7.2, 3.0], ['TOGETHER', 1.2, 7.4, 4.6], ['SUNDAY', 1.2, 7.0, 3.9], ['NANA', 1.2, 7.6, 4.0]],
+  'Loss':       [['SORRY', 3, 3.2, 4.4], ['GONE', 2, 2.8, 4.0], ['ALONE', 2.6, 2.6, 3.9], ['NEVER', 2, 3.0, 4.6], ['LATE', 1.4, 3.4, 4.8], ['WAS', 1.2, 3.6, 3.2], ['EMPTY', 1.6, 2.7, 3.5],
+                 ['GOODBYE', 1.8, 3.3, 4.6], ['ONCE', 1.2, 4.6, 3.4], ['ASHES', 1.2, 2.4, 3.8], ['FORMER', 1.0, 3.9, 3.2], ['UNSAID', 1.2, 3.4, 4.0], ['NO ONE', 1.4, 2.6, 4.2]],
+  'Want':       [['YES', 2.4, 7.6, 5.9], ['MORE', 2.4, 6.4, 6.2], ['MINE', 2, 6.2, 5.8], ['AGAIN', 2, 6.0, 5.4], ['SUGAR', 1.4, 7.0, 6.0], ['KISS', 1.6, 8.0, 6.6],
+                 ['WINNER', 1.4, 7.8, 6.6], ['FREE', 1.6, 7.6, 5.6], ['JACKPOT', 1.0, 7.4, 7.2], ['SALE', 1.2, 6.4, 5.4], ['TONIGHT', 1.4, 6.8, 6.2]],
+  'Summons':    [['SEEN', 2, 4.4, 5.8], ['TYPING', 2, 5.2, 6.0], ['CALL ME', 1.6, 5.6, 6.4], ['UNREAD', 1.4, 4.2, 5.2], ['REPLY', 1.2, 5.0, 5.4],
+                 ['LIKED', 1.2, 6.4, 5.4], ['MISSED CALL', 1.0, 3.8, 5.8], ['ONLINE', 1.2, 5.4, 5.0], ['TAGGED', 1.0, 5.0, 5.6]]
+};
+/* Twenty Nanometres (v3), by Clyde (2026).
+ * Font: glyph outlines from Old Standard TT, Copyright 2011 The Old Standard Project Authors,
+ * licensed under the SIL Open Font License 1.1 (see OFL-OldStandardTT.txt).
+ * The gap is the subject. Two unequal, cropped branching fields face each other across an empty cleft.
+ * A signal comes down one, jumps the gap (dielectric-breakdown growth on a Laplace field) and leaves a
+ * consequence in the other: a wave of activation that only makes the word legible where it has passed. */
+(function () {
+  var C = window.CLYDE, R = C.rng('main'), T0 = Date.now(), TT = function (l) { if (window.__dbg) console.log(l, Date.now() - T0); };
+  var RW = R.fork('word'), RG = R.fork('growth'), RD = R.fork('discharge'), RM = R.fork('medium'), RB = R.fork('background'), RC = R.fork('cleft');
+  var NZ = C.noise(RM.fork('noise'));
+  var VW = 1000, VH = 1250, PI = Math.PI, TAU = PI * 2;
+  function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function sstep(a, b, x) { x = clamp((x - a) / (b - a), 0, 1); return x * x * (3 - 2 * x); }
+  var Q = C.platform === 'standalone' ? C.query : null;
+
+  // ======================= traits =======================
+  var register = RW.weighted([['Alarm', 26], ['Attachment', 24], ['Loss', 22], ['Want', 14], ['Summons', 14]]);
+  var entry = RW.weighted(LEX[register].map(function (e) { return [e, e[1]]; }));
+  var stain = RM.weighted([['Darkfield', 56], ['Brightfield', 44]]);
+  var trans = RD.weighted({
+    'Alarm': [['Storm', 50], ['Crossed', 50]], 'Attachment': [['Crossed', 85], ['Repeated', 15]],
+    'Loss': [['Failed', 60], ['Near Miss', 40]], 'Want': [['Repeated', 70], ['Crossed', 30]], 'Summons': [['Train', 80], ['Failed', 20]]
+  }[register]);
+  var moment = RD.weighted([['Arrival', 30], ['Spread', 45], ['Afterglow', 25]]);
+  if (Q) {
+    if (Q.get('word')) { for (var rg in LEX) LEX[rg].forEach(function (e) { if (e[0] === Q.get('word').toUpperCase()) { entry = e; register = rg; } }); }
+    if (Q.get('stain')) stain = Q.get('stain'); if (Q.get('trans')) trans = Q.get('trans'); if (Q.get('moment')) moment = Q.get('moment');
+  }
+  var word = entry[0], valence = entry[2], arousal = entry[3];
+  var chargeV = arousal + RD.gaussian(0, 0.55);
+  var charge = chargeV < 4.6 ? 'Faint' : chargeV < 6.2 ? 'Steady' : 'Violent';
+  var crowd = RB.weighted([['Sparse', 45], ['Neighbours', 40], ['Thicket', 15]]);
+  var failed = trans === 'Failed', nearMiss = trans === 'Near Miss';
+  if (failed || nearMiss) moment = moment === 'Afterglow' ? 'Afterglow' : 'Arrival';
+  // register shapes both networks and the consequence (artistic mapping, not physiology)
+  var P = {
+    'Alarm':      { leaf: 0.55, wob: 0.30, spine: 1.5, head: 0.75, bead: 0, gap: 0.9, eta: 0.9, tail: 70, sig: 26, swell: 0.9, flick: 1 },
+    'Attachment': { leaf: 0.95, wob: 0.10, spine: 0.8, head: 0.95, bead: 0, gap: 0.75, eta: 1.8, tail: 260, sig: 70, swell: 0.6, flick: 0 },
+    'Loss':       { leaf: 0.70, wob: 0.16, spine: 0.4, head: 0.7, bead: 1, gap: 1.35, eta: 1.2, tail: 80, sig: 30, swell: 0.2, flick: 0 },
+    'Want':       { leaf: 0.80, wob: 0.18, spine: 1.2, head: 1.3, bead: 0, gap: 0.9, eta: 1.35, tail: 150, sig: 45, swell: 1.6, flick: 0 },
+    'Summons':    { leaf: 0.65, wob: 0.20, spine: 1.0, head: 0.85, bead: 0, gap: 1.0, eta: 1.15, tail: 90, sig: 30, swell: 0.7, flick: 0.5 }
+  }[register];
+
+  // ======================= the word as vector glyphs =======================
+  function parsePath(d) {   // font units -> array of polygons (flattened)
+    var polys = [], cur = null, t = d.match(/[MLQCZ]|-?\d+/g), i = 0, cx = 0, cy = 0, cmd;
+    function num() { return +t[i++]; }
+    while (i < t.length) {
+      if (/[MLQCZ]/.test(t[i])) cmd = t[i++];
+      if (cmd === 'M') { cx = num(); cy = num(); cur = [cx, cy]; polys.push(cur); cmd = 'L'; }
+      else if (cmd === 'L') { cx = num(); cy = num(); cur.push(cx, cy); }
+      else if (cmd === 'Q') { var qx = num(), qy = num(), ex = num(), ey = num(); for (var s = 1; s <= 6; s++) { var u = s / 6, a = (1 - u) * (1 - u), b = 2 * u * (1 - u), c = u * u; cur.push(a * cx + b * qx + c * ex, a * cy + b * qy + c * ey); } cx = ex; cy = ey; }
+      else if (cmd === 'C') { var ax = num(), ay = num(), bx = num(), by = num(), dx = num(), dy = num(); for (var s2 = 1; s2 <= 8; s2++) { var w = s2 / 8, m = 1 - w; cur.push(m * m * m * cx + 3 * m * m * w * ax + 3 * m * w * w * bx + w * w * w * dx, m * m * m * cy + 3 * m * m * w * ay + 3 * m * w * w * by + w * w * w * dy); } cx = dx; cy = dy; }
+      else if (cmd === 'Z') { cmd = null; }
+    }
+    return polys;
+  }
+  function layout(fontKey, str, em, ox, oy, rot, track) {   // returns letters with polygons in virtual units (y down)
+    var F = FONT[fontKey], s = em / F.upm, pen = 0, letters = [], k, w = 0;
+    for (k = 0; k < str.length; k++) { var g = F.g[str[k]] || F.g[' ']; w += g[0] * s + (k < str.length - 1 ? track * em : 0); }
+    var cr = Math.cos(rot), sr = Math.sin(rot);
+    for (k = 0; k < str.length; k++) {
+      var g2 = F.g[str[k]] || F.g[' '], polys = g2[1] ? parsePath(g2[1]) : [], out = [], bb = [1e9, 1e9, -1e9, -1e9];
+      polys.forEach(function (pl) {
+        var q = new Float32Array(pl.length);
+        for (var j = 0; j < pl.length; j += 2) {
+          var lx = pen + pl[j] * s - w / 2, ly = -pl[j + 1] * s;
+          var X = ox + lx * cr - ly * sr, Y = oy + lx * sr + ly * cr;
+          q[j] = X; q[j + 1] = Y; bb[0] = Math.min(bb[0], X); bb[1] = Math.min(bb[1], Y); bb[2] = Math.max(bb[2], X); bb[3] = Math.max(bb[3], Y);
+        }
+        out.push(q);
+      });
+      if (out.length) letters.push({ ch: str[k], polys: out, bb: bb, cx: (bb[0] + bb[2]) / 2 });
+      pen += g2[0] * s + track * em;
+    }
+    return { letters: letters, width: w };
+  }
+  function inside(letter, x, y) {   // nonzero winding
+    var b = letter.bb; if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) return false;
+    var wn = 0;
+    letter.polys.forEach(function (q) {
+      var n = q.length;
+      for (var j = 0; j < n; j += 2) {
+        var x1 = q[j], y1 = q[j + 1], x2 = q[(j + 2) % n], y2 = q[(j + 3) % n];
+        if (y1 <= y) { if (y2 > y && (x2 - x1) * (y - y1) - (x - x1) * (y2 - y1) > 0) wn++; }
+        else if (y2 <= y && (x2 - x1) * (y - y1) - (x - x1) * (y2 - y1) < 0) wn--;
+      }
+    });
+    return wn !== 0;
+  }
+
+  // ======================= space colonisation (Runions et al. 2007), incremental nearest =======================
+  function colonize(Rg, roots, AX, AY, AK, o) {
+    var NA = AX.length, D = o.step, DI = o.di, DI2 = DI * DI;
+    var AN = new Int32Array(NA).fill(-1), AD = new Float32Array(NA).fill(DI2), alive = new Uint8Array(NA).fill(1);
+    var CG = DI, CW = Math.ceil(VW * 1.4 / CG) + 2, CH = Math.ceil(VH * 1.4 / CG) + 2, buck = [];
+    for (var i = 0; i < CW * CH; i++) buck.push([]);
+    function cell(x, y) { return clamp(Math.floor((x + VW * 0.2) / CG), 0, CW - 1) + clamp(Math.floor((y + VH * 0.2) / CG), 0, CH - 1) * CW; }
+    for (i = 0; i < NA; i++) buck[cell(AX[i], AY[i])].push(i);
+    var NX = [], NY = [], NP = [], NB = [], nAlive = NA;
+    function add(x, y, p, br) {
+      var id = NX.length; NX.push(x); NY.push(y); NP.push(p); NB.push(br);
+      var cx = clamp(Math.floor((x + VW * 0.2) / CG), 0, CW - 1), cy = clamp(Math.floor((y + VH * 0.2) / CG), 0, CH - 1);
+      for (var yy = Math.max(0, cy - 1); yy <= Math.min(CH - 1, cy + 1); yy++) for (var xx = Math.max(0, cx - 1); xx <= Math.min(CW - 1, cx + 1); xx++) {
+        var L = buck[yy * CW + xx];
+        for (var j = 0; j < L.length; j++) {
+          var a = L[j]; if (!alive[a]) continue;
+          var dx = AX[a] - x, dy = AY[a] - y, d2 = dx * dx + dy * dy;
+          if (d2 < AK[a] * AK[a]) { alive[a] = 0; nAlive--; continue; }
+          if (d2 < AD[a]) { AD[a] = d2; AN[a] = id; }
+        }
+      }
+      return id;
+    }
+    roots.forEach(function (r) { add(r[0], r[1], r[2] == null ? -1 : r[2], r[3] || 0); });
+    var sx = new Float32Array(o.maxNodes + 10), sy = new Float32Array(o.maxNodes + 10), cn = new Uint16Array(o.maxNodes + 10);
+    for (var it = 0; it < o.iters && nAlive > 0 && NX.length < o.maxNodes; it++) {
+      var act = [];
+      for (var a = 0; a < NA; a++) {
+        if (!alive[a] || AN[a] < 0) continue;
+        var n = AN[a], dx = AX[a] - NX[n], dy = AY[a] - NY[n], l = Math.sqrt(dx * dx + dy * dy) + 1e-6;
+        if (!cn[n]) act.push(n); sx[n] += dx / l; sy[n] += dy / l; cn[n]++;
+      }
+      if (!act.length) { if (window.__dbg) console.log("noact", it); break; }
+      for (var q = 0; q < act.length && NX.length < o.maxNodes; q++) {
+        var m = act[q], vx = sx[m] / cn[m], vy = sy[m] / cn[m], vl = Math.hypot(vx, vy);
+        if (vl < 0.2) { var an = Rg.range(0, TAU); vx += Math.cos(an) * 0.3; vy += Math.sin(an) * 0.3; }
+        var tf = o.tf ? o.tf(NX[m], NY[m]) : 1, w = o.wob * (o.wf ? o.wf(NX[m], NY[m]) : 1), nx = vx / (vl + 1e-6) + o.tx * tf + Rg.gaussian(0, w), ny = vy / (vl + 1e-6) + o.ty * tf + Rg.gaussian(0, w), nl = Math.hypot(nx, ny) + 1e-6;
+        sx[m] = 0; sy[m] = 0; cn[m] = 0;
+        add(NX[m] + nx / nl * D, NY[m] + ny / nl * D, m, NB[m]);
+      }
+    }
+    if (window.__dbg) console.log("colonize", it, nAlive, NA, NX.length);
+    return { x: NX, y: NY, p: NP, b: NB };
+  }
+  // pipe-model radii (Murray-like exponent), smoothing; returns per-node radius
+  function radii(T, leaf, cap, expn) {
+    var n = T.x.length, r = new Float32Array(n), ch = new Uint16Array(n), i;
+    for (i = 0; i < n; i++) if (T.p[i] >= 0) ch[T.p[i]]++;
+    var acc = new Float32Array(n);
+    for (i = n - 1; i >= 0; i--) {
+      var v = ch[i] === 0 ? Math.pow(leaf, expn) : acc[i];
+      r[i] = Math.pow(v, 1 / expn); if (T.p[i] >= 0) acc[T.p[i]] += v;
+    }
+    for (i = 0; i < n; i++) r[i] = Math.min(cap, r[i]);
+    for (var pass = 0; pass < 3; pass++) for (i = 0; i < n; i++) {   // smooth unbranched runs
+      var p = T.p[i]; if (p < 0 || ch[i] !== 1 || ch[p] > 1) continue;
+      var c = -1; for (var j = i + 1; j < Math.min(n, i + 4000); j++) if (T.p[j] === i) { c = j; break; }
+      if (c < 0) continue; T.x[i] = 0.5 * T.x[i] + 0.25 * (T.x[p] + T.x[c]); T.y[i] = 0.5 * T.y[i] + 0.25 * (T.y[p] + T.y[c]);
+    }
+    T.ch = ch; return r;
+  }
+
+
+  // ======================= the cleft: negative space as the organising idea =======================
+  // a gently bent band in any orientation, off-centre; one side receives (post), the other sends (pre)
+  var spots = [[0.36, 0.38], [0.64, 0.38], [0.36, 0.64], [0.64, 0.64], [0.5, 0.33], [0.5, 0.68], [0.32, 0.5], [0.68, 0.5]];
+  var sp0 = RC.pick(spots), P0 = [VW * (sp0[0] + RC.range(-0.05, 0.05)), VH * (sp0[1] + RC.range(-0.05, 0.05))];
+  var ang = RC.weighted([[RC.range(0.42, 1.15) * (RC.rand() < 0.5 ? 1 : -1), 50], [RC.gaussian(0, 0.2), 22], [PI / 2 + RC.gaussian(0, 0.2), 28]]);
+  var TX = Math.cos(ang), TY = Math.sin(ang), NX0 = -TY, NY0 = TX;
+  var bend = RC.gaussian(0, 0.0006), postS = RC.rand() < 0.5 ? 1 : -1;
+  var cleftW = RC.range(70, 135) * P.gap;
+  var preBig = RC.rand() < 0.28;
+  var lPost = preBig ? RC.range(260, 420) : RC.range(360, 640), dPost = preBig ? RC.range(220, 380) : RC.range(320, 700);
+  var lPre = preBig ? RC.range(380, 620) : RC.range(180, 340), dPre = preBig ? RC.range(320, 620) : RC.range(170, 320);
+  var sPost = RC.range(-140, 140), sPre = sPost + RC.range(-120, 120);
+  function cc(x, y) {   // cleft coordinates: s along the cleft, n signed distance across (post side positive)
+    var dx = x - P0[0], dy = y - P0[1], s = dx * TX + dy * TY, n = dx * NX0 + dy * NY0 - bend * s * s;
+    return [s, postS * n / Math.sqrt(1 + 4 * bend * bend * s * s)];
+  }
+  function wp(s, n) { var nn = n * postS + bend * s * s; return [P0[0] + TX * s + NX0 * nn, P0[1] + TY * s + NY0 * nn]; }   // cleft coords -> world
+  var hw = cleftW / 2;
+
+  // ----- the word: laid along the receiving shore, parallel to the cleft -----
+  var TRK = 0.13;
+  function advOf(str) { var a = 0, F = FONT.B; for (var k = 0; k < str.length; k++) a += (F.g[str[k]] || F.g[' '])[0] / F.upm + TRK; return a; }
+  var adv = advOf(word);
+  var em = clamp(Math.min(lPost * 2.0, 840) / adv, 100, 240);
+  var rot = Math.atan2(TY, TX); if (rot > PI / 2) rot -= PI; if (rot <= -PI / 2) rot += PI;
+  var sW = sPost + RC.range(-0.2, 0.2) * em * adv, nW = hw + RC.range(22, 60) + em * 0.36;
+  var TXT, wcx, wcy, capTop;
+  function placeWord() {
+    var c = wp(sW, nW); wcx = c[0]; wcy = c[1];
+    var dnx = -Math.sin(rot), dny = Math.cos(rot);
+    TXT = layout('B', word, em, wcx + dnx * em * 0.35, wcy + dny * em * 0.35, rot, TRK);
+    var bb = [1e9, 1e9, -1e9, -1e9]; TXT.letters.forEach(function (L) { bb[0] = Math.min(bb[0], L.bb[0]); bb[1] = Math.min(bb[1], L.bb[1]); bb[2] = Math.max(bb[2], L.bb[2]); bb[3] = Math.max(bb[3], L.bb[3]); }); TXT.bb = bb;
+  }
+  for (var tries = 0; tries < 6; tries++) {   // keep the word inside the frame by sliding the whole cleft
+    placeWord(); var b0 = TXT.bb, sx = 0, sy = 0, m = 60;
+    if (b0[0] < m) sx = m - b0[0]; if (b0[2] > VW - m) sx = VW - m - b0[2]; if (b0[1] < m) sy = m - b0[1]; if (b0[3] > VH - m) sy = VH - m - b0[3];
+    if (b0[2] - b0[0] > VW - 2 * m || b0[3] - b0[1] > VH - 2 * m) { em *= 0.85; continue; }
+    if (!sx && !sy) break; P0[0] += sx; P0[1] += sy;
+  }
+  placeWord();
+  var letters = TXT.letters;
+  function inWord(x, y) { for (var k = 0; k < letters.length; k++) if (inside(letters[k], x, y)) return true; return false; }
+  var GS = 4, GW = Math.ceil(VW / GS), GH = Math.ceil(VH / GS), WM = new Uint8Array(GW * GH);
+  (function () { var b = TXT.bb; for (var gy = Math.max(0, Math.floor(b[1] / GS) - 2); gy < Math.min(GH, Math.ceil(b[3] / GS) + 2); gy++) for (var gx = Math.max(0, Math.floor(b[0] / GS) - 2); gx < Math.min(GW, Math.ceil(b[2] / GS) + 2); gx++) if (inWord((gx + 0.5) * GS, (gy + 0.5) * GS)) WM[gy * GW + gx] = 1; })();
+  var DW = C.edt(WM, GW, GH);
+  if (window.__dbg) { var wmc = 0; for (var q8 = 0; q8 < WM.length; q8++) wmc += WM[q8]; console.log('WM', (rot*180/PI).toFixed(0), (ang*180/PI).toFixed(0), postS, wmc, JSON.stringify(TXT.bb.map(Math.round)), letters.length, letters[0] && letters[0].polys.length, letters[0] && JSON.stringify(letters[0].bb)); }
+  function dWord(x, y) { if (x < 0 || y < 0 || x >= VW || y >= VH) return 999; return DW[(y / GS | 0) * GW + (x / GS | 0)] * GS; }
+
+  var objective = 'x20';
+  C.features({ Word: word, Register: register, Stain: stain, Transmission: trans, Moment: moment, Charge: charge, Section: crowd, Field: preBig ? 'Sender Dominant' : 'Receiver Dominant' });
+  if (Q && Q.get('traitsonly')) { window.__clyde = { features: C._features }; return; }
+
+  // ======================= geometry store =======================
+  var SEG = []; // [x1,y1,r1,x2,y2,r2,z,dens,act]
+  function seg(x1, y1, r1, x2, y2, r2, z, d, a) { SEG.push(x1, y1, r1, x2, y2, r2, z, d, a || 0); }
+  function smoothZ(T, zf) { var ZS = new Float32Array(T.x.length); for (var i = 0; i < T.x.length; i++) { var zt = zf(T.x[i], T.y[i], T.b[i], i), p = T.p[i]; ZS[i] = p < 0 ? zt : ZS[p] + (zt - ZS[p]) * 0.22; } return ZS; }
+  function tube(T, r, ZS, dens, o) {   // emit a tree as capsules + spines; o.act = per-node activation, o.swell
+    o = o || {}; var A = o.act;
+    for (var i = 0; i < T.x.length; i++) {
+      var p = T.p[i]; if (p < 0) continue;
+      var z = ZS[i], d = dens, a = A ? A[i] : 0, ap = A ? A[p] : 0, sw = 1 + (o.swell || 0) * a * 0.35;
+      if (o.bead) {   // beaded, broken branches
+        var bn = NZ.n2(T.x[i] * 0.09, T.y[i] * 0.09);
+        if (r[i] < 1.6 && bn > 0.5) continue;
+        if (r[i] < 2 && ((i * 2654435761) >>> 0) % 7 === 0) seg(T.x[i], T.y[i], r[i] * 2.4, T.x[i], T.y[i], r[i] * 2.4, z, d, a);
+      }
+      var rw = o.rwI ? o.rwI(i) : 1, rwp = o.rwI ? o.rwI(p) : 1;
+      seg(T.x[p], T.y[p], r[p] * rwp * (1 + (o.swell || 0) * ap * 0.35), T.x[i], T.y[i], r[i] * rw * sw, z, d, (a + ap) / 2);
+      if (o.spine && r[i] < 2.2 && T.ch[p] < 2) {
+        var len = Math.hypot(T.x[i] - T.x[p], T.y[i] - T.y[p]), ns = len * o.spine * 0.22 * (o.sf ? o.sf(T.x[i], T.y[i]) : 1);
+        var Rs = o.R; while (ns > 0) {
+          if (Rs.rand() < ns) {
+            var t = Rs.rand(), bx = lerp(T.x[p], T.x[i], t), by = lerp(T.y[p], T.y[i], t), tx = (T.x[i] - T.x[p]) / (len + 1e-6), ty = (T.y[i] - T.y[p]) / (len + 1e-6);
+            var sg = Rs.rand() < 0.5 ? -1 : 1, an = Rs.gaussian(0, 0.5), nx = -ty * sg, ny = tx * sg, ca = Math.cos(an), sa = Math.sin(an);
+            var dx = nx * ca - ny * sa, dy = nx * sa + ny * ca, sl = Rs.range(1.4, 3.4) * (0.7 + 0.3 * r[i]), hx = bx + dx * sl, hy = by + dy * sl;
+            var hs = o.head * Rs.range(0.55, 1.1) * (1 + (o.swell || 0) * a);   // spines swell where the wave has passed
+            seg(bx, by, 0.32, hx, hy, 0.28, z, d * 0.95, a); seg(hx, hy, hs, hx, hy, 0, z, d * 0.95, a * 1.15);
+          }
+          ns -= 1;
+        }
+      }
+    }
+  }
+
+  // ======================= the two fields =======================
+  var gScale = 1;
+  // receiving field: densest at its shore, falling off inland and laterally; denser inside the word
+  var AX = [], AY = [], AK = [], Ra = RG.fork('attr');
+  function fieldPts(R2, sC, lat, dep, sign, n, kill, out) {
+    for (var t = 0; t < n * 6 && out.cnt < n; t++) {
+      var s = sC + R2.gaussian(0, lat * 0.6), d = hw + Math.abs(R2.gaussian(0, dep * 0.55)) + R2.range(0, 12);
+      var q = wp(s, d * sign); if (q[0] < -160 || q[1] < -160 || q[0] > VW + 160 || q[1] > VH + 160) continue;
+      var shore = 0.35 + 0.65 * Math.exp(-(d - hw) / 90);
+      if (R2.rand() > shore) continue;
+      if (sign > 0) { var dw0 = dWord(q[0], q[1]); if (dw0 < 26 || (dw0 < 80 && R2.rand() < 0.65)) continue; }
+      out.x.push(q[0]); out.y.push(q[1]); out.k.push(kill); out.cnt++;
+    }
+  }
+  var dens = { 'Sparse': 1, 'Neighbours': 1.15, 'Thicket': 1.35 }[crowd];
+  var postArea = lPost * 2 * dPost, preArea = lPre * 2 * dPre;
+  var PO = { x: AX, y: AY, k: AK, cnt: 0 };
+  fieldPts(Ra, sPost, lPost, dPost, 1, Math.round(postArea / 520 * dens), 8, PO);
+  var inSp = register === 'Loss' ? 5.4 : 4.8;
+  (function () {   // the word: jittered grid inside the glyphs + points just inside the outlines (hairlines survive)
+    var b = TXT.bb;
+    for (var gy = b[1] - 6; gy < b[3] + 6; gy += inSp) for (var gx = b[0] - 6; gx < b[2] + 6; gx += inSp) {
+      var x = gx + Ra.range(0, inSp), y = gy + Ra.range(0, inSp);
+      if (!inWord(x, y)) continue; if (NZ.n2(x * 0.013 + 50, y * 0.013) < -0.55 && Ra.rand() < 0.3) continue;
+      AX.push(x); AY.push(y); AK.push(inSp * 0.7);
+    }
+    letters.forEach(function (L) {
+      L.polys.forEach(function (q) {
+        var n = q.length, acc = 0;
+        for (var j = 0; j < n; j += 2) {
+          var ax = q[j], ay = q[j + 1], bx = q[(j + 2) % n], by = q[(j + 3) % n], sl = Math.hypot(bx - ax, by - ay); acc += sl;
+          while (acc > inSp * 1.15) { acc -= inSp * 1.15; var f = 1 - acc / (sl + 1e-9), px = lerp(ax, bx, f), py = lerp(ay, by, f), nx = -(by - ay) / (sl + 1e-9), ny = (bx - ax) / (sl + 1e-9);
+            var cx = px + nx * 1.6, cy = py + ny * 1.6; if (!inside(L, cx, cy)) { cx = px - nx * 1.6; cy = py - ny * 1.6; }
+            if (inside(L, cx, cy) && Ra.rand() < 0.65) { AX.push(cx); AY.push(cy); AK.push(inSp * 0.6); } }
+        }
+      });
+    });
+  })();
+  // receiving cell body: inland, often outside the frame (the field is cropped)
+  var somaP = wp(sPost + RG.range(-0.3, 0.3) * lPost, hw + dPost * RG.range(0.95, 1.45)), somaR = RG.range(16, 22);
+  (function () { if (RG.rand() > 0.7) return; var sS = cc(somaP[0], somaP[1])[0], nS = cc(somaP[0], somaP[1])[1];   // crop the receiving cell out of frame
+    for (var t = 0; t < 30 && somaP[0] > -30 && somaP[1] > -30 && somaP[0] < VW + 30 && somaP[1] < VH + 30; t++) { nS += 25; somaP = wp(sS, nS); } })();
+  (function () {   // guides so every letter and the shore are reachable
+    function line(a, b2, st) { var dl = Math.hypot(b2[0] - a[0], b2[1] - a[1]), n = Math.floor(dl / st); for (var j = 1; j < n; j++) { var gx = lerp(a[0], b2[0], j / n) + Ra.gaussian(0, 9), gy = lerp(a[1], b2[1], j / n) + Ra.gaussian(0, 9); if (dWord(gx, gy) > 8 && cc(gx, gy)[1] > hw + 8) { AX.push(gx); AY.push(gy); AK.push(9); } } }
+    letters.forEach(function (L) { line(somaP, [L.cx, (L.bb[1] + L.bb[3]) / 2], 24); });
+    for (var t = 0; t < 50; t++) { var a2 = Ra.range(0, TAU), r2 = Ra.range(25, 110); var q = [somaP[0] + Math.cos(a2) * r2, somaP[1] + Math.sin(a2) * r2]; if (cc(q[0], q[1])[1] > hw + 10) { AX.push(q[0]); AY.push(q[1]); AK.push(9); } }
+  })();
+  var roots = [], nPrim = RG.int(4, 7), toC = Math.atan2(wcy - somaP[1], wcx - somaP[0]);
+  for (var pr = 0; pr < nPrim; pr++) { var a3 = toC + (pr < nPrim - 2 ? RG.range(-1.1, 1.1) : PI + RG.range(-1, 1)); roots.push([somaP[0] + Math.cos(a3) * somaR * 0.9, somaP[1] + Math.sin(a3) * somaR * 0.9, -1, pr]); }
+  var tow = [-NX0 * postS, -NY0 * postS];   // tropism toward the cleft
+  var RT = colonize(RG.fork('grow'), roots, new Float32Array(AX), new Float32Array(AY), new Float32Array(AK), { step: 3, di: 52, wob: P.wob, tx: tow[0] * 0.1, ty: tow[1] * 0.1, tf: function (x, y) { return dWord(x, y) < 3 ? 0 : 1; }, wf: function (x, y) { return dWord(x, y) < 3 ? 1.8 : 1; }, iters: 900, maxNodes: 24000 });
+  TT('grow post');
+  var RR = radii(RT, P.leaf, register === 'Attachment' ? 5 : 4.2, 2.6);
+  var primSign = []; for (pr = 0; pr < nPrim; pr++) primSign.push(RG.rand() < 0.5 ? -1 : 1);
+  // depth: the plane of focus is the cleft and the word; the fields fall out of focus inland
+  var ZR = smoothZ(RT, function (x, y, b) { var d = cc(x, y)[1] - hw, w = dWord(x, y); return primSign[b] * (2.6 * sstep(30, dPost * 0.85, d) * sstep(2, 26, w) + 0.15 * NZ.n2(x * 0.02, y * 0.02)); });
+
+  // sending field: an axon arbour arriving from inland on the other side, ending in boutons at its shore
+  var BX = [], BY = [], BK = [], PRO = { x: BX, y: BY, k: BK, cnt: 0 }, Rp = RD.fork('pre');
+  fieldPts(Rp, sPre, lPre, dPre, -1, Math.round(preArea / 480 * dens), 9, PRO);
+  var preRoot = wp(sPre + Rp.range(-0.4, 0.4) * lPre, -(hw + dPre * Rp.range(1.1, 1.6)));
+  (function () {   // the axon's trunk: guides from inland to the shore, plus a couple of collaterals
+    var ends = [wp(sPre, -hw - 12)]; for (var c = 0; c < 2; c++) ends.push(wp(sPre + Rp.range(-0.8, 0.8) * lPre, -hw - Rp.range(10, dPre * 0.6)));
+    ends.forEach(function (e, ei) { var a = ei ? wp(cc(preRoot[0], preRoot[1])[0] * 0.5 + sPre * 0.5, -(hw + dPre * 0.6)) : preRoot, dl = Math.hypot(e[0] - a[0], e[1] - a[1]), n = Math.floor(dl / 22);
+      for (var j = 1; j <= n; j++) { BX.push(lerp(a[0], e[0], j / n) + Rp.gaussian(0, 7)); BY.push(lerp(a[1], e[1], j / n) + Rp.gaussian(0, 7)); BK.push(9); } });
+  })();
+  var PT = colonize(Rp.fork('grow'), [[preRoot[0], preRoot[1], -1, 0]], new Float32Array(BX), new Float32Array(BY), new Float32Array(BK), { step: 3.5, di: 70, wob: 0.14, tx: -tow[0] * 0.08, ty: -tow[1] * 0.08, iters: 700, maxNodes: 9000 });
+  var PR = radii(PT, 0.5, 2.6, 2.4);
+  var ZP = smoothZ(PT, function (x, y) { var d = -cc(x, y)[1] - hw; return 2.4 * sstep(20, dPre * 0.9, d) * (NZ.n2(x * 0.004 + 9, y * 0.004) < 0 ? -1 : 1); });
+  TT('grow pre');
+
+  // where the signal crosses: boutons at the sender's shore, aimed at the word (or beside it for Near Miss)
+  function preShore(sTarget) {   // pre node nearest the cleft near a given position along it
+    var best = -1, bs = 1e9;
+    for (var i = 0; i < PT.x.length; i++) { var c2 = cc(PT.x[i], PT.y[i]); if (-c2[1] > hw + 45) continue; var sc = Math.abs(c2[0] - sTarget) + Math.max(0, -c2[1] - hw) * 2; if (sc < bs) { bs = sc; best = i; } }
+    return best;
+  }
+  var wordS = letters.map(function (L) { return cc(L.cx, (L.bb[1] + L.bb[3]) / 2)[0]; });
+  var wsMin = Math.min.apply(null, wordS), wsMax = Math.max.apply(null, wordS), targetsS = [];
+  if (trans === 'Train') { var nb = Math.min(letters.length, RD.int(3, 5)); for (var t2 = 0; t2 < nb; t2++) targetsS.push(lerp(wsMin, wsMax, (t2 + 0.5) / nb)); }
+  else if (trans === 'Storm') { var c0 = lerp(wsMin, wsMax, RD.range(0.3, 0.7)); targetsS = [c0 - RD.range(45, 80), c0 + RD.range(-15, 15), c0 + RD.range(45, 80)]; }
+  else if (nearMiss) targetsS = [RD.rand() < 0.5 ? wsMin - RD.range(110, 190) : wsMax + RD.range(110, 190)];
+  else targetsS = [lerp(wsMin, wsMax, RD.range(0.25, 0.75))];
+  var boutons = [];
+  targetsS.forEach(function (st) {
+    var bi = preShore(st); if (bi < 0) return;
+    var bx = PT.x[bi], by = PT.y[bi], c3 = cc(bx, by), bp = wp(c3[0], -hw + 2);   // swell the terminal right at the shore
+    if (Math.hypot(bp[0] - bx, bp[1] - by) < 60) { seg(bx, by, 1.0, bp[0], bp[1], 1.0, ZP[bi], 1); bx = bp[0]; by = bp[1]; }
+    var tgt = -1, td = 1e9;   // nearest receiving branch across the gap
+    for (var i = 0; i < RT.x.length; i++) { var dx = RT.x[i] - bx, dy = RT.y[i] - by, d2 = dx * dx + dy * dy; if (d2 < td && cc(RT.x[i], RT.y[i])[1] > 0 && (!nearMiss || dWord(RT.x[i], RT.y[i]) > 60)) { td = d2; tgt = i; } }
+    if (tgt < 0) return;
+    boutons.push({ x: bx, y: by, r: RD.range(6, 9) * (register === 'Want' ? 1.25 : 1), tx: RT.x[tgt], ty: RT.y[tgt], node: bi, tmask: nearMiss ? function (i) { return dWord(RT.x[i], RT.y[i]) > 40; } : null });
+  });
+
+  // ======================= the crossing: dielectric breakdown (Niemeyer, Pietronero & Wiesmann 1984) =======================
+  var SPK = [], VES = [];
+  function discharge(Rk, b, run, eta, failAt) {
+    var gap = Math.hypot(b.tx - b.x, b.ty - b.y), L = Math.max(150, gap * 2.2), N = 140, h = L / N;
+    var ox = (b.x + b.tx) / 2 - L / 2, oy = (b.y + b.ty) / 2 - L / 2;
+    var phi = new Float32Array(N * N), fix = new Uint8Array(N * N), tree = new Int32Array(N * N).fill(-2), cand = new Uint8Array(N * N);
+    // target: receiving arbour inside the window (segments of kind 0 near z=0 from the receiving tree)
+    for (var i = 0; i < RT.x.length; i++) {
+      var p = RT.p[i]; if (p < 0 || (b.tmask && !b.tmask(i))) continue; var cx = (RT.x[i] - ox) / h, cy = (RT.y[i] - oy) / h; if (cx < 0 || cy < 0 || cx >= N || cy >= N) continue;
+      var rr = Math.max(1, (RR[i] + 1.5) / h);
+      for (var yy = Math.max(0, Math.floor(cy - rr)); yy <= Math.min(N - 1, Math.ceil(cy + rr)); yy++) for (var xx = Math.max(0, Math.floor(cx - rr)); xx <= Math.min(N - 1, Math.ceil(cx + rr)); xx++) if ((xx - cx) * (xx - cx) + (yy - cy) * (yy - cy) <= rr * rr) { fix[yy * N + xx] = 2; phi[yy * N + xx] = 1; }
+    }
+    var bcx = (b.x - ox) / h, bcy = (b.y - oy) / h, br = b.r / h, list = [];
+    for (yy = 0; yy < N; yy++) for (xx = 0; xx < N; xx++) {
+      var k = yy * N + xx, db = Math.hypot(xx - bcx, yy - bcy);
+      if (db <= br && fix[k] !== 2) { fix[k] = 1; phi[k] = 0; tree[k] = -1; list.push(k); }
+      else if (!fix[k]) { var dt = Math.hypot(xx - (b.tx - ox) / h, yy - (b.ty - oy) / h); phi[k] = clamp(db / (db + dt + 1e-6), 0, 1); if (xx === 0 || yy === 0 || xx === N - 1 || yy === N - 1) fix[k] = 3; }
+    }
+    var C8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]], cl = [];
+    function addCand(k) { var x = k % N, y = k / N | 0; for (var d = 0; d < 8; d++) { var nx = x + C8[d][0], ny = y + C8[d][1]; if (nx < 1 || ny < 1 || nx >= N - 1 || ny >= N - 1) continue; var nk = ny * N + nx; if (tree[nk] === -2 && fix[nk] !== 2 && !cand[nk]) { cand[nk] = 1; cl.push(nk); } } }
+    list.forEach(addCand);
+    function relax(n) { for (var s = 0; s < n; s++) for (var y = 1; y < N - 1; y++) for (var x = 1; x < N - 1; x++) { var k = y * N + x; if (fix[k]) continue; var v = (phi[k - 1] + phi[k + 1] + phi[k - N] + phi[k + N]) * 0.25; phi[k] += 1.8 * (v - phi[k]); } }
+    relax(60);
+    var hit = -1, steps = 0, prog = 0;
+    while (steps < 2400) {
+      steps++;
+      var tot = 0, w = new Float32Array(cl.length);
+      for (var c = 0; c < cl.length; c++) { var pv = Math.max(0, phi[cl[c]]); w[c] = Math.pow(pv, eta); tot += w[c]; }
+      if (tot <= 0) break;
+      var rv = Rk.rand() * tot, pick = cl.length - 1; for (c = 0; c < cl.length; c++) { rv -= w[c]; if (rv < 0) { pick = c; break; } }
+      var nk = cl[pick]; cl[pick] = cl[cl.length - 1]; cl.pop(); cand[nk] = 0;
+      var x = nk % N, y = nk / N | 0, par = -1, bd = 9;
+      for (var d = 0; d < 8; d++) { var qk = (y + C8[d][1]) * N + x + C8[d][0]; if (tree[qk] !== -2) { var dd = d < 4 ? 1 : 1.41; if (dd < bd) { bd = dd; par = qk; } } }
+      tree[nk] = par; fix[nk] = 1; phi[nk] = 0;
+      var near = false; for (d = 0; d < 8; d++) if (fix[(y + C8[d][1]) * N + x + C8[d][0]] === 2) near = true;
+      prog = Math.max(prog, 1 - Math.hypot(x - (b.tx - ox) / h, y - (b.ty - oy) / h) / (gap / h));
+      if (near) { hit = nk; break; }
+      if (failAt && prog > failAt) break;
+      addCand(nk); relax(3);
+    }
+    // current: descendants; return stroke along the connecting channel
+    var cur = new Float32Array(N * N), cells = [];
+    for (k = 0; k < N * N; k++) if (tree[k] >= 0) cells.push(k);
+    var depth = new Int32Array(N * N); cells.sort(function (a, b) { return a - b; });
+    var ordered = [], seen = new Uint8Array(N * N);
+    function dep(k) { var n = 0, q = k; while (q >= 0 && n < 5000) { q = tree[q]; n++; } return n; }
+    cells.forEach(function (k) { depth[k] = dep(k); }); cells.sort(function (a, b) { return depth[b] - depth[a]; });
+    cells.forEach(function (k) { cur[k] += 1; if (tree[k] >= 0) cur[tree[k]] += cur[k]; });
+    var main = new Uint8Array(N * N); if (hit >= 0) { var q = hit; while (q >= 0) { main[q] = 1; q = tree[q]; } }
+    function jit(k, s) { var u = ((Math.imul(k, 2654435761) + Math.imul(s + run * 7 + 1, 40503)) >>> 0) / 4294967296 - 0.5; return u * 0.95; }
+    var JX = new Float32Array(N * N), JY = new Float32Array(N * N), SX = new Float32Array(N * N), SY = new Float32Array(N * N), NCh = new Uint8Array(N * N);
+    cells.forEach(function (k) { JX[k] = ox + ((k % N) + 0.5 + jit(k, 1)) * h; JY[k] = oy + ((k / N | 0) + 0.5 + jit(k, 2)) * h; });
+    cells.forEach(function (k) { var p = tree[k]; if (p >= 0) { SX[p] += JX[k]; SY[p] += JY[k]; NCh[p]++; } });
+    function px(k) { return k < 0 || tree[k] < 0 ? b.x : JX[k]; } function py(k) { return k < 0 || tree[k] < 0 ? b.y : JY[k]; }
+    var MX = new Float32Array(N * N), MY = new Float32Array(N * N);
+    cells.forEach(function (k) { var p = tree[k], ax = px(p), ay = py(p); if (NCh[k]) { MX[k] = 0.5 * JX[k] + 0.25 * ax + 0.25 * SX[k] / NCh[k]; MY[k] = 0.5 * JY[k] + 0.25 * ay + 0.25 * SY[k] / NCh[k]; } else { MX[k] = 0.8 * JX[k] + 0.2 * ax; MY[k] = 0.8 * JY[k] + 0.2 * ay; } });
+    var ncell = cells.length, mt = new Float32Array(N * N); if (hit >= 0) { var ml = 0, qq = hit; while (qq >= 0) { ml++; qq = tree[qq]; } qq = hit; var mi = ml; while (qq >= 0) { mt[qq] = --mi / ml; qq = tree[qq]; } }
+    cells.forEach(function (k) {
+      var pk = tree[k], ok2 = pk >= 0 && tree[pk] >= 0, x1 = ok2 ? MX[pk] : b.x, y1 = ok2 ? MY[pk] : b.y;
+      var I = main[k] ? 1 - 0.5 * mt[k] : Math.min(0.85, Math.pow(cur[k] / ncell, 0.45) * 0.9 + 0.04);
+      SPK.push(x1, y1, MX[k], MY[k], I, run, main[k]);
+    });
+    if (hit >= 0) {   // the last step: touch the dendrite
+      var hx = MX[hit], hy = MY[hit], bd2 = 1e9, cx2 = b.tx, cy2 = b.ty;
+      for (i = 0; i < RT.x.length; i++) { var dd2 = (RT.x[i] - hx) * (RT.x[i] - hx) + (RT.y[i] - hy) * (RT.y[i] - hy); if (dd2 < bd2 && (!b.tmask || b.tmask(i))) { bd2 = dd2; cx2 = RT.x[i]; cy2 = RT.y[i]; b.hitNode = i; } }
+      if (bd2 < 400) SPK.push(hx, hy, cx2, cy2, 0.5, run, 1);
+      b.hx = cx2; b.hy = cy2;
+    }
+    b.main = []; if (hit >= 0) { q = hit; while (q >= 0) { b.main.push([MX[q], MY[q]]); q = tree[q]; } b.main.reverse(); }
+    return { hit: hit >= 0, prog: prog };
+  }
+  TT('geom'); var eta = P.eta + (6 - chargeV) * 0.12;
+  boutons.forEach(function (b, bi) {
+    var runs = trans === 'Repeated' ? 3 : 1;
+    for (var rn = 0; rn < runs; rn++) { var res = discharge(RD.fork('dbm' + bi + '/' + rn), b, rn, clamp(eta + (trans === 'Train' ? 0.35 : 0), 0.8, 4), failed ? RD.range(0.38, 0.7) : 0); b.hit = res.hit; }
+    var Rv2 = RD.fork('ves' + bi), nrel = Math.round({ 'Faint': 14, 'Steady': 30, 'Violent': 55 }[charge] * (failed ? 0.4 : 1) * (trans === 'Repeated' ? 1.5 : 1));
+    var dx = b.tx - b.x, dy = b.ty - b.y, dl = Math.hypot(dx, dy) + 1e-6; dx /= dl; dy /= dl;
+    for (var v = 0; v < nrel; v++) { var s = Math.pow(Rv2.rand(), 1.6) * dl * (failed ? 0.35 : 0.7), sp = Rv2.gaussian(0, 6 + s * 0.35); VES.push(b.x + dx * (b.r + s) - dy * sp, b.y + dy * (b.r + s) + dx * sp, Rv2.range(1.0, 1.8)); }
+  });
+  TT('dbm');
+
+  // ======================= the consequence: a wave through the receiving tree =======================
+  function treeDist(T, src) {   // exact path length from src to every node of a tree
+    var n = T.x.length, head = new Int32Array(n).fill(-1), nxt = new Int32Array(n), D = new Float32Array(n).fill(1e9), st = [src], i;
+    for (i = 0; i < n; i++) { var p = T.p[i]; if (p >= 0) { nxt[i] = head[p]; head[p] = i; } }
+    D[src] = 0;
+    while (st.length) {
+      var u = st.pop(), du = D[u], pu = T.p[u];
+      if (pu >= 0 && D[pu] > 1e8) { D[pu] = du + Math.hypot(T.x[u] - T.x[pu], T.y[u] - T.y[pu]); st.push(pu); }
+      for (var c = head[u]; c >= 0; c = nxt[c]) if (D[c] > 1e8) { D[c] = du + Math.hypot(T.x[c] - T.x[u], T.y[c] - T.y[u]); st.push(c); }
+    }
+    return D;
+  }
+  var ACT = new Float32Array(RT.x.length), inG = new Float32Array(RT.x.length), litLetters = 0;
+  for (var ii = 0; ii < RT.x.length; ii++) inG[ii] = 1 - sstep(1, 10, dWord(RT.x[ii], RT.y[ii]));
+  var mFront = { 'Arrival': 0.5, 'Spread': 1.12, 'Afterglow': 1.9 }[moment], mDim = moment === 'Afterglow' ? 0.55 : 1, phase = RD.range(0, TAU);
+  boutons.forEach(function (b) {
+    if (!b.hit || b.hitNode == null) return;
+    var D = treeDist(RT, b.hitNode), loc = trans === 'Train' ? 170 : 1e9, gd = [];
+    for (var i = 0; i < RT.x.length; i++) if (inG[i] > 0.5 && Math.hypot(RT.x[i] - b.tx, RT.y[i] - b.ty) < loc && D[i] < 1e8) gd.push(D[i]);
+    gd.sort(function (a, c) { return a - c; });
+    var Dg = gd.length ? gd[Math.floor(gd.length * 0.85)] : 200, Rf = nearMiss ? RD.range(70, 120) : Dg * mFront * RD.range(0.9, 1.1);
+    for (i = 0; i < RT.x.length; i++) {
+      var d = D[i]; if (d > 1e8) continue;
+      var a = Math.exp(-Math.pow((d - Rf) / P.sig, 2)) * (moment === 'Afterglow' ? 0.4 : 1) + (d < Rf ? (0.25 + 0.55 * Math.exp(-(Rf - d) / P.tail)) * mDim : 0) + 0.8 * Math.exp(-d / 35);
+      if (P.flick) a *= 1 - P.flick * 0.5 * (1 + Math.cos(d * 0.07 + phase)) * 0.6;
+      var g = nearMiss ? 1 - 0.85 * inG[i] : 0.06 + 0.94 * inG[i];
+      a = Math.min(1.25, a * g); if (a > ACT[i]) ACT[i] = a;
+    }
+  });
+  // the approach: the impulse coming down the sending arbour toward each bouton
+  var PACT = new Float32Array(PT.x.length), appr = { 'Arrival': 1, 'Spread': 0.6, 'Afterglow': 0.3 }[moment];
+  boutons.forEach(function (b) { var q = b.node, d = 0, prev = q; while (q >= 0) { d += Math.hypot(PT.x[q] - PT.x[prev], PT.y[q] - PT.y[prev]); PACT[q] = Math.max(PACT[q], 0.22 * appr * Math.exp(-d / 220)); prev = q; q = PT.p[q]; } });
+  TT('act');
+  tube(RT, RR, ZR, 1, { rwI: function (i) { return 1 + inG[i] * (0.35 + 0.9 * Math.min(1, ACT[i])); }, act: ACT, swell: P.swell, sf: function (x, y) { return lerp(2.2, 0.6, sstep(2, 30, dWord(x, y))); }, spine: P.spine, head: P.head, bead: P.bead, R: RG.fork('spines') });
+  seg(somaP[0], somaP[1], somaR, somaP[0] + Math.cos(toC) * somaR * 0.9, somaP[1] + Math.sin(toC) * somaR * 0.9, somaR * 0.55, ZR[0] || 1.5, 1, 0);
+  tube(PT, PR, ZP, 1, { act: PACT });
+  boutons.forEach(function (b) { seg(b.x, b.y, b.r * 0.8, b.x, b.y, b.r, 0, 1, b.hit || failed ? 1 : 0.6); });
+
+  // a few other impregnated cells and fibres, deep out of focus, kept out of the cleft
+  var nOther = { 'Sparse': RB.int(0, 1), 'Neighbours': RB.int(1, 2), 'Thicket': RB.int(3, 4) }[crowd];
+  for (var on = 0; on < nOther; on++) {
+    var Ro = RB.fork('cell' + on), ox = Ro.range(-60, VW + 60), oy = Ro.range(-60, VH + 60), oz = Ro.range(2, 3) * (Ro.rand() < 0.5 ? -1 : 1);
+    if (Math.abs(cc(ox, oy)[1]) < hw + 160) continue;
+    var oa = Ro.range(0, TAU), oA = [], oB = [], oK = [], apL = Ro.range(250, 550);
+    for (var t = 0; t < 220; t++) { var s = Math.pow(Ro.rand(), 0.7), w3 = Ro.gaussian(0, 12 + s * 70); oA.push(ox + Math.cos(oa) * s * apL - Math.sin(oa) * w3); oB.push(oy + Math.sin(oa) * s * apL + Math.cos(oa) * w3); oK.push(8); }
+    var OT = colonize(Ro.fork('g'), [[ox, oy, -1, 0]], new Float32Array(oA), new Float32Array(oB), new Float32Array(oK), { step: 4, di: 60, wob: 0.15, tx: 0, ty: 0, iters: 260, maxNodes: 3000 });
+    tube(OT, radii(OT, 0.6, 4, 2.6), smoothZ(OT, function () { return oz; }), 0.8, {});
+    seg(ox, oy, 10, ox, oy, 8, oz, 0.85);
+  }
+  var Rf2 = RB.fork('fibres'), nF = { 'Sparse': 6, 'Neighbours': 14, 'Thicket': 26 }[crowd];
+  for (var fi = 0; fi < nF; fi++) {
+    var fx = Rf2.range(-50, VW + 50), fy = Rf2.range(-50, VH + 50), fa = Rf2.range(0, TAU), fz = Rf2.range(1.6, 3.2) * (Rf2.rand() < 0.5 ? -1 : 1), fr = Rf2.range(0.5, 1.2), fl = Rf2.range(120, 600), fc = Rf2.gaussian(0, 0.004);
+    for (var fs = 0; fs < fl / 5; fs++) { fa += fc + Rf2.gaussian(0, 0.04); var nfx = fx + Math.cos(fa) * 5, nfy = fy + Math.sin(fa) * 5; var cf = cc(nfx, nfy); if (Math.abs(cf[1]) > hw + 30 && dWord(nfx, nfy) > 25) seg(fx, fy, fr, nfx, nfy, fr, fz, 0.7); fx = nfx; fy = nfy; }
+  }
+
+  // ======================= render =======================
+  var cv = C.setupCanvas(VW, VH, stain === 'Darkfield' ? '#050607' : '#e9e9e6'), ctx = cv.ctx, PW = cv.canvas.width, PH = cv.canvas.height, PN = PW * PH, k = PW / VW;
+  var XF = false, ZM = 1, FXc = VW / 2, FYc = VH / 2;
+  function vx_(x) { return x; } function vy_(y) { return y; } function vs_(r) { return r; }
+  var NL = 4, LB = [0, 1.3, 3.6, 8.5], LS = [1, 1, 0.5, 0.25], LAY = [];
+  function mkBuf(sc) { var w = Math.max(8, Math.round(PW * sc)), h = Math.max(8, Math.round(PH * sc)); return { w: w, h: h, k: k * w / PW, d: new Float32Array(w * h) }; }
+  for (var li = 0; li < NL; li++) LAY.push(mkBuf(LS[li]));
+  var TMPB = new Float32Array(PN), ACC = new Float32Array(Math.max(PW, PH) + 8);
+  function capsule(B, x1, y1, r1, x2, y2, r2, amt) {   // anti-aliased capsule, coordinates in virtual units, max-composite
+    var kk = B.k, W = B.w, H = B.h, buf = B.d; x1 = vx_(x1) * kk; y1 = vy_(y1) * kk; x2 = vx_(x2) * kk; y2 = vy_(y2) * kk; r1 = vs_(r1) * kk; r2 = vs_(r2) * kk;
+    var rm = Math.max(r1, r2) + 1, bx0 = Math.max(0, Math.floor(Math.min(x1, x2) - rm)), bx1 = Math.min(W - 1, Math.ceil(Math.max(x1, x2) + rm)), by0 = Math.max(0, Math.floor(Math.min(y1, y2) - rm)), by1 = Math.min(H - 1, Math.ceil(Math.max(y1, y2) + rm));
+    if (bx0 > bx1 || by0 > by1) return;
+    var dx = x2 - x1, dy = y2 - y1, l2 = dx * dx + dy * dy + 1e-9;
+    for (var y = by0; y <= by1; y++) for (var x = bx0; x <= bx1; x++) {
+      var px = x + 0.5 - x1, py = y + 0.5 - y1, t = (px * dx + py * dy) / l2; t = t < 0 ? 0 : t > 1 ? 1 : t;
+      var ex = px - dx * t, ey = py - dy * t, d = Math.sqrt(ex * ex + ey * ey), r = r1 + (r2 - r1) * t;
+      var cov = r - d + 0.5; cov = cov < 0 ? 0 : cov > 1 ? 1 : cov; if (r < 0.5) cov *= r * 2 + 0.05; if (cov <= 0) continue;
+      var v = cov * amt, i = y * W + x; if (v > buf[i]) buf[i] = v;
+    }
+  }
+  function blur(B, rV) {   // three box passes ~ gaussian, radius in virtual units; cache-friendly running sums
+    var r = Math.round(rV * B.k), W = B.w, H = B.h, buf = B.d, tmp = TMPB; if (r < 1) return;
+    var n = 2 * r + 1, inv = 1 / n, x, y, o;
+    for (var pass = 0; pass < 3; pass++) {
+      for (y = 0; y < H; y++) { o = y * W; var acc = 0; for (x = -r; x <= r; x++) acc += buf[o + (x < 0 ? 0 : x >= W ? W - 1 : x)]; for (x = 0; x < W; x++) { tmp[o + x] = acc * inv; acc += buf[o + (x + r + 1 < W ? x + r + 1 : W - 1)] - buf[o + (x - r > 0 ? x - r : 0)]; } }
+      for (x = 0; x < W; x++) ACC[x] = 0;
+      for (y = -r; y <= r; y++) { o = (y < 0 ? 0 : y >= H ? H - 1 : y) * W; for (x = 0; x < W; x++) ACC[x] += tmp[o + x]; }
+      for (y = 0; y < H; y++) { o = y * W; var oa = (y + r + 1 < H ? y + r + 1 : H - 1) * W, ob = (y - r > 0 ? y - r : 0) * W; for (x = 0; x < W; x++) { buf[o + x] = ACC[x] * inv; ACC[x] += tmp[oa + x] - tmp[ob + x]; } }
+    }
+  }
+  function sampleB(B, x, y) {   // bilinear, x,y in full-res pixels
+    if (B.w === PW) return B.d[(y | 0) * PW + (x | 0)];
+    var fx = (x + 0.5) * B.w / PW - 0.5, fy = (y + 0.5) * B.h / PH - 0.5, x0 = fx < 0 ? 0 : fx | 0, y0 = fy < 0 ? 0 : fy | 0, x1 = x0 + 1 < B.w ? x0 + 1 : x0, y1 = y0 + 1 < B.h ? y0 + 1 : y0, tx = fx - x0, ty = fy - y0; if (tx < 0) tx = 0; if (ty < 0) ty = 0;
+    var d = B.d, W = B.w; return (d[y0 * W + x0] * (1 - tx) + d[y0 * W + x1] * tx) * (1 - ty) + (d[y1 * W + x0] * (1 - tx) + d[y1 * W + x1] * tx) * ty;
+  }
+  var E0 = mkBuf(1), EB = mkBuf(0.5), EH = mkBuf(0.2);
+  var focus = RM.gaussian(0, 0.1);
+  for (var s0 = 0; s0 < SEG.length; s0 += 9) {
+    var z = Math.abs(SEG[s0 + 6] - focus), zz = clamp(z / 0.9, 0, NL - 1.001), l0 = Math.floor(zz), f = zz - l0, d0 = SEG[s0 + 7], ac = SEG[s0 + 8];
+    var x1 = SEG[s0], y1 = SEG[s0 + 1], r1 = SEG[s0 + 2], x2 = SEG[s0 + 3], y2 = SEG[s0 + 4], r2 = SEG[s0 + 5];
+    if (f < 0.98) capsule(LAY[l0], x1, y1, r1, x2, y2, r2, d0 * (1 - f));
+    if (f > 0.02) capsule(LAY[l0 + 1], x1, y1, r1, x2, y2, r2, d0 * f);
+    if (ac > 0.03) {
+      if (zz < 1.2) capsule(E0, x1, y1, r1 + 0.45, x2, y2, r2 + 0.45, Math.min(1, ac) * (1 - zz / 1.2 * 0.5)); else capsule(EB, x1, y1, r1 * 1.5, x2, y2, r2 * 1.5, Math.min(1, ac) * 0.6);
+      capsule(EH, x1, y1, r1 + 1.5, x2, y2, r2 + 1.5, Math.min(1, ac) * 0.7);
+    }
+  }
+  TT('raster'); for (li = 1; li < NL; li++) blur(LAY[li], LB[li]);
+  blur(EB, 2.5); blur(EH, 9);
+  var SC = mkBuf(1), SH = mkBuf(0.2), SS = mkBuf(0.5), VB = mkBuf(1);
+  var spW = { 'Faint': 1.2, 'Steady': 1.7, 'Violent': 2.3 }[charge];
+  for (var q0 = 0; q0 < SPK.length; q0 += 7) {
+    var I0 = SPK[q0 + 4], runF = trans === 'Repeated' ? [1, 0.45, 0.22][SPK[q0 + 5]] : 1, mainC = SPK[q0 + 6];
+    var wdt = mainC ? spW * (failed ? 0.5 : 1) * (0.45 + 0.55 * I0) : spW * (0.25 + 0.75 * I0) * 0.55, am = (mainC ? 1 : 0.3 + 0.6 * I0) * runF;
+    capsule(SC, SPK[q0], SPK[q0 + 1], wdt, SPK[q0 + 2], SPK[q0 + 3], wdt, am);
+    capsule(SH, SPK[q0], SPK[q0 + 1], wdt, SPK[q0 + 2], SPK[q0 + 3], wdt, am); capsule(SS, SPK[q0], SPK[q0 + 1], wdt, SPK[q0 + 2], SPK[q0 + 3], wdt, am);
+  }
+  boutons.forEach(function (b) { if (b.hx != null) { capsule(SH, b.hx, b.hy, 6, b.hx, b.hy, 0, 0.8); capsule(SS, b.hx, b.hy, 3, b.hx, b.hy, 0, 0.7); } capsule(SH, b.x, b.y, b.r * 1.3, b.x, b.y, 0, 0.5); });
+  for (var vi = 0; vi < VES.length; vi += 3) capsule(VB, VES[vi], VES[vi + 1], VES[vi + 2], VES[vi], VES[vi + 1], 0, 1);
+  blur(SH, 11); blur(SS, 2.2);
+  var BGW = 251, BGH = 314, BN1 = new Float32Array(BGW * BGH);
+  for (var gy = 0; gy < BGH; gy++) for (var gx = 0; gx < BGW; gx++) BN1[gy * BGW + gx] = NZ.fbm(gx * 4 * 0.003, gy * 4 * 0.003, 3);
+  function bg(F, vx, vy) { var fx = vx / 4, fy = vy / 4, x0 = Math.min(BGW - 2, fx | 0), y0 = Math.min(BGH - 2, fy | 0), tx = fx - x0, ty = fy - y0, i0 = y0 * BGW + x0; return (F[i0] * (1 - tx) + F[i0 + 1] * tx) * (1 - ty) + (F[i0 + BGW] * (1 - tx) + F[i0 + BGW + 1] * tx) * ty; }
+  TT('blur');
+  var img = ctx.createImageData(PW, PH), px8 = img.data, seedI = (C.rng('px').rand() * 4294967296) >>> 0;
+  function hash(i) { i = (i ^ seedI) >>> 0; i = Math.imul(i ^ (i >>> 16), 0x7feb352d); i = Math.imul(i ^ (i >>> 15), 0x846ca68b); return ((i ^ (i >>> 16)) >>> 0) / 4294967296; }
+  var GAM = new Uint8Array(4097); for (var gi = 0; gi <= 4096; gi++) GAM[gi] = Math.round(Math.pow(gi / 4096, 1 / 2.2) * 255);
+  var dark = stain === 'Darkfield';
+  for (var y = 0; y < PH; y++) for (var x = 0; x < PW; x++) {
+    var i = y * PW + x, vx2 = x / k, vy2 = y / k, u = vx2 / VW - 0.5, v = vy2 / VH - 0.5, vig = 1 - 0.35 * (u * u + v * v) * 1.6;
+    var l0v = LAY[0].d[i], l1v = LAY[1].d[i], l2v = sampleB(LAY[2], x, y), l3v = sampleB(LAY[3], x, y);
+    var e = Math.min(1.2, (E0.d[i] + sampleB(EB, x, y) * 0.8) * 2.4), eh = sampleB(EH, x, y), sp = SC.d[i], halo = sampleB(SH, x, y), soft = sampleB(SS, x, y), ves = VB.d[i], n1 = bg(BN1, vx2, vy2);
+    var r, g, b;
+    if (dark) {   // darkfield: structure scatters cool light out of black; the consequence is warm
+      var od = l0v * 1.0 + l1v * 0.8 + l2v * 0.42 + l3v * 0.26, S = 1 - Math.exp(-1.7 * od);
+      var b0 = 0.0022 + 0.0016 * n1;
+      r = (b0 + S * 0.44) * vig; g = (b0 + S * 0.47) * vig; b = (b0 * 1.25 + S * 0.51) * vig;
+      var ee = Math.min(1, e); r = r * (1 - 0.35 * ee) + ee * 1.0 + eh * 0.42; g = g * (1 - 0.35 * ee) + ee * 0.6 + eh * 0.19; b = b * (1 - 0.35 * ee) + ee * 0.28 + eh * 0.06;
+      r += sp * 1.05 + soft * 0.5 + halo * 0.55 + ves * 0.75; g += sp * 0.96 + soft * 0.33 + halo * 0.26 + ves * 0.48; b += sp * 0.82 + soft * 0.17 + halo * 0.08 + ves * 0.22;
+    } else {      // brightfield: graphite structure on neutral light; the consequence is a vermilion stain
+      var odb = l0v * 2.5 + l1v * 2.05 + l2v * 1.35 + l3v * 1.0, ee2 = Math.min(1, e), os = odb * (1 - 0.72 * ee2), re = ee2 * 1.7 + eh * 0.3, rs = sp * 1.4 + soft * 0.3 + ves * 0.9;
+      var bgl = (0.93 + 0.012 * n1) * (0.94 + 0.06 * vig);
+      r = bgl * Math.exp(-(os + re * 0.08 + rs * 0.06)); g = bgl * Math.exp(-(os + re * 1.0 + rs * 1.15)); b = (bgl - 0.01) * Math.exp(-(os * 1.04 + re * 1.25 + rs * 1.4));
+    }
+    if (Q && Q.get('showword') && WM[(vy2 / GS | 0) * GW + (vx2 / GS | 0)]) { g *= 0.6; b *= 0.4; r = r * 0.8 + 0.15; }
+    var gn = (hash(i * 7 + 3) + hash(i * 13 + 5) - 1) * 5;
+    px8[i * 4] = GAM[clamp(r * 4096, 0, 4096) | 0] + gn; px8[i * 4 + 1] = GAM[clamp(g * 4096, 0, 4096) | 0] + gn; px8[i * 4 + 2] = GAM[clamp(b * 4096, 0, 4096) | 0] + gn; px8[i * 4 + 3] = 255;
+  }
+  TT('shade'); ctx.putImageData(img, 0, 0);
+  if (window.__dbg) { var mx = 0, ng = 0; for (var q9 = 0; q9 < ACT.length; q9++) { mx = Math.max(mx, ACT[q9]); if (inG[q9] > 0.5) ng++; } console.log('word', JSON.stringify(TXT.bb.map(Math.round)), em|0, 'glyphNodes', ng, 'actMax', mx.toFixed(2), 'attr', AX.length); }
+  if (window.__dbg) console.log(JSON.stringify({ post: RT.x.length, pre: PT.x.length, boutons: boutons.map(function (b) { return [b.hit, b.hitNode]; }), segs: SEG.length / 9 }));
+  C.plottable = false;
+  C.done(cv.canvas, 'twenty-nanometres-v3');
+})();

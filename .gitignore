@@ -1,0 +1,16 @@
+node_modules/
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.mp4
+*.mov
+*.zip
+*.tgz
+out/
+renders/
+review/
+_archive/
+.env*
+.DS_Store

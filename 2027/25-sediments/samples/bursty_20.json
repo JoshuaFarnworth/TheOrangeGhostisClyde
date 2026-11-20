@@ -1,0 +1,221 @@
+{
+ "N": 20,
+ "hash": "0x1ff8dd188c2dac42ed335ff865407f99ce17537c14cff6feacfac7bd9fcc4caf",
+ "ms": 12407,
+ "features": {
+  "World": "The Lick (default, pending choice)",
+  "Era": "Prologue: the mammoth summer",
+  "World Date": "28,000 BCE",
+  "Surface": "Grazing: Bison",
+  "Before This Mint": "Minutes",
+  "Mints Beneath": 19,
+  "Remains In View": "None",
+  "Deepest State": "No Remains In View",
+  "Clock": "Real Rates",
+  "History": "Snapshot",
+  "Depth Shown": "7.3 m"
+ },
+ "sed": {
+  "N": 20,
+  "world": "A",
+  "zoom": 1,
+  "window": [
+   12.861749286297709,
+   16
+  ],
+  "repeats": 8,
+  "thick": [
+   [
+    9,
+    0,
+    "silt",
+    0.97
+   ],
+   [
+    7,
+    0,
+    "silt",
+    0.821
+   ],
+   [
+    1,
+    0,
+    "sand",
+    0.771
+   ],
+   [
+    2,
+    0,
+    "silt",
+    0.646
+   ],
+   [
+    4,
+    0,
+    "sand",
+    0.32
+   ],
+   [
+    8,
+    0,
+    "mud",
+    0.282
+   ],
+   [
+    3,
+    0,
+    "mud",
+    0.208
+   ],
+   [
+    6,
+    0,
+    "sand",
+    0.127
+   ]
+  ],
+  "events": [
+   [
+    1,
+    "graze",
+    -28000,
+    "prologue",
+    "mammoth"
+   ],
+   [
+    2,
+    "graze",
+    -28000,
+    "prologue",
+    "horse"
+   ],
+   [
+    3,
+    "quiet",
+    -28000,
+    "prologue",
+    ""
+   ],
+   [
+    4,
+    "graze",
+    -28000,
+    "prologue",
+    "horse"
+   ],
+   [
+    5,
+    "drought",
+    -28000,
+    "prologue",
+    ""
+   ],
+   [
+    6,
+    "drought",
+    -28000,
+    "prologue",
+    ""
+   ],
+   [
+    7,
+    "drought",
+    -28000,
+    "prologue",
+    ""
+   ],
+   [
+    8,
+    "drought",
+    -28000,
+    "prologue",
+    ""
+   ],
+   [
+    9,
+    "drought",
+    -28000,
+    "prologue",
+    ""
+   ],
+   [
+    10,
+    "drought",
+    -28000,
+    "prologue",
+    ""
+   ],
+   [
+    11,
+    "graze",
+    -28000,
+    "prologue",
+    "bison"
+   ],
+   [
+    12,
+    "graze",
+    -28000,
+    "prologue",
+    "mammoth"
+   ],
+   [
+    13,
+    "graze",
+    -28000,
+    "prologue",
+    "bison"
+   ],
+   [
+    14,
+    "graze",
+    -28000,
+    "prologue",
+    "wolf"
+   ],
+   [
+    15,
+    "graze",
+    -28000,
+    "prologue",
+    "bison"
+   ],
+   [
+    16,
+    "quiet",
+    -28000,
+    "prologue",
+    ""
+   ],
+   [
+    17,
+    "graze",
+    -28000,
+    "prologue",
+    "bison"
+   ],
+   [
+    18,
+    "graze",
+    -28000,
+    "prologue",
+    "mammoth"
+   ],
+   [
+    19,
+    "flood",
+    -28000,
+    "prologue",
+    ""
+   ],
+   [
+    20,
+    "graze",
+    -28000,
+    "prologue",
+    "bison"
+   ]
+  ],
+  "remains": []
+ }
+}

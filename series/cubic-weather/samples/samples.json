@@ -1,0 +1,434 @@
+[
+ {
+  "i": 0,
+  "hash": "0xb9f66bae638755f16c6c025d9aaa59f5f89951c178bd9d55721ee52222ba5bc7",
+  "ms": 109,
+  "features": {
+   "Palette": "Mohr White",
+   "Attractor": "Clifford",
+   "Solid": "Cube",
+   "Alphabet": "Dense",
+   "Weather": "Clear",
+   "Marks": "Many"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 1,
+  "hash": "0xab3a2f14b573a37bfda9677ec0546ff133020304e5bf0b88e3198e92291d59bd",
+  "ms": 204,
+  "features": {
+   "Palette": "Negative",
+   "Attractor": "Clifford",
+   "Solid": "Cube",
+   "Alphabet": "Sparse signs",
+   "Weather": "Storm",
+   "Marks": "Few"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 2,
+  "hash": "0x81912a7f2fdbdc4f0f9bee46db9d5d5422bffc09863b675bc9a3846db162383f",
+  "ms": 209,
+  "features": {
+   "Palette": "Signal Red",
+   "Attractor": "Svensson",
+   "Solid": "Hypercube",
+   "Alphabet": "Half cube",
+   "Weather": "Storm",
+   "Marks": "Swarm"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 3,
+  "hash": "0xe515859914a7797e708576a6595cd67f7a772f9d9493d1db2941379fa108197c",
+  "ms": 147,
+  "features": {
+   "Palette": "Graphite",
+   "Attractor": "Clifford",
+   "Solid": "Cube",
+   "Alphabet": "Sparse signs",
+   "Weather": "Haze",
+   "Marks": "Swarm"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 4,
+  "hash": "0x0ed2f9ee70786da0f0eba1b8e7b3fd9b87f8832e34b2d3d9743e036c2dabecd5",
+  "ms": 156,
+  "features": {
+   "Palette": "Signal Red",
+   "Attractor": "de Jong",
+   "Solid": "Hypercube",
+   "Alphabet": "Dense",
+   "Weather": "Haze",
+   "Marks": "Swarm"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 5,
+  "hash": "0xea1c9547225ca06d7cfe245b7e556349f9be1b254aa02a7738b4ac739becffd1",
+  "ms": 281,
+  "features": {
+   "Palette": "Mohr White",
+   "Attractor": "de Jong",
+   "Solid": "Hypercube",
+   "Alphabet": "Sparse signs",
+   "Weather": "Storm",
+   "Marks": "Many"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 6,
+  "hash": "0xc620586bd79bde86d836b79064a8dac5d379aa99fa111b082e67e689df77b5b7",
+  "ms": 108,
+  "features": {
+   "Palette": "Graphite",
+   "Attractor": "Svensson",
+   "Solid": "Cube",
+   "Alphabet": "Sparse signs",
+   "Weather": "Clear",
+   "Marks": "Swarm"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 7,
+  "hash": "0x6b8fa7064eb627b6b33f9c464c1de594be50c39d26ebfaa8d516ce89a357f468",
+  "ms": 173,
+  "features": {
+   "Palette": "Mohr White",
+   "Attractor": "Clifford",
+   "Solid": "Cube",
+   "Alphabet": "Sparse signs",
+   "Weather": "Haze",
+   "Marks": "Few"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 8,
+  "hash": "0xd2ada50c64ce0b349a49660b4d46af9e92d206605ed903016be088de40bbd6f1",
+  "ms": 149,
+  "features": {
+   "Palette": "Graphite",
+   "Attractor": "Clifford",
+   "Solid": "Cube",
+   "Alphabet": "Half cube",
+   "Weather": "Haze",
+   "Marks": "Few"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 9,
+  "hash": "0xca9188887937ea042d95a4446768439ad2923bbf4e0557de6bf0a7f2eebcf79c",
+  "ms": 145,
+  "features": {
+   "Palette": "Mohr White",
+   "Attractor": "de Jong",
+   "Solid": "Cube",
+   "Alphabet": "Dense",
+   "Weather": "Haze",
+   "Marks": "Swarm"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 10,
+  "hash": "0x283536f003d094af5802f3b2e5b208cab1b2972e4e2aa61cfb42ee5b6e1c34f6",
+  "ms": 129,
+  "features": {
+   "Palette": "Negative",
+   "Attractor": "Svensson",
+   "Solid": "Cube",
+   "Alphabet": "Sparse signs",
+   "Weather": "Haze",
+   "Marks": "Many"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 11,
+  "hash": "0x10c6c2ebc1b7f53974a4b6881e73f3489f705df5a72025b0b6f55c443de94ebb",
+  "ms": 150,
+  "features": {
+   "Palette": "Mohr White",
+   "Attractor": "Clifford",
+   "Solid": "Hypercube",
+   "Alphabet": "Half cube",
+   "Weather": "Haze",
+   "Marks": "Many"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 12,
+  "hash": "0xcf6be757da32b000304f786ff21a541684df0464d6d38fd07014a79937d84bb6",
+  "ms": 130,
+  "features": {
+   "Palette": "Mohr White",
+   "Attractor": "de Jong",
+   "Solid": "Cube",
+   "Alphabet": "Half cube",
+   "Weather": "Haze",
+   "Marks": "Many"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 13,
+  "hash": "0x843b87e8801eaad2079e82abf42c5b7d61c2af9485e180e4e3f25171d07d1ee1",
+  "ms": 107,
+  "features": {
+   "Palette": "Signal Red",
+   "Attractor": "Clifford",
+   "Solid": "Hypercube",
+   "Alphabet": "Dense",
+   "Weather": "Clear",
+   "Marks": "Many"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 14,
+  "hash": "0x59568515fe895acd54e1e1491820fcf182f06a8b20ccb0ce32d467b866924be1",
+  "ms": 135,
+  "features": {
+   "Palette": "Signal Red",
+   "Attractor": "de Jong",
+   "Solid": "Cube",
+   "Alphabet": "Dense",
+   "Weather": "Haze",
+   "Marks": "Swarm"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 15,
+  "hash": "0x5c9664a304f874bd942ffe267fa85893a27ad7fc08e00afd6f03a763ec928cda",
+  "ms": 177,
+  "features": {
+   "Palette": "Graphite",
+   "Attractor": "Svensson",
+   "Solid": "Cube",
+   "Alphabet": "Sparse signs",
+   "Weather": "Storm",
+   "Marks": "Few"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 16,
+  "hash": "0xcfeb7514c24fde3c7839ba1226ba9af0da8b9da0ab8818c846743cbf5f6e61c9",
+  "ms": 140,
+  "features": {
+   "Palette": "Graphite",
+   "Attractor": "de Jong",
+   "Solid": "Cube",
+   "Alphabet": "Dense",
+   "Weather": "Haze",
+   "Marks": "Many"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 17,
+  "hash": "0x01eecd11784b3b834b0ca29181f7e8430c4716fe9d53f983b85c855e0595078f",
+  "ms": 132,
+  "features": {
+   "Palette": "Signal Red",
+   "Attractor": "de Jong",
+   "Solid": "Cube",
+   "Alphabet": "Sparse signs",
+   "Weather": "Haze",
+   "Marks": "Many"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 18,
+  "hash": "0x6a40be98f44b7089c3e2c35df5da36965eb272591d55cf5ef151515ff0211611",
+  "ms": 134,
+  "features": {
+   "Palette": "Graphite",
+   "Attractor": "Svensson",
+   "Solid": "Cube",
+   "Alphabet": "Half cube",
+   "Weather": "Haze",
+   "Marks": "Swarm"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 19,
+  "hash": "0x68152fc56444c7bc0d27a216f32fd67229aa1fd8fb9ae7899afa8d8493032c77",
+  "ms": 178,
+  "features": {
+   "Palette": "Mohr White",
+   "Attractor": "Clifford",
+   "Solid": "Cube",
+   "Alphabet": "Dense",
+   "Weather": "Storm",
+   "Marks": "Many"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 20,
+  "hash": "0x02ffe41160d5f75fec293ef3d83600cf8ebb5278e71fbbf3cbef09614bb6b52c",
+  "ms": 138,
+  "features": {
+   "Palette": "Graphite",
+   "Attractor": "Clifford",
+   "Solid": "Cube",
+   "Alphabet": "Sparse signs",
+   "Weather": "Haze",
+   "Marks": "Many"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 21,
+  "hash": "0x25b0af164a7e866baf57145958b28c5b3f0ad3239b238a480c9c7e9e84bb416e",
+  "ms": 193,
+  "features": {
+   "Palette": "Negative",
+   "Attractor": "Clifford",
+   "Solid": "Hypercube",
+   "Alphabet": "Sparse signs",
+   "Weather": "Storm",
+   "Marks": "Many"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 22,
+  "hash": "0x5a093291eccfdd05146431dd609964a17f7d0bfa777512d6f90e52c627940145",
+  "ms": 145,
+  "features": {
+   "Palette": "Mohr White",
+   "Attractor": "de Jong",
+   "Solid": "Cube",
+   "Alphabet": "Dense",
+   "Weather": "Haze",
+   "Marks": "Many"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 23,
+  "hash": "0xce6dd36775ec40b405a9e4cbb72cab3f4f400242ffc6f5694f31008a86f2ae45",
+  "ms": 102,
+  "features": {
+   "Palette": "Mohr White",
+   "Attractor": "de Jong",
+   "Solid": "Cube",
+   "Alphabet": "Sparse signs",
+   "Weather": "Clear",
+   "Marks": "Swarm"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ }
+]

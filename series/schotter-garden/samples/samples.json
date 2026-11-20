@@ -1,0 +1,458 @@
+[
+ {
+  "i": 0,
+  "hash": "0x3ca6fa8cfc0a80aaedfd1810bb7067053e456bc53f8bda6dee30f166aec3a6e4",
+  "ms": 6594,
+  "features": {
+   "Palette": "Sepia Plot",
+   "Grid": "7 columns",
+   "Drift": "Top to Bottom",
+   "Chemistry": "Coral",
+   "Hatch": "Diagonal",
+   "Tremor": "Classic",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 1,
+  "hash": "0x5319c738b3effe89c541f7fdda386d898cc842877db291570c358a4d648fdbfa",
+  "ms": 6835,
+  "features": {
+   "Palette": "Stuttgart",
+   "Grid": "9 columns",
+   "Drift": "Top to Bottom",
+   "Chemistry": "Fingerprint to Maze",
+   "Hatch": "Horizontal",
+   "Tremor": "Classic",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 2,
+  "hash": "0xdd57ad84074ab74237c66ffb9cb8dd8f7392587b47cb970247644b6ba489c477",
+  "ms": 6686,
+  "features": {
+   "Palette": "Sepia Plot",
+   "Grid": "8 columns",
+   "Drift": "Centre Outward",
+   "Chemistry": "Worms to Coral",
+   "Hatch": "Horizontal",
+   "Tremor": "Classic",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 3,
+  "hash": "0xeaa6ab7cb0664b60ef40966601bcb0e31188181d74b01dedf50c5828b03da433",
+  "ms": 7491,
+  "features": {
+   "Palette": "Graphite & Ochre",
+   "Grid": "7 columns",
+   "Drift": "Centre Outward",
+   "Chemistry": "Mitosis to Coral",
+   "Hatch": "Diagonal",
+   "Tremor": "Violent",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 4,
+  "hash": "0x88d9fabe0b0ae8e38e1769fdc204afa48e867dce70facd3c650cde3ed39260c4",
+  "ms": 7178,
+  "features": {
+   "Palette": "Graphite & Ochre",
+   "Grid": "8 columns",
+   "Drift": "Top to Bottom",
+   "Chemistry": "Fingerprint to Mitosis",
+   "Hatch": "Horizontal",
+   "Tremor": "Violent",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 5,
+  "hash": "0x188f1930cf0629b3f96c39958f7646fd33ca519814ddb3f6eb40142c92088989",
+  "ms": 7141,
+  "features": {
+   "Palette": "Blueprint Ink",
+   "Grid": "7 columns",
+   "Drift": "Centre Outward",
+   "Chemistry": "Coral to Maze",
+   "Hatch": "Horizontal",
+   "Tremor": "Classic",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 6,
+  "hash": "0xca3ed4bea5a91aba171bf1ebbe3e1bd37df983dd44dec3cb32f570c047e12594",
+  "ms": 7043,
+  "features": {
+   "Palette": "Stuttgart",
+   "Grid": "6 columns",
+   "Drift": "Bottom to Top",
+   "Chemistry": "Mitosis to Coral",
+   "Hatch": "Horizontal",
+   "Tremor": "Violent",
+   "Stray": "Yes"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 7,
+  "hash": "0xb9158f21aa2cd71bd50587bb273ad52b49e2b107f525b6dbc4da674956ee0fa1",
+  "ms": 7378,
+  "features": {
+   "Palette": "Night Plot",
+   "Grid": "6 columns",
+   "Drift": "Left to Right",
+   "Chemistry": "Fingerprint to Mitosis",
+   "Hatch": "Horizontal",
+   "Tremor": "Violent",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 8,
+  "hash": "0x357c9a3557b70f7befb027c1e327e2254a7195b4f347e456d9ada5446c805265",
+  "ms": 7205,
+  "features": {
+   "Palette": "Blueprint Ink",
+   "Grid": "7 columns",
+   "Drift": "Top to Bottom",
+   "Chemistry": "Worms to Coral",
+   "Hatch": "Diagonal",
+   "Tremor": "Gentle",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 9,
+  "hash": "0x5cb8977ac45b4f39e5edc33b5283db697213742fcec4c2379377b4c42831f384",
+  "ms": 6816,
+  "features": {
+   "Palette": "Blueprint Ink",
+   "Grid": "6 columns",
+   "Drift": "Centre Outward",
+   "Chemistry": "Maze to Holes",
+   "Hatch": "Horizontal",
+   "Tremor": "Classic",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 10,
+  "hash": "0x96ad42c40f212b58647ffc72a198aa8cc11f2ec2dc7ae369f8ea819d0dd37074",
+  "ms": 7316,
+  "features": {
+   "Palette": "Stuttgart",
+   "Grid": "9 columns",
+   "Drift": "Top to Bottom",
+   "Chemistry": "Coral to Maze",
+   "Hatch": "Diagonal",
+   "Tremor": "Gentle",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 11,
+  "hash": "0x291e7a66dc96a606f2eab05d7cb82eab474c77111473a9328f130468ca4b11b6",
+  "ms": 7524,
+  "features": {
+   "Palette": "Verdigris",
+   "Grid": "6 columns",
+   "Drift": "Left to Right",
+   "Chemistry": "Fingerprint to Mitosis",
+   "Hatch": "None",
+   "Tremor": "Classic",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 12,
+  "hash": "0x0677c231de4fe79de685a774908aeb0a8285afa5026464b5d5d3a16b013240c1",
+  "ms": 7464,
+  "features": {
+   "Palette": "Sepia Plot",
+   "Grid": "9 columns",
+   "Drift": "Top to Bottom",
+   "Chemistry": "Coral to Maze",
+   "Hatch": "Diagonal",
+   "Tremor": "Gentle",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 13,
+  "hash": "0x7f4a9bbb88571da280dadda3b4c4107129d4c6a8f976e6421dd93aefaeb334d0",
+  "ms": 7967,
+  "features": {
+   "Palette": "Stuttgart",
+   "Grid": "9 columns",
+   "Drift": "Top to Bottom",
+   "Chemistry": "Fingerprint to Mitosis",
+   "Hatch": "Horizontal",
+   "Tremor": "Gentle",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 14,
+  "hash": "0x03776b68495c26ea197129b0f65cd20b2ad14bf645b3a430b337e375502030ac",
+  "ms": 7028,
+  "features": {
+   "Palette": "Stuttgart",
+   "Grid": "6 columns",
+   "Drift": "Left to Right",
+   "Chemistry": "Fingerprint to Maze",
+   "Hatch": "Horizontal",
+   "Tremor": "Classic",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 15,
+  "hash": "0xe99cc0d26d46ba28bfc5ee012db6b7f71af4b2fed86939dd9b93083250345794",
+  "ms": 7742,
+  "features": {
+   "Palette": "Verdigris",
+   "Grid": "9 columns",
+   "Drift": "Top to Bottom",
+   "Chemistry": "Coral to Maze",
+   "Hatch": "Diagonal",
+   "Tremor": "Classic",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 16,
+  "hash": "0x896f91f3767a286bf8c3f27320f380711e1414313b2579b8c9eb02485cccf6aa",
+  "ms": 6891,
+  "features": {
+   "Palette": "Verdigris",
+   "Grid": "7 columns",
+   "Drift": "Top to Bottom",
+   "Chemistry": "Coral",
+   "Hatch": "Horizontal",
+   "Tremor": "Classic",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 17,
+  "hash": "0x1938abca245716fbfcdfb7021423d1c272613716670055fe759bbc8eb2b29b3f",
+  "ms": 7124,
+  "features": {
+   "Palette": "Blueprint Ink",
+   "Grid": "7 columns",
+   "Drift": "Left to Right",
+   "Chemistry": "Coral",
+   "Hatch": "Diagonal",
+   "Tremor": "Classic",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 18,
+  "hash": "0x8534e34c9a0356bb0e73394ef9d494ed56c087a42f3450010171287cbbfe8fac",
+  "ms": 7086,
+  "features": {
+   "Palette": "Blueprint Ink",
+   "Grid": "7 columns",
+   "Drift": "Centre Outward",
+   "Chemistry": "Coral",
+   "Hatch": "Horizontal",
+   "Tremor": "Gentle",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 19,
+  "hash": "0xe074ec16049723a045044eea4910ea713cdce34f87bd6c99bbc29bbb8f0fcf67",
+  "ms": 7207,
+  "features": {
+   "Palette": "Stuttgart",
+   "Grid": "8 columns",
+   "Drift": "Centre Outward",
+   "Chemistry": "Coral to Maze",
+   "Hatch": "Horizontal",
+   "Tremor": "Classic",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 20,
+  "hash": "0xc0d0567ad815c119d0db52e65a2026df8802d3bbdbf859bd558872d2b4f1c5f7",
+  "ms": 7511,
+  "features": {
+   "Palette": "Stuttgart",
+   "Grid": "7 columns",
+   "Drift": "Left to Right",
+   "Chemistry": "Fingerprint to Mitosis",
+   "Hatch": "Horizontal",
+   "Tremor": "Classic",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 21,
+  "hash": "0xdd64c5059096502e721adb316386fcd0bbbcb5622dd3899b5b8edc9c2b1dcb45",
+  "ms": 7168,
+  "features": {
+   "Palette": "Graphite & Ochre",
+   "Grid": "8 columns",
+   "Drift": "Top to Bottom",
+   "Chemistry": "Holes to Worms",
+   "Hatch": "Horizontal",
+   "Tremor": "Classic",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 22,
+  "hash": "0x09019f7290566cffda179da7aba273420315c3d92f084a93904c492c7b6398b1",
+  "ms": 8581,
+  "features": {
+   "Palette": "Night Plot",
+   "Grid": "9 columns",
+   "Drift": "Left to Right",
+   "Chemistry": "Mitosis to Coral",
+   "Hatch": "Diagonal",
+   "Tremor": "Violent",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ },
+ {
+  "i": 23,
+  "hash": "0xc77e975803815b360bc7609c5d36230487cfef99c49e6c9cce5314dc8874a3d6",
+  "ms": 7315,
+  "features": {
+   "Palette": "Blueprint Ink",
+   "Grid": "8 columns",
+   "Drift": "Left to Right",
+   "Chemistry": "Maze to Holes",
+   "Hatch": "None",
+   "Tremor": "Violent",
+   "Stray": "No"
+  },
+  "platform": "standalone",
+  "aleaFeatures": null,
+  "aleaReady": false,
+  "fxFeatures": null,
+  "errors": []
+ }
+]
